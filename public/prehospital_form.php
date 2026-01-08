@@ -1556,8 +1556,8 @@ $current_user = get_auth_user();
             const sidebarLinks = document.querySelectorAll('.sidebar a[href]');
 
             sidebarLinks.forEach(link => {
-                // Skip the TONYANG.php link itself
-                if (link.href.includes('TONYANG.php')) {
+                // Skip the prehospital_form.php link itself
+                if (link.href.includes('prehospital_form.php')) {
                     return;
                 }
 
@@ -1623,7 +1623,7 @@ $current_user = get_auth_user();
         manualSaveBtn.type = 'button';
         manualSaveBtn.className = 'btn btn-sm btn-outline-secondary';
         manualSaveBtn.innerHTML = '<i class="bi bi-floppy"></i> Save Draft Now';
-        manualSaveBtn.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
+        manualSaveBtn.style.cssText = 'position: fixed; bottom: 90px; right: 20px; z-index: 1001; box-shadow: 0 4px 12px rgba(0,0,0,0.15); background: white; border: 1px solid #6c757d;';
         manualSaveBtn.onclick = () => {
             // Enable autosave when manually saving
             if (!autosaveEnabled) {
