@@ -1618,12 +1618,38 @@ $current_user = get_auth_user();
             });
         });
 
-        // Manual save button
+        // Manual save button - positioned in top-right, below navbar
         const manualSaveBtn = document.createElement('button');
         manualSaveBtn.type = 'button';
         manualSaveBtn.className = 'btn btn-sm btn-outline-secondary';
         manualSaveBtn.innerHTML = '<i class="bi bi-floppy"></i> Save Draft Now';
-        manualSaveBtn.style.cssText = 'position: fixed; bottom: 90px; right: 20px; z-index: 1001; box-shadow: 0 4px 12px rgba(0,0,0,0.15); background: white; border: 1px solid #6c757d;';
+        manualSaveBtn.style.cssText = `
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1001;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background: white;
+            border: 2px solid #6c757d;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        `;
+
+        // Add hover effect
+        manualSaveBtn.addEventListener('mouseenter', () => {
+            manualSaveBtn.style.background = '#f8f9fa';
+            manualSaveBtn.style.transform = 'translateY(-2px)';
+            manualSaveBtn.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
+        });
+
+        manualSaveBtn.addEventListener('mouseleave', () => {
+            manualSaveBtn.style.background = 'white';
+            manualSaveBtn.style.transform = 'translateY(0)';
+            manualSaveBtn.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+        });
+
         manualSaveBtn.onclick = () => {
             // Enable autosave when manually saving
             if (!autosaveEnabled) {
