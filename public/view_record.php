@@ -45,6 +45,7 @@ $current_user = get_auth_user();
     <title>View Record - <?php echo e($record['form_number']); ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
     <style>
         * {
             margin: 0;
@@ -864,5 +865,58 @@ $current_user = get_auth_user();
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
+    <script>
+        // Configure Notiflix
+        Notiflix.Notify.init({
+            width: '320px',
+            position: 'right-top',
+            distance: '15px',
+            timeout: 3000,
+            fontSize: '15px',
+            cssAnimationStyle: 'from-right',
+            success: {
+                background: '#28a745',
+                textColor: '#fff',
+                notiflixIconColor: '#fff',
+            },
+            failure: {
+                background: '#dc3545',
+                textColor: '#fff',
+                notiflixIconColor: '#fff',
+            },
+            warning: {
+                background: '#ffc107',
+                textColor: '#333',
+                notiflixIconColor: '#333',
+            },
+            info: {
+                background: '#0066cc',
+                textColor: '#fff',
+                notiflixIconColor: '#fff',
+            },
+        });
+
+        // Show flash messages with Notiflix
+        document.addEventListener('DOMContentLoaded', function() {
+            <?php if (isset($_SESSION['flash_message'])): ?>
+                <?php
+                $flash = $_SESSION['flash_message'];
+                $type = $flash['type'];
+                $message = htmlspecialchars($flash['message'], ENT_QUOTES, 'UTF-8');
+                unset($_SESSION['flash_message']);
+                ?>
+                <?php if ($type === 'success'): ?>
+                    Notiflix.Notify.success('<?php echo $message; ?>', { timeout: 3000 });
+                <?php elseif ($type === 'error'): ?>
+                    Notiflix.Notify.failure('<?php echo $message; ?>', { timeout: 4000 });
+                <?php elseif ($type === 'warning'): ?>
+                    Notiflix.Notify.warning('<?php echo $message; ?>', { timeout: 3500 });
+                <?php else: ?>
+                    Notiflix.Notify.info('<?php echo $message; ?>', { timeout: 3000 });
+                <?php endif; ?>
+            <?php endif; ?>
+        });
+    </script>
 </body>
 </html>

@@ -92,6 +92,7 @@ $records = $stmt->fetchAll();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
     <link href="css/records-style.css" rel="stylesheet">
 </head>
 <body>
@@ -390,6 +391,7 @@ $records = $stmt->fetchAll();
     </button>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
     <script>
     // Skeleton Loader
     document.addEventListener('DOMContentLoaded', function() {
@@ -442,33 +444,66 @@ $records = $stmt->fetchAll();
 
     // Delete record
     function deleteRecord(id) {
-        if (confirm('🗑️ Are you sure you want to delete this record?\n\nThis action cannot be undone.')) {
-            fetch('api/delete_record.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ id: id })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('✓ Record deleted successfully');
-                    location.reload();
-                } else {
-                    alert('✗ Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                alert('✗ Error deleting record');
-                console.error('Error:', error);
-            });
-        }
+        Notiflix.Confirm.show(
+            'Delete Record',
+            'Are you sure you want to delete this record? This action cannot be undone.',
+            'Yes, Delete',
+            'Cancel',
+            function okCb() {
+                // Show loading
+                Notiflix.Loading.standard('Deleting record...');
+
+                fetch('../api/delete_record.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ id: id })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Remove loading
+                    Notiflix.Loading.remove();
+
+                    if (data.success) {
+                        Notiflix.Notify.success('Record deleted successfully!', {
+                            timeout: 2000,
+                        });
+                        setTimeout(() => {
+                            location.reload();
+                        }, 500);
+                    } else {
+                        Notiflix.Notify.failure('Error: ' + data.message, {
+                            timeout: 3000,
+                        });
+                    }
+                })
+                .catch(error => {
+                    // Remove loading
+                    Notiflix.Loading.remove();
+
+                    Notiflix.Notify.failure('Error deleting record. Please try again.', {
+                        timeout: 3000,
+                    });
+                    console.error('Error:', error);
+                });
+            },
+            function cancelCb() {
+                // User cancelled
+            },
+            {
+                width: '350px',
+                borderRadius: '8px',
+                titleColor: '#dc3545',
+                okButtonBackground: '#dc3545',
+                okButtonColor: '#fff',
+            }
+        );
     }
 
     // Export to CSV
     function exportToCSV() {
-        window.location.href = 'api/export_records.php?search=<?php echo urlencode($search); ?>&status=<?php echo urlencode($status_filter); ?>&date_from=<?php echo urlencode($date_from); ?>&date_to=<?php echo urlencode($date_to); ?>';
+        window.location.href = '../api/export_records.php?search=<?php echo urlencode($search); ?>&status=<?php echo urlencode($status_filter); ?>&date_from=<?php echo urlencode($date_from); ?>&date_to=<?php echo urlencode($date_to); ?>';
     }
     </script>
 </body>

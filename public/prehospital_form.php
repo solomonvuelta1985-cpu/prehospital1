@@ -1622,7 +1622,7 @@ $current_user = get_auth_user();
         const manualSaveBtn = document.createElement('button');
         manualSaveBtn.type = 'button';
         manualSaveBtn.className = 'btn btn-sm btn-outline-secondary';
-        manualSaveBtn.innerHTML = '<i class="bi bi-floppy"></i> Save Draft Now';
+        manualSaveBtn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill" style="font-size: 1.1rem; margin-right: 6px;"></i> Save Draft Now';
         manualSaveBtn.style.cssText = `
             position: fixed;
             top: 80px;
@@ -1630,22 +1630,29 @@ $current_user = get_auth_user();
             z-index: 1001;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             background: white;
-            border: 2px solid #6c757d;
-            padding: 8px 16px;
+            color: #0066cc;
+            border: 2px solid #0066cc;
+            padding: 10px 20px;
             border-radius: 8px;
             font-weight: 600;
+            font-size: 0.95rem;
             transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         `;
 
         // Add hover effect
         manualSaveBtn.addEventListener('mouseenter', () => {
-            manualSaveBtn.style.background = '#f8f9fa';
+            manualSaveBtn.style.background = '#0066cc';
+            manualSaveBtn.style.color = 'white';
             manualSaveBtn.style.transform = 'translateY(-2px)';
-            manualSaveBtn.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
+            manualSaveBtn.style.boxShadow = '0 6px 16px rgba(0,102,204,0.3)';
         });
 
         manualSaveBtn.addEventListener('mouseleave', () => {
             manualSaveBtn.style.background = 'white';
+            manualSaveBtn.style.color = '#0066cc';
             manualSaveBtn.style.transform = 'translateY(0)';
             manualSaveBtn.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
         });

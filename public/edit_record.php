@@ -60,7 +60,7 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
-    <link href="css/tonyang-form.css" rel="stylesheet">
+    <link href="css/prehospital-form.css" rel="stylesheet">
     <style>
         /* Sidebar Layout Compatibility Fixes */
         body {
@@ -210,7 +210,7 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
             </ul>
         </div>
 
-        <?php show_flash(); ?>
+        <?php // Flash messages now handled by Notiflix - see JavaScript below ?>
 
         <form id="editForm" class="form-body" method="POST" action="../api/update_record.php">
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
@@ -1212,13 +1212,34 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
-    <script src="js/tonyang-form.js"></script>
+    <script src="js/prehospital-form.js"></script>
     <script>
         // Remove loading class after page loads
         window.addEventListener('load', function() {
             setTimeout(function() {
                 document.body.classList.remove('loading');
             }, 800);
+        });
+
+        // Show flash messages with Notiflix
+        document.addEventListener('DOMContentLoaded', function() {
+            <?php if (isset($_SESSION['flash_message'])): ?>
+                <?php
+                $flash = $_SESSION['flash_message'];
+                $type = $flash['type'];
+                $message = htmlspecialchars($flash['message'], ENT_QUOTES, 'UTF-8');
+                unset($_SESSION['flash_message']);
+                ?>
+                <?php if ($type === 'success'): ?>
+                    Notiflix.Notify.success('<?php echo $message; ?>', { timeout: 3000 });
+                <?php elseif ($type === 'error'): ?>
+                    Notiflix.Notify.failure('<?php echo $message; ?>', { timeout: 4000 });
+                <?php elseif ($type === 'warning'): ?>
+                    Notiflix.Notify.warning('<?php echo $message; ?>', { timeout: 3500 });
+                <?php else: ?>
+                    Notiflix.Notify.info('<?php echo $message; ?>', { timeout: 3000 });
+                <?php endif; ?>
+            <?php endif; ?>
         });
 
         // Configure Notiflix
@@ -1308,10 +1329,23 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                 'Yes, Update',
                 'Cancel',
                 function okCb() {
+                    // Show loading indicator
+                    Notiflix.Loading.standard('Updating record...', {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                    });
+
+                    // Submit the form
                     document.getElementById('editForm').submit();
                 },
                 function cancelCb() {
                     // Do nothing
+                },
+                {
+                    width: '350px',
+                    borderRadius: '8px',
+                    titleColor: '#0066cc',
+                    okButtonBackground: '#0066cc',
+                    okButtonColor: '#fff',
                 }
             );
         }
