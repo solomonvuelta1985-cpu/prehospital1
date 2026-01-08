@@ -33,7 +33,7 @@ $current_user = get_auth_user();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
-    <link href="css/tonyang-form.css" rel="stylesheet">
+    <link href="css/prehospital-form.css" rel="stylesheet">
     <style>
         /* Sidebar Layout Compatibility Fixes */
         body {
@@ -187,10 +187,12 @@ $current_user = get_auth_user();
 
         <?php show_flash(); ?>
 
-        <form id="preHospitalForm" class="form-body" method="POST" action="../api/TONYANG_save.php">
+        <form id="preHospitalForm" class="form-body" method="POST" action="../api/save_prehospital_form.php">
             <!-- CSRF Token -->
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
-            
+            <!-- Draft ID (populated when resuming a draft) -->
+            <input type="hidden" name="draft_id" id="draftIdField" value="">
+
             <div class="tab-content" id="formTabContent">
                 <!-- Section 1: Basic Information -->
                 <div class="tab-pane fade show active" id="section1" role="tabpanel">
@@ -280,7 +282,7 @@ $current_user = get_auth_user();
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="arrStation" class="form-label">Arrival at Station</label>
-                                <input type="time" class="form-control" id="arrStation" name="arrival_station">
+                                <input type="time" class="form-control" id="arrStation" name="arrival_station_time">
                             </div>
                             <div>
                                 <label for="driver" class="form-label">Driver</label>
@@ -910,7 +912,7 @@ $current_user = get_auth_user();
                                 </div>
                                 <div>
                                     <label for="timeOfDelivery" class="form-label">Delivery Time</label>
-                                    <input type="time" class="form-control" id="timeOfDelivery" name="delivery_time">
+                                    <input type="time" class="form-control" id="timeOfDelivery" name="ob_delivery_time">
                                 </div>
                                 <div>
                                     <label class="form-label">Placenta</label>
@@ -1126,7 +1128,7 @@ $current_user = get_auth_user();
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
-    <script src="js/tonyang-form.js"></script>
+    <script src="js/prehospital-form.js"></script>
     <script>
         // Configure Notiflix
         Notiflix.Notify.init({
@@ -1218,6 +1220,420 @@ $current_user = get_auth_user();
                 console.log('Loading class removed. Skeleton hidden.');
             }, 3000); // Extended delay to see skeleton effect
         });
+
+        // ============================================
+        // AUTOSAVE FUNCTIONALITY
+        // ============================================
+        let autosaveTimer = null;
+        let currentDraftId = null;
+        let lastSaveTime = null;
+        let isFormDirty = false;
+        let autosaveEnabled = false; // Prevent autosave on page load
+
+        // Check URL for draft_id parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const resumeDraftId = urlParams.get('draft_id');
+        if (resumeDraftId) {
+            currentDraftId = resumeDraftId;
+            loadDraft(resumeDraftId);
+        }
+
+        // Function to collect all form data
+        function collectFormData() {
+            const form = document.getElementById('preHospitalForm');
+            const formData = new FormData(form);
+            const data = {};
+
+            // Convert FormData to plain object
+            for (let [key, value] of formData.entries()) {
+                if (key.endsWith('[]')) {
+                    const cleanKey = key.slice(0, -2);
+                    if (!data[cleanKey]) {
+                        data[cleanKey] = [];
+                    }
+                    data[cleanKey].push(value);
+                } else {
+                    data[key] = value;
+                }
+            }
+
+            // Add draft_id if exists
+            if (currentDraftId) {
+                data.draft_id = currentDraftId;
+            }
+
+            return data;
+        }
+
+        // Function to check if form has meaningful data
+        function hasFormData() {
+            const data = collectFormData();
+
+            // Check if any non-hidden, non-csrf fields have values
+            for (let key in data) {
+                if (key === 'csrf_token' || key === 'draft_id') continue;
+
+                const value = data[key];
+                // Check if value exists and is not empty
+                if (value && value !== '' && value !== '[]' && value.length > 0) {
+                    // If it's an array, check if it has elements
+                    if (Array.isArray(value) && value.length > 0) {
+                        return true;
+                    }
+                    // If it's a non-empty string
+                    if (typeof value === 'string' && value.trim() !== '') {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        // Function to perform autosave
+        function performAutosave() {
+            if (!autosaveEnabled) {
+                console.log('Autosave skipped: autosave not yet enabled (waiting for user interaction)');
+                return;
+            }
+
+            if (!isFormDirty) {
+                console.log('Autosave skipped: form not dirty');
+                return;
+            }
+
+            // Check if form has any actual data
+            if (!hasFormData()) {
+                console.log('Autosave skipped: no meaningful data entered yet');
+                isFormDirty = false; // Reset dirty flag
+                return;
+            }
+
+            console.log('Performing autosave...');
+            const data = collectFormData();
+            console.log('Form data collected:', data);
+
+            // Show saving indicator
+            Notiflix.Loading.circle('Saving draft...', {
+                svgColor: '#0066cc',
+                backgroundColor: 'rgba(0,0,0,0.8)',
+            });
+
+            fetch('../api/autosave_draft.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                console.log('Autosave response status:', response.status);
+                return response.json();
+            })
+            .then(result => {
+                console.log('Autosave result:', result);
+                console.log('Draft ID received from server:', result.draft_id);
+                console.log('Form number:', result.form_number);
+                Notiflix.Loading.remove();
+
+                if (result.success) {
+                    // Always update currentDraftId if we get one back
+                    if (result.draft_id) {
+                        const oldDraftId = currentDraftId;
+                        if (!currentDraftId || currentDraftId !== result.draft_id) {
+                            currentDraftId = result.draft_id;
+                            // Update URL without reload
+                            const newUrl = window.location.pathname + '?draft_id=' + currentDraftId;
+                            window.history.replaceState({}, '', newUrl);
+                            // Also update the hidden field
+                            document.getElementById('draftIdField').value = currentDraftId;
+                            console.log('Draft ID UPDATED: from', oldDraftId, 'to', currentDraftId);
+                            console.log('Form number:', result.form_number);
+                            console.log('URL updated to:', newUrl);
+                            console.log('Hidden field value:', document.getElementById('draftIdField').value);
+                        } else {
+                            console.log('Draft ID unchanged:', currentDraftId);
+                        }
+                    } else {
+                        console.error('ERROR: No draft_id in response!');
+                    }
+
+                    lastSaveTime = new Date();
+                    isFormDirty = false;
+
+                    // Show subtle success toast with draft link
+                    const message = 'Draft saved at ' + result.timestamp + ' (ID: ' + result.draft_id + ')';
+                    Notiflix.Notify.success(message, {
+                        timeout: 3000,
+                        position: 'right-bottom',
+                        distance: '15px',
+                        fontSize: '13px',
+                    });
+
+                    // Log for debugging
+                    console.log('✓ DRAFT SAVED SUCCESSFULLY');
+                    console.log('  Draft ID:', result.draft_id);
+                    console.log('  Form Number:', result.form_number);
+                    console.log('  View at: drafts.php');
+                } else {
+                    console.error('Autosave failed:', result.message);
+                    Notiflix.Notify.failure('Failed to save draft: ' + result.message, {
+                        timeout: 3000,
+                    });
+                }
+            })
+            .catch(error => {
+                Notiflix.Loading.remove();
+                console.error('Autosave error:', error);
+                Notiflix.Notify.warning('Auto-save failed. Your progress is not saved.', {
+                    timeout: 4000,
+                });
+            });
+        }
+
+        // Function to load draft data
+        function loadDraft(draftId) {
+            Notiflix.Loading.circle('Loading draft...', {
+                svgColor: '#0066cc',
+            });
+
+            fetch(`../api/get_draft.php?id=${draftId}`)
+                .then(response => response.json())
+                .then(result => {
+                    Notiflix.Loading.remove();
+
+                    if (result.success && result.data) {
+                        populateForm(result.data);
+                        // Set the draft_id in the hidden field so it updates on submit
+                        document.getElementById('draftIdField').value = draftId;
+                        Notiflix.Report.success(
+                            'Draft Loaded',
+                            'Your previous work has been restored. Continue where you left off!',
+                            'Continue Editing'
+                        );
+                    } else {
+                        Notiflix.Report.failure(
+                            'Load Failed',
+                            result.message || 'Could not load draft',
+                            'Okay'
+                        );
+                    }
+                })
+                .catch(error => {
+                    Notiflix.Loading.remove();
+                    console.error('Load draft error:', error);
+                    Notiflix.Report.failure(
+                        'Error',
+                        'Failed to load draft data',
+                        'Okay'
+                    );
+                });
+        }
+
+        // Function to populate form with draft data
+        function populateForm(data) {
+            // Text inputs
+            for (let key in data) {
+                const input = document.querySelector(`[name="${key}"]`);
+                if (input) {
+                    if (input.type === 'radio') {
+                        const radio = document.querySelector(`[name="${key}"][value="${data[key]}"]`);
+                        if (radio) radio.checked = true;
+                    } else if (input.type === 'checkbox') {
+                        // Handle JSON arrays
+                        try {
+                            const values = JSON.parse(data[key]);
+                            if (Array.isArray(values)) {
+                                values.forEach(val => {
+                                    const checkbox = document.querySelector(`[name="${key}[]"][value="${val}"]`);
+                                    if (checkbox) checkbox.checked = true;
+                                });
+                            }
+                        } catch (e) {
+                            // Single checkbox
+                            input.checked = !!data[key];
+                        }
+                    } else {
+                        // Handle time fields - don't populate if value is 00:00:00 or null
+                        if (input.type === 'time') {
+                            const timeValue = data[key];
+                            // Only set value if it's not null, empty, or 00:00:00
+                            if (timeValue && timeValue !== '00:00:00' && timeValue !== '0000-00-00 00:00:00') {
+                                input.value = timeValue;
+                            }
+                        } else if (input.type === 'date' || input.type === 'datetime-local') {
+                            const dateValue = data[key];
+                            // Only set value if it's not null, empty, or 0000-00-00
+                            if (dateValue && dateValue !== '0000-00-00' && dateValue !== '0000-00-00 00:00:00') {
+                                input.value = dateValue;
+                            }
+                        } else {
+                            // Regular input - set value or empty string
+                            input.value = data[key] || '';
+                        }
+                    }
+                }
+            }
+        }
+
+        // Initialize autosave listeners after page loads
+        function initializeAutosave() {
+            const formInputs = document.querySelectorAll('#preHospitalForm input, #preHospitalForm select, #preHospitalForm textarea');
+            console.log('Initializing autosave for', formInputs.length, 'form fields');
+
+            formInputs.forEach(input => {
+                // Skip CSRF token and draft_id fields
+                if (input.name === 'csrf_token' || input.name === 'draft_id') {
+                    return;
+                }
+
+                input.addEventListener('change', () => {
+                    console.log('Field changed:', input.name);
+
+                    // Enable autosave after first user interaction
+                    if (!autosaveEnabled) {
+                        autosaveEnabled = true;
+                        console.log('Autosave enabled after first user interaction');
+                    }
+
+                    isFormDirty = true;
+
+                    // Clear existing timer
+                    if (autosaveTimer) {
+                        clearTimeout(autosaveTimer);
+                    }
+
+                    // Set new timer (autosave after 3 seconds of inactivity)
+                    autosaveTimer = setTimeout(() => {
+                        performAutosave();
+                    }, 3000);
+                });
+
+                // Also trigger on input for text fields (more responsive)
+                if (input.type === 'text' || input.type === 'textarea' || input.tagName === 'TEXTAREA') {
+                    input.addEventListener('input', () => {
+                        console.log('Field input:', input.name);
+
+                        // Enable autosave after first user interaction
+                        if (!autosaveEnabled) {
+                            autosaveEnabled = true;
+                            console.log('Autosave enabled after first user interaction');
+                        }
+
+                        isFormDirty = true;
+
+                        if (autosaveTimer) {
+                            clearTimeout(autosaveTimer);
+                        }
+
+                        autosaveTimer = setTimeout(() => {
+                            performAutosave();
+                        }, 5000); // Longer delay for typing
+                    });
+                }
+            });
+        }
+
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeAutosave);
+        } else {
+            // DOM already loaded
+            initializeAutosave();
+        }
+
+        // Save before leaving page
+        window.addEventListener('beforeunload', (e) => {
+            if (isFormDirty && hasFormData()) {
+                e.preventDefault();
+                e.returnValue = 'You have unsaved work in progress. Your data has been auto-saved as a draft.';
+                // Perform synchronous save
+                performAutosave();
+            }
+        });
+
+        // Intercept sidebar links to show draft continuation prompt
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarLinks = document.querySelectorAll('.sidebar a[href]');
+
+            sidebarLinks.forEach(link => {
+                // Skip the TONYANG.php link itself
+                if (link.href.includes('TONYANG.php')) {
+                    return;
+                }
+
+                link.addEventListener('click', function(e) {
+                    // Check if form has unsaved data
+                    if (isFormDirty && hasFormData()) {
+                        e.preventDefault();
+                        const targetUrl = this.href;
+
+                        Notiflix.Confirm.show(
+                            'Continue or Discard Draft?',
+                            'You have unsaved work in progress. What would you like to do?',
+                            'Continue Later',
+                            'Discard & Leave',
+                            function() {
+                                // Continue Later - save draft and navigate
+                                isFormDirty = true;
+                                fetch('../api/autosave_draft.php', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify(collectFormData())
+                                })
+                                .then(response => response.json())
+                                .then(result => {
+                                    if (result.success) {
+                                        Notiflix.Notify.success('Draft saved! You can resume from "My Drafts"', {
+                                            timeout: 3000
+                                        });
+                                        setTimeout(() => {
+                                            window.location.href = targetUrl;
+                                        }, 1000);
+                                    } else {
+                                        window.location.href = targetUrl;
+                                    }
+                                })
+                                .catch(() => {
+                                    window.location.href = targetUrl;
+                                });
+                            },
+                            function() {
+                                // Discard - just navigate away
+                                Notiflix.Notify.warning('Draft discarded', {
+                                    timeout: 2000
+                                });
+                                setTimeout(() => {
+                                    window.location.href = targetUrl;
+                                }, 500);
+                            },
+                            {
+                                width: '400px',
+                                titleColor: '#0066cc',
+                                okButtonBackground: '#28a745',
+                                cancelButtonBackground: '#dc3545',
+                            }
+                        );
+                    }
+                });
+            });
+        });
+
+        // Manual save button
+        const manualSaveBtn = document.createElement('button');
+        manualSaveBtn.type = 'button';
+        manualSaveBtn.className = 'btn btn-sm btn-outline-secondary';
+        manualSaveBtn.innerHTML = '<i class="bi bi-floppy"></i> Save Draft Now';
+        manualSaveBtn.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
+        manualSaveBtn.onclick = () => {
+            // Enable autosave when manually saving
+            if (!autosaveEnabled) {
+                autosaveEnabled = true;
+                console.log('Autosave enabled by manual save button');
+            }
+            isFormDirty = true;
+            performAutosave();
+        };
+        document.body.appendChild(manualSaveBtn);
     </script>
 </body>
 </html>

@@ -162,11 +162,11 @@ fputcsv($output, ['Total Records', count($records)]);
 $total = count($records);
 $completed = count(array_filter($records, fn($r) => $r['status'] === 'completed'));
 $draft = count(array_filter($records, fn($r) => $r['status'] === 'draft'));
-$pending = count(array_filter($records, fn($r) => $r['status'] === 'pending'));
+$archived = count(array_filter($records, fn($r) => $r['status'] === 'archived'));
 
 fputcsv($output, ['Completed Forms', $completed]);
 fputcsv($output, ['Draft Forms', $draft]);
-fputcsv($output, ['Pending Forms', $pending]);
+fputcsv($output, ['Archived Forms', $archived]);
 
 fputcsv($output, []); // Empty row
 fputcsv($output, ['Generated on', date('Y-m-d H:i:s')]);

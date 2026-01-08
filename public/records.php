@@ -171,7 +171,7 @@ $records = $stmt->fetchAll();
                 <input type="text" id="searchInput" placeholder="🔍 Search records..." onkeyup="searchRecords()">
             </div>
             <div class="action-buttons">
-                <a href="TONYANG.php" class="btn-custom btn-primary-custom">
+                <a href="prehospital_form.php" class="btn-custom btn-primary-custom">
                     <i class="fas fa-plus"></i> Add New Record
                 </a>
                 <button onclick="exportToCSV()" class="btn-custom btn-success-custom">
@@ -282,7 +282,7 @@ $records = $stmt->fetchAll();
                                 <div class="empty-state">
                                     <i class="fas fa-inbox"></i>
                                     <p style="color: #6c757d; margin-top: 15px;">No records found.</p>
-                                    <a href="TONYANG.php" class="btn-custom btn-primary-custom" style="margin-top: 15px;">
+                                    <a href="prehospital_form.php" class="btn-custom btn-primary-custom" style="margin-top: 15px;">
                                         <i class="fas fa-plus"></i> Create First Record
                                     </a>
                                 </div>
@@ -325,6 +325,12 @@ $records = $stmt->fetchAll();
                                     </span>
                                 </td>
                                 <td>
+                                    <?php if ($record['status'] === 'draft'): ?>
+                                        <a href="prehospital_form.php?draft_id=<?php echo $record['id']; ?>"
+                                           class="btn btn-table btn-success" title="Resume Draft" style="background: #28a745; color: white; border-color: #28a745;">
+                                            <i class="fas fa-play"></i> Resume
+                                        </a>
+                                    <?php endif; ?>
                                     <a href="view_record.php?id=<?php echo $record['id']; ?>"
                                        class="btn btn-table btn-view" title="View">
                                         <i class="fas fa-eye"></i>

@@ -669,7 +669,7 @@ $archived_count = (int)$archived_count_stmt->fetch()['count'];
                         <p class="page-subtitle">Here's what's happening with your pre-hospital care records</p>
                     </div>
                     <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                        <a href="TONYANG.php" class="btn btn-primary">
+                        <a href="prehospital_form.php" class="btn btn-primary">
                             <i class="bi bi-plus-circle me-2"></i>Create New Form
                         </a>
                     </div>
@@ -806,7 +806,7 @@ $archived_count = (int)$archived_count_stmt->fetch()['count'];
             <h2 class="section-title">Quick Actions</h2>
             <div class="row g-3 g-md-4 mb-4">
                 <div class="col-6 col-md-3">
-                    <a href="TONYANG.php" class="action-card">
+                    <a href="prehospital_form.php" class="action-card">
                         <div class="action-card-icon">
                             <i class="bi bi-plus-circle"></i>
                         </div>
@@ -864,7 +864,7 @@ $archived_count = (int)$archived_count_stmt->fetch()['count'];
                                 </div>
                                 <div class="empty-state-title">No activity yet</div>
                                 <div class="empty-state-description">You haven't created any forms yet. Get started by creating your first pre-hospital care form.</div>
-                                <a href="TONYANG.php" class="btn btn-primary mt-2">
+                                <a href="prehospital_form.php" class="btn btn-primary mt-2">
                                     <i class="bi bi-plus-circle me-2"></i>Create Your First Form
                                 </a>
                             </div>

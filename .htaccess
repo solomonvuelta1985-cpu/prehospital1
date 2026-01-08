@@ -1,3 +1,9 @@
+# Enable PHP error logging
+php_flag display_errors On
+php_flag log_errors On
+php_value error_log "C:/xampp/htdocs/123/php_error.log"
+php_value error_reporting 32767
+
 # Enable rewrite engine
 RewriteEngine On
 

@@ -105,11 +105,36 @@ if (count($name_parts) >= 2) {
         <li class="sidebar-divider"></li>
         <li class="sidebar-heading">Pre-Hospital Care</li>
         <li>
-            <a href="<?= $base_path ?>TONYANG.php"
-               class="<?php echo ($current_page === 'TONYANG.php') ? 'active' : ''; ?>"
+            <a href="<?= $base_path ?>prehospital_form.php"
+               class="<?php echo ($current_page === 'prehospital_form.php') ? 'active' : ''; ?>"
                title="New Form">
                 <span class="material-icons">add_circle</span>
                 <span>New Form</span>
+            </a>
+        </li>
+        <li>
+            <a href="<?= $base_path ?>drafts.php"
+               class="<?php echo ($current_page === 'drafts.php') ? 'active' : ''; ?>"
+               title="Resume Draft">
+                <span class="material-icons">edit_note</span>
+                <span>Resume Draft</span>
+                <?php
+                // Get draft count for current user
+                try {
+                    if (isset($current_user['id'])) {
+                        $draft_count_result = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND status = 'draft'", [$current_user['id']]);
+                        $draft_count_data = $draft_count_result->fetch();
+                        $draft_count = $draft_count_data ? (int)$draft_count_data['count'] : 0;
+                        if ($draft_count > 0):
+                ?>
+                    <span style="margin-left: auto; background: #dc3545; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: 600;"><?= $draft_count ?></span>
+                <?php
+                        endif;
+                    }
+                } catch (Exception $e) {
+                    // Silently fail if there's a database error
+                }
+                ?>
             </a>
         </li>
         <li>

@@ -10,7 +10,7 @@ require_once '../includes/auth.php';
 
 // Redirect if already logged in
 if (is_logged_in()) {
-    redirect('TONYANG.php');
+    redirect('dashboard.php');
 }
 
 // Handle login form submission
@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = login_user($username, $password, $recaptcha_response);
 
         if ($result['success']) {
-            redirect('TONYANG.php');
+            redirect('dashboard.php');
         } else {
             set_flash($result['message'], 'error');
         }

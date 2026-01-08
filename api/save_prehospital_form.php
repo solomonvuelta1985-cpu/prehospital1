@@ -285,61 +285,37 @@ try {
     
     // Get current user ID
     $created_by = $_SESSION['user_id'];
-    
+
     // Limit check - prevent huge inserts
     $injuries_data = isset($_POST['injuries']) ? json_decode($_POST['injuries'], true) : [];
     if (count($injuries_data) > 100) {
         throw new Exception('Too many injuries marked (max 100)');
     }
-    
-    // Insert main form
-    $sql = "INSERT INTO prehospital_forms (
-        form_number, form_date, departure_time, arrival_time, vehicle_used, vehicle_details, driver_name,
-        arrival_scene_location, arrival_scene_time, departure_scene_location, departure_scene_time,
-        arrival_hospital_name, arrival_hospital_time, departure_hospital_location, departure_hospital_time,
-        arrival_station_time, persons_present,
-        patient_name, date_of_birth, age, gender, civil_status, address, zone, occupation,
-        place_of_incident, zone_landmark, incident_time,
-        informant_name, informant_address, arrival_type, call_arrival_time, contact_number,
-        relationship_victim, personal_belongings, other_belongings,
-        emergency_medical, emergency_medical_details, emergency_trauma, emergency_trauma_details,
-        emergency_ob, emergency_ob_details, emergency_general, emergency_general_details,
-        care_management, oxygen_lpm, other_care,
-        initial_time, initial_bp, initial_temp, initial_pulse, initial_resp_rate, initial_pain_score,
-        initial_spo2, initial_spinal_injury, initial_consciousness, initial_helmet,
-        followup_time, followup_bp, followup_temp, followup_pulse, followup_resp_rate, followup_pain_score,
-        followup_spo2, followup_spinal_injury, followup_consciousness,
-        chief_complaints, other_complaints,
-        fast_face_drooping, fast_arm_weakness, fast_speech_difficulty, fast_time_to_call, fast_sample_details,
-        ob_baby_status, ob_delivery_time, ob_placenta, ob_lmp, ob_aog, ob_edc,
-        team_leader_notes, team_leader, data_recorder, logistic, first_aider, second_aider,
-        endorsement, hospital_name, received_by, endorsement_datetime, endorsement_attachment,
-        created_by, status
-    ) VALUES (
-        ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?,
-        ?, ?, ?, ?,
-        ?, ?,
-        ?, ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?,
-        ?, ?, ?, ?, ?,
-        ?, ?, ?,
-        ?, ?, ?, ?,
-        ?, ?, ?, ?,
-        ?, ?, ?,
-        ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?,
-        ?, ?, ?,
-        ?, ?,
-        ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?,
-        ?, 'completed'
-    )";
 
-    $params = [
+    // Check if we're updating an existing draft
+    $draft_id = isset($_POST['draft_id']) && !empty($_POST['draft_id']) ? (int)$_POST['draft_id'] : null;
+    $is_updating_draft = false;
+
+    if ($draft_id) {
+        // Verify this draft belongs to the current user and is actually a draft
+        $verify_sql = "SELECT id, form_number FROM prehospital_forms WHERE id = ? AND created_by = ? AND status = 'draft'";
+        $verify_stmt = db_query($verify_sql, [$draft_id, $created_by]);
+        $existing_draft = $verify_stmt->fetch();
+
+        if ($existing_draft) {
+            $is_updating_draft = true;
+            $form_number = $existing_draft['form_number']; // Keep the same form number
+        } else {
+            // Draft not found or doesn't belong to user - generate new form number
+            $form_number = 'PHC-' . date('Ymd') . '-' . strtoupper(bin2hex(random_bytes(4)));
+        }
+    } else {
+        // No draft_id - generate new form number
+        $form_number = 'PHC-' . date('Ymd') . '-' . strtoupper(bin2hex(random_bytes(4)));
+    }
+
+    // Prepare common parameters
+    $common_params = [
         $form_number, $form_date, $departure_time, $arrival_time, $vehicle_used, $vehicle_details, $driver_name,
         $arrival_scene_location, $arrival_scene_time, $departure_scene_location, $departure_scene_time,
         $arrival_hospital_name, $arrival_hospital_time, $departure_hospital_location, $departure_hospital_time,
@@ -359,17 +335,101 @@ try {
         $fast_face_drooping, $fast_arm_weakness, $fast_speech_difficulty, $fast_time_to_call, $fast_sample_details,
         $ob_baby_status, $ob_delivery_time, $ob_placenta, $ob_lmp, $ob_aog, $ob_edc,
         $team_leader_notes, $team_leader, $data_recorder, $logistic, $first_aider, $second_aider,
-        $endorsement, $hospital_name, $received_by, $endorsement_datetime, $endorsement_attachment,
-        $created_by
+        $endorsement, $hospital_name, $received_by, $endorsement_datetime, $endorsement_attachment
     ];
-    
-    $stmt = db_query($sql, $params);
-    
-    if (!$stmt) {
-        throw new Exception('Failed to save form data');
+
+    if ($is_updating_draft) {
+        // UPDATE existing draft to completed status
+        $sql = "UPDATE prehospital_forms SET
+            form_number = ?, form_date = ?, departure_time = ?, arrival_time = ?, vehicle_used = ?, vehicle_details = ?, driver_name = ?,
+            arrival_scene_location = ?, arrival_scene_time = ?, departure_scene_location = ?, departure_scene_time = ?,
+            arrival_hospital_name = ?, arrival_hospital_time = ?, departure_hospital_location = ?, departure_hospital_time = ?,
+            arrival_station_time = ?, persons_present = ?,
+            patient_name = ?, date_of_birth = ?, age = ?, gender = ?, civil_status = ?, address = ?, zone = ?, occupation = ?,
+            place_of_incident = ?, zone_landmark = ?, incident_time = ?,
+            informant_name = ?, informant_address = ?, arrival_type = ?, call_arrival_time = ?, contact_number = ?,
+            relationship_victim = ?, personal_belongings = ?, other_belongings = ?,
+            emergency_medical = ?, emergency_medical_details = ?, emergency_trauma = ?, emergency_trauma_details = ?,
+            emergency_ob = ?, emergency_ob_details = ?, emergency_general = ?, emergency_general_details = ?,
+            care_management = ?, oxygen_lpm = ?, other_care = ?,
+            initial_time = ?, initial_bp = ?, initial_temp = ?, initial_pulse = ?, initial_resp_rate = ?, initial_pain_score = ?,
+            initial_spo2 = ?, initial_spinal_injury = ?, initial_consciousness = ?, initial_helmet = ?,
+            followup_time = ?, followup_bp = ?, followup_temp = ?, followup_pulse = ?, followup_resp_rate = ?, followup_pain_score = ?,
+            followup_spo2 = ?, followup_spinal_injury = ?, followup_consciousness = ?,
+            chief_complaints = ?, other_complaints = ?,
+            fast_face_drooping = ?, fast_arm_weakness = ?, fast_speech_difficulty = ?, fast_time_to_call = ?, fast_sample_details = ?,
+            ob_baby_status = ?, ob_delivery_time = ?, ob_placenta = ?, ob_lmp = ?, ob_aog = ?, ob_edc = ?,
+            team_leader_notes = ?, team_leader = ?, data_recorder = ?, logistic = ?, first_aider = ?, second_aider = ?,
+            endorsement = ?, hospital_name = ?, received_by = ?, endorsement_datetime = ?, endorsement_attachment = ?,
+            status = 'completed',
+            updated_at = NOW()
+            WHERE id = ? AND created_by = ?";
+
+        $params = array_merge($common_params, [$draft_id, $created_by]);
+        $stmt = db_query($sql, $params);
+
+        if (!$stmt) {
+            throw new Exception('Failed to update draft to completed');
+        }
+
+        $form_id = $draft_id; // Use the existing draft ID
+    } else {
+        // INSERT new form
+        $sql = "INSERT INTO prehospital_forms (
+            form_number, form_date, departure_time, arrival_time, vehicle_used, vehicle_details, driver_name,
+            arrival_scene_location, arrival_scene_time, departure_scene_location, departure_scene_time,
+            arrival_hospital_name, arrival_hospital_time, departure_hospital_location, departure_hospital_time,
+            arrival_station_time, persons_present,
+            patient_name, date_of_birth, age, gender, civil_status, address, zone, occupation,
+            place_of_incident, zone_landmark, incident_time,
+            informant_name, informant_address, arrival_type, call_arrival_time, contact_number,
+            relationship_victim, personal_belongings, other_belongings,
+            emergency_medical, emergency_medical_details, emergency_trauma, emergency_trauma_details,
+            emergency_ob, emergency_ob_details, emergency_general, emergency_general_details,
+            care_management, oxygen_lpm, other_care,
+            initial_time, initial_bp, initial_temp, initial_pulse, initial_resp_rate, initial_pain_score,
+            initial_spo2, initial_spinal_injury, initial_consciousness, initial_helmet,
+            followup_time, followup_bp, followup_temp, followup_pulse, followup_resp_rate, followup_pain_score,
+            followup_spo2, followup_spinal_injury, followup_consciousness,
+            chief_complaints, other_complaints,
+            fast_face_drooping, fast_arm_weakness, fast_speech_difficulty, fast_time_to_call, fast_sample_details,
+            ob_baby_status, ob_delivery_time, ob_placenta, ob_lmp, ob_aog, ob_edc,
+            team_leader_notes, team_leader, data_recorder, logistic, first_aider, second_aider,
+            endorsement, hospital_name, received_by, endorsement_datetime, endorsement_attachment,
+            created_by, status
+        ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?,
+            ?, ?, ?, ?,
+            ?, ?,
+            ?, ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?,
+            ?, ?, ?, ?, ?,
+            ?, ?, ?,
+            ?, ?, ?, ?,
+            ?, ?, ?, ?,
+            ?, ?, ?,
+            ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?,
+            ?, ?, ?,
+            ?, ?,
+            ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?,
+            ?, 'completed'
+        )";
+
+        $params = array_merge($common_params, [$created_by]);
+        $stmt = db_query($sql, $params);
+
+        if (!$stmt) {
+            throw new Exception('Failed to save form data');
+        }
+
+        $form_id = $pdo->lastInsertId();
     }
-    
-    $form_id = $pdo->lastInsertId();
     
     // Insert injuries if any
     if (!empty($injuries_data) && is_array($injuries_data)) {

@@ -325,7 +325,7 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                             </div>
                             <div>
                                 <label for="arrStation" class="form-label">Arrival at Station</label>
-                                <input type="time" class="form-control" id="arrStation" name="arrival_station" 
+                                <input type="time" class="form-control" id="arrStation" name="arrival_station_time"
                                        value="<?php echo e($record['arrival_station_time']); ?>">
                             </div>
                         </div>
@@ -884,14 +884,14 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                                     <div class="body-view">
                                         <div class="view-label">FRONT VIEW</div>
                                         <div class="body-image-container" id="frontContainer">
-                                            <img src="body-front.png" alt="Body Front" class="body-image">
+                                            <img src="images/body-front.png" alt="Body Front" class="body-image">
                                         </div>
                                     </div>
 
                                     <div class="body-view">
                                         <div class="view-label">BACK VIEW</div>
                                         <div class="body-image-container" id="backContainer">
-                                            <img src="body-back.png" alt="Body Back" class="body-image">
+                                            <img src="images/body-back.png" alt="Body Back" class="body-image">
                                         </div>
                                     </div>
                                 </div>
@@ -1028,7 +1028,7 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                                 </div>
                                 <div>
                                     <label for="timeOfDelivery" class="form-label">Delivery Time</label>
-                                    <input type="time" class="form-control" id="timeOfDelivery" name="delivery_time"
+                                    <input type="time" class="form-control" id="timeOfDelivery" name="ob_delivery_time"
                                            value="<?php echo e($record['ob_delivery_time']); ?>">
                                 </div>
                                 <div>
@@ -1214,6 +1214,13 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
     <script src="js/tonyang-form.js"></script>
     <script>
+        // Remove loading class after page loads
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.body.classList.remove('loading');
+            }, 800);
+        });
+
         // Configure Notiflix
         Notiflix.Notify.init({
             width: '320px',
