@@ -59,7 +59,7 @@ $summary_sql = "
         COUNT(*) as total_forms,
         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_forms,
         SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft_forms,
-        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_forms,
+        SUM(CASE WHEN status = 'archived' THEN 1 ELSE 0 END) as archived_forms,
         SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as today_forms,
         SUM(CASE WHEN YEARWEEK(created_at) = YEARWEEK(NOW()) THEN 1 ELSE 0 END) as week_forms
     FROM prehospital_forms pf
@@ -566,7 +566,7 @@ if ($is_admin) {
                                 <option value="all" <?php echo $status_filter === 'all' ? 'selected' : ''; ?>>All</option>
                                 <option value="completed" <?php echo $status_filter === 'completed' ? 'selected' : ''; ?>>Completed</option>
                                 <option value="draft" <?php echo $status_filter === 'draft' ? 'selected' : ''; ?>>Draft</option>
-                                <option value="pending" <?php echo $status_filter === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                                <option value="archived" <?php echo $status_filter === 'archived' ? 'selected' : ''; ?>>Archived</option>
                             </select>
                         </div>
                         <?php if ($is_admin): ?>
@@ -632,17 +632,17 @@ if ($is_admin) {
                 </div>
                 <div class="stat-card orange">
                     <div class="stat-icon">
-                        <i class="bi bi-clock-history"></i>
-                    </div>
-                    <p class="stat-value"><?php echo number_format($summary['pending_forms']); ?></p>
-                    <p class="stat-label">Pending Forms</p>
-                </div>
-                <div class="stat-card red">
-                    <div class="stat-icon">
                         <i class="bi bi-file-earmark-text"></i>
                     </div>
                     <p class="stat-value"><?php echo number_format($summary['draft_forms']); ?></p>
                     <p class="stat-label">Draft Forms</p>
+                </div>
+                <div class="stat-card red">
+                    <div class="stat-icon">
+                        <i class="bi bi-archive"></i>
+                    </div>
+                    <p class="stat-value"><?php echo number_format($summary['archived_forms']); ?></p>
+                    <p class="stat-label">Archived Forms</p>
                 </div>
             </div>
 
@@ -907,17 +907,17 @@ if ($is_admin) {
         new Chart(statusCtx, {
             type: 'doughnut',
             data: {
-                labels: ['Completed', 'Draft', 'Pending'],
+                labels: ['Completed', 'Draft', 'Archived'],
                 datasets: [{
                     data: [
                         <?php echo $summary['completed_forms']; ?>,
                         <?php echo $summary['draft_forms']; ?>,
-                        <?php echo $summary['pending_forms']; ?>
+                        <?php echo $summary['archived_forms']; ?>
                     ],
                     backgroundColor: [
                         '#198754',
-                        '#dc3545',
-                        '#ffc107'
+                        '#ffc107',
+                        '#dc3545'
                     ],
                     borderWidth: 0,
                     hoverOffset: 10

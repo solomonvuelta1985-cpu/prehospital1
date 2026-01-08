@@ -120,7 +120,7 @@ $current_user = get_auth_user();
         }
     </style>
 </head>
-<body>
+<body class="loading">
     <!-- Include the sidebar -->
     <?php include '../includes/sidebar.php'; ?>
 
@@ -1205,6 +1205,18 @@ $current_user = get_auth_user();
                 buttonColor: '#fff',
                 backOverlayColor: 'rgba(0,0,0,0.5)',
             },
+        });
+
+        // Log initial loading state
+        console.log('Page loading started. Body has loading class:', document.body.classList.contains('loading'));
+
+        // Remove skeleton loading once page is fully loaded
+        window.addEventListener('load', function() {
+            console.log('Page loaded. Skeleton will hide in 3 seconds...');
+            setTimeout(function() {
+                document.body.classList.remove('loading');
+                console.log('Loading class removed. Skeleton hidden.');
+            }, 3000); // Extended delay to see skeleton effect
         });
     </script>
 </body>

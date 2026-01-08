@@ -24,22 +24,60 @@ $total_forms = $total_forms_stmt->fetch()['count'];
 $today_forms_stmt = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND DATE(created_at) = CURDATE()", [$user_id]);
 $today_forms = $today_forms_stmt->fetch()['count'];
 
-$pending_forms_stmt = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND status IN ('draft', 'pending')", [$user_id]);
-$pending_forms = $pending_forms_stmt->fetch()['count'];
+$draft_forms_stmt = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND status = 'draft'", [$user_id]);
+$draft_forms = $draft_forms_stmt->fetch()['count'];
 
 $completed_forms_stmt = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND status = 'completed'", [$user_id]);
 $completed_forms = $completed_forms_stmt->fetch()['count'];
 
-// Get recent forms with creator information
-$recent_forms_stmt = db_query("
+// Get weekly statistics
+$week_start = date('Y-m-d', strtotime('monday this week'));
+$week_forms_stmt = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND form_date >= ?", [$user_id, $week_start]);
+$week_forms = $week_forms_stmt->fetch()['count'];
+
+// Get monthly statistics
+$month_start = date('Y-m-01');
+$month_forms_stmt = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND form_date >= ?", [$user_id, $month_start]);
+$month_forms = $month_forms_stmt->fetch()['count'];
+
+// Get recent activity (last 5 forms)
+$recent_activity_stmt = db_query("
     SELECT pf.*, u.full_name as created_by_name
     FROM prehospital_forms pf
     LEFT JOIN users u ON pf.created_by = u.id
     WHERE pf.created_by = ?
     ORDER BY pf.created_at DESC
-    LIMIT 10
+    LIMIT 5
 ", [$user_id]);
-$recent_forms = $recent_forms_stmt->fetchAll();
+$recent_activity = $recent_activity_stmt->fetchAll();
+
+// Get data for charts - Last 7 days
+$last_7_days = [];
+$last_7_days_data = [];
+for ($i = 6; $i >= 0; $i--) {
+    $date = date('Y-m-d', strtotime("-$i days"));
+    $label = date('M d', strtotime("-$i days"));
+    $last_7_days[] = $label;
+
+    $count_stmt = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND DATE(form_date) = ?", [$user_id, $date]);
+    $last_7_days_data[] = (int)$count_stmt->fetch()['count'];
+}
+
+// Get monthly data for the year
+$monthly_data = [];
+$monthly_labels = [];
+for ($i = 11; $i >= 0; $i--) {
+    $month = date('Y-m', strtotime("-$i months"));
+    $label = date('M Y', strtotime("-$i months"));
+    $monthly_labels[] = $label;
+
+    $count_stmt = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND DATE_FORMAT(form_date, '%Y-%m') = ?", [$user_id, $month]);
+    $monthly_data[] = (int)$count_stmt->fetch()['count'];
+}
+
+// Get status distribution (archived count)
+$archived_count_stmt = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND status = 'archived'", [$user_id]);
+$archived_count = (int)$archived_count_stmt->fetch()['count'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -49,436 +87,569 @@ $recent_forms = $recent_forms_stmt->fetchAll();
     <title>Dashboard - Pre-Hospital Care System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         :root {
-            --primary-color: #0066cc;
-            --secondary-color: #004d99;
-            --light-bg: #f8fafc;
-            --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            --card-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --primary-blue: #1e40af;
+            --primary-dark: #1e3a8a;
+            --accent-blue: #3b82f6;
+            --success-green: #059669;
+            --warning-orange: #d97706;
+            --danger-red: #dc2626;
+            --neutral-50: #f9fafb;
+            --neutral-100: #f3f4f6;
+            --neutral-200: #e5e7eb;
+            --neutral-300: #d1d5db;
+            --neutral-400: #9ca3af;
+            --neutral-500: #6b7280;
+            --neutral-600: #4b5563;
+            --neutral-700: #374151;
+            --neutral-800: #1f2937;
+            --neutral-900: #111827;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            background-color: var(--light-bg);
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            color: #334155;
+            background-color: var(--neutral-100);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: var(--neutral-800);
+            line-height: 1.6;
         }
 
-        .navbar {
+        /* Page Header */
+        .page-header {
             background: white;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--neutral-200);
+            padding: 2rem 0;
+            margin-bottom: 2rem;
         }
 
-        .navbar-brand {
-            font-weight: 600;
-            color: var(--primary-color);
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--neutral-900);
+            margin: 0 0 0.5rem 0;
+            letter-spacing: -0.025em;
         }
 
-        /* Simplified Stat Cards */
+        .page-subtitle {
+            font-size: 1rem;
+            color: var(--neutral-500);
+            margin: 0;
+        }
+
+        /* Stat Cards */
         .stat-card {
             background: white;
-            border-radius: 12px;
-            padding: 1.25rem;
-            box-shadow: var(--card-shadow);
-            border: 1px solid #f1f5f9;
-            transition: all 0.2s ease;
+            border: 1px solid var(--neutral-200);
+            border-radius: 8px;
+            padding: 1.5rem;
             height: 100%;
+            transition: all 0.2s ease;
         }
 
         .stat-card:hover {
-            box-shadow: var(--card-hover-shadow);
-            transform: translateY(-2px);
+            border-color: var(--neutral-300);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .stat-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
         }
 
         .stat-icon {
             width: 48px;
             height: 48px;
-            border-radius: 10px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
-            margin-bottom: 0.75rem;
-            background: #f8fafc;
-        }
-
-        .stat-icon.blue { color: var(--primary-color); }
-        .stat-icon.green { color: #10b981; }
-        .stat-icon.orange { color: #f59e0b; }
-        .stat-icon.purple { color: #8b5cf6; }
-
-        .stat-value {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin: 0;
-            line-height: 1.2;
-        }
-
-        .stat-label {
-            color: #64748b;
-            font-size: 0.875rem;
-            font-weight: 500;
-            margin: 0.25rem 0 0 0;
-        }
-
-        /* Clean Table Design */
-        .table-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: var(--card-shadow);
-            border: 1px solid #f1f5f9;
-        }
-
-        .table-card h5 {
-            color: #1e293b;
-            font-weight: 600;
-            margin-bottom: 1.25rem;
-            font-size: 1.125rem;
-        }
-
-        .table th {
-            font-weight: 600;
-            color: #475569;
-            font-size: 0.875rem;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 0.75rem 1rem;
-        }
-
-        .table td {
-            padding: 1rem;
-            border-bottom: 1px solid #f1f5f9;
-            vertical-align: middle;
-        }
-
-        .table tbody tr {
-            transition: background-color 0.15s ease;
-        }
-
-        .table tbody tr:hover {
-            background-color: #f8fafc;
-        }
-
-        .badge-status {
-            padding: 0.35rem 0.75rem;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        /* LARGER ACTION BUTTONS */
-        .btn-action {
-            padding: 0.6rem 0.8rem;
-            font-size: 0.9rem;
-            border-radius: 6px;
-            min-width: 44px;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-group-sm > .btn-action {
-            padding: 0.6rem 0.8rem;
-            font-size: 0.9rem;
-        }
-
-        /* Welcome Section */
-        .welcome-section {
-            background: white;
-            border-radius: 12px;
-            padding: 1.75rem;
-            margin-bottom: 1.5rem;
-            box-shadow: var(--card-shadow);
-            border: 1px solid #f1f5f9;
-        }
-
-        .welcome-section h2 {
-            color: #1e293b;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
             font-size: 1.5rem;
         }
 
-        .welcome-section p {
-            color: #64748b;
-            margin: 0;
+        .stat-icon.blue {
+            background: var(--primary-blue);
+            color: white;
         }
 
-        /* Mobile Cards for Forms */
-        .mobile-card {
-            background: white;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 0.875rem;
-            box-shadow: var(--card-shadow);
-            border: 1px solid #f1f5f9;
+        .stat-icon.green {
+            background: var(--success-green);
+            color: white;
         }
 
-        .mobile-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 0.625rem;
-            gap: 0.5rem;
+        .stat-icon.orange {
+            background: var(--warning-orange);
+            color: white;
         }
 
-        .mobile-card-title {
+        .stat-icon.red {
+            background: var(--danger-red);
+            color: white;
+        }
+
+        .stat-icon.purple {
+            background: #7c3aed;
+            color: white;
+        }
+
+        .stat-icon.teal {
+            background: #0d9488;
+            color: white;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
             font-weight: 600;
-            color: #1e293b;
-            margin: 0;
-            font-size: 0.95rem;
-            flex: 1;
+            color: var(--neutral-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
         }
 
-        .mobile-card-badge {
-            font-size: 0.7rem;
-            padding: 0.25rem 0.5rem;
-            white-space: nowrap;
+        .stat-value {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--neutral-900);
+            line-height: 1;
         }
 
-        .mobile-card-detail {
+        .stat-trend {
+            font-size: 0.875rem;
+            color: var(--neutral-500);
+            margin-top: 0.5rem;
+        }
+
+        .stat-trend.positive {
+            color: var(--success-green);
+        }
+
+        .stat-trend.negative {
+            color: var(--danger-red);
+        }
+
+        /* Action Cards */
+        .action-card {
+            background: white;
+            border: 1px solid var(--neutral-200);
+            border-radius: 8px;
+            padding: 2rem;
+            height: 100%;
+            text-align: center;
+            transition: all 0.2s ease;
+            text-decoration: none;
             display: flex;
-            margin-bottom: 0.4rem;
-            font-size: 0.85rem;
-        }
-
-        .mobile-card-label {
-            font-weight: 500;
-            color: #64748b;
-            min-width: 75px;
-            font-size: 0.8rem;
-        }
-
-        .mobile-card-value {
-            color: #334155;
-            font-size: 0.82rem;
-            flex: 1;
-            word-break: break-word;
-        }
-
-        /* LARGER MOBILE ACTION BUTTONS */
-        .mobile-card-actions {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.875rem;
-            justify-content: stretch;
-        }
-
-        .mobile-card-actions .btn-action {
-            flex: 1;
-            padding: 0.65rem 0.4rem;
-            font-size: 0.8rem;
-            min-height: 40px;
-            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
         }
 
-        /* Responsive Adjustments */
-        @media (max-width: 768px) {
-            .stat-card {
-                padding: 0.875rem;
-            }
-
-            .stat-icon {
-                width: 36px;
-                height: 36px;
-                font-size: 0.95rem;
-                margin-bottom: 0.5rem;
-            }
-
-            .stat-value {
-                font-size: 1.35rem;
-            }
-
-            .stat-label {
-                font-size: 0.75rem;
-            }
-
-            .welcome-section {
-                padding: 1rem;
-            }
-
-            .welcome-section h2 {
-                font-size: 1.15rem;
-            }
-
-            .welcome-section p {
-                font-size: 0.875rem;
-            }
-
-            .table-card {
-                padding: 0.875rem;
-            }
-
-            .table-card h5 {
-                font-size: 1rem;
-            }
-
-            .table-card .btn-sm {
-                padding: 0.4rem 0.7rem;
-                font-size: 0.75rem;
-            }
-
-            /* More compact mobile cards */
-            .mobile-card {
-                padding: 0.875rem;
-                margin-bottom: 0.75rem;
-            }
-
-            .mobile-card-title {
-                font-size: 0.9rem;
-            }
-
-            .mobile-card-label {
-                min-width: 70px;
-                font-size: 0.75rem;
-            }
-
-            .mobile-card-value {
-                font-size: 0.8rem;
-            }
-
-            .mobile-card-detail {
-                margin-bottom: 0.35rem;
-            }
-
-            .mobile-card-actions {
-                margin-top: 0.75rem;
-                gap: 0.5rem;
-            }
-
-            /* Optimized buttons on mobile */
-            .btn-action {
-                padding: 0.6rem 0.7rem;
-                font-size: 0.85rem;
-            }
-
-            .mobile-card-actions .btn-action {
-                padding: 0.6rem 0.4rem;
-                font-size: 0.8rem;
-                min-height: 38px;
-            }
+        .action-card:hover {
+            border-color: var(--primary-blue);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transform: translateY(-2px);
         }
 
-        @media (max-width: 576px) {
-            .container-fluid {
-                padding-left: 0.625rem;
-                padding-right: 0.625rem;
-            }
+        .action-card-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--neutral-100);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--primary-blue);
+        }
 
-            /* More compact stats on very small screens */
-            .stat-card {
-                padding: 0.75rem;
-            }
+        .action-card:hover .action-card-icon {
+            background: var(--primary-blue);
+            color: white;
+        }
 
-            .stat-icon {
-                width: 32px;
-                height: 32px;
-                font-size: 0.875rem;
-                margin-bottom: 0.4rem;
-            }
+        .action-card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--neutral-900);
+            margin-bottom: 0.5rem;
+        }
 
-            .stat-value {
-                font-size: 1.25rem;
-            }
+        .action-card-description {
+            font-size: 0.875rem;
+            color: var(--neutral-500);
+        }
 
-            .stat-label {
-                font-size: 0.7rem;
-            }
+        /* Recent Activity */
+        .activity-card {
+            background: white;
+            border: 1px solid var(--neutral-200);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
 
-            .welcome-section {
-                padding: 0.875rem;
-            }
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--neutral-200);
+        }
 
-            .welcome-section h2 {
-                font-size: 1.05rem;
-            }
+        .activity-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--neutral-900);
+            margin: 0;
+        }
 
-            .welcome-section p {
-                font-size: 0.8rem;
-            }
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            transition: background 0.2s ease;
+        }
 
-            /* More compact mobile cards */
-            .mobile-card {
-                padding: 0.75rem;
-            }
+        .activity-item:hover {
+            background: var(--neutral-50);
+        }
 
-            .mobile-card-actions .btn-action {
-                padding: 0.55rem 0.35rem;
-                font-size: 0.75rem;
-                min-height: 36px;
-            }
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
 
-            .mobile-card-actions .btn-action i {
-                font-size: 0.85rem;
-            }
+        .activity-icon.completed {
+            background: #d1fae5;
+            color: var(--success-green);
+        }
 
-            .btn-group-sm > .btn-action {
-                padding: 0.6rem 0.7rem;
-            }
+        .activity-icon.pending {
+            background: #fef3c7;
+            color: var(--warning-orange);
+        }
 
-            .btn-primary {
-                padding: 0.625rem 1.25rem;
-            }
+        .activity-icon.draft {
+            background: var(--neutral-100);
+            color: var(--neutral-500);
+        }
 
-            /* Better overflow handling on small screens */
-            .table-card {
-                overflow: hidden;
-            }
+        .activity-content {
+            flex: 1;
+        }
 
-            .mobile-card-title {
-                line-height: 1.3;
-            }
+        .activity-title-text {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--neutral-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-meta {
+            font-size: 0.8125rem;
+            color: var(--neutral-500);
+        }
+
+        .activity-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .activity-badge.completed {
+            background: #d1fae5;
+            color: var(--success-green);
+        }
+
+        .activity-badge.pending {
+            background: #fef3c7;
+            color: var(--warning-orange);
+        }
+
+        .activity-badge.draft {
+            background: var(--neutral-100);
+            color: var(--neutral-600);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: var(--primary-blue);
+            border: 1px solid var(--primary-blue);
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-outline-primary {
+            background: white;
+            border: 1px solid var(--neutral-300);
+            color: var(--neutral-700);
+            font-weight: 600;
+            padding: 0.625rem 1.25rem;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--neutral-50);
+            border-color: var(--neutral-400);
+            color: var(--neutral-900);
+        }
+
+        /* Section Titles */
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--neutral-900);
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.025em;
         }
 
         /* Empty State */
         .empty-state {
             text-align: center;
-            padding: 2.5rem 1rem;
-            color: #64748b;
+            padding: 3rem 1rem;
         }
 
-        .empty-state i {
-            font-size: 3rem;
+        .empty-state-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--neutral-100);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: var(--neutral-400);
+            margin: 0 auto 1.5rem;
+        }
+
+        .empty-state-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--neutral-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state-description {
+            font-size: 1rem;
+            color: var(--neutral-500);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Chart Container */
+        .chart-card {
+            background: white;
+            border: 1px solid var(--neutral-200);
+            border-radius: 8px;
+            padding: 1.5rem;
+            height: 100%;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--neutral-900);
+            margin: 0;
+        }
+
+        .chart-subtitle {
+            font-size: 0.875rem;
+            color: var(--neutral-500);
+            margin-top: 0.25rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .chart-container.pie {
+            height: 280px;
+        }
+
+        /* Analytics Cards */
+        .analytics-card {
+            background: white;
+            border: 1px solid var(--neutral-200);
+            border-radius: 8px;
+            padding: 1.25rem;
+            height: 100%;
+        }
+
+        .analytics-header {
+            display: flex;
+            align-items: center;
             margin-bottom: 1rem;
-            opacity: 0.5;
         }
 
-        /* Button Styles */
-        .btn-primary {
-            background: var(--primary-color);
-            border: none;
-            font-weight: 500;
-            padding: 0.75rem 1.5rem;
-            min-height: 44px;
+        .analytics-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-right: 1rem;
         }
 
-        .btn-primary:hover {
-            background: var(--secondary-color);
+        .analytics-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--neutral-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        .btn-outline-primary {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-            font-weight: 500;
+        .analytics-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--neutral-900);
+            margin-bottom: 0.5rem;
         }
 
-        .btn-outline-primary:hover {
-            background: var(--primary-color);
-            border-color: var(--primary-color);
+        .analytics-description {
+            font-size: 0.875rem;
+            color: var(--neutral-500);
         }
 
-        /* Ensure button group has proper spacing */
-        .btn-group {
-            gap: 0.5rem;
+        .trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
         }
 
-        .btn-group .btn-action {
-            border-radius: 6px !important;
+        .trend-indicator.up {
+            background: #d1fae5;
+            color: var(--success-green);
+        }
+
+        .trend-indicator.down {
+            background: #fee2e2;
+            color: var(--danger-red);
+        }
+
+        .trend-indicator.neutral {
+            background: var(--neutral-100);
+            color: var(--neutral-600);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-header {
+                padding: 1.5rem 0;
+                margin-bottom: 1.5rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .page-subtitle {
+                font-size: 0.875rem;
+            }
+
+            .stat-card {
+                padding: 1.25rem;
+            }
+
+            .stat-value {
+                font-size: 1.75rem;
+            }
+
+            .stat-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.25rem;
+            }
+
+            .section-title {
+                font-size: 1.25rem;
+            }
+
+            .activity-card, .chart-card {
+                padding: 1.25rem;
+            }
+
+            .chart-container {
+                height: 250px;
+            }
+
+            .chart-container.pie {
+                height: 230px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .stat-label {
+                font-size: 0.75rem;
+            }
+
+            .activity-item {
+                padding: 0.75rem;
+            }
+
+            .chart-card {
+                padding: 1rem;
+            }
+
+            .chart-container {
+                height: 220px;
+            }
+
+            .chart-container.pie {
+                height: 200px;
+            }
         }
     </style>
 </head>
@@ -487,279 +658,477 @@ $recent_forms = $recent_forms_stmt->fetchAll();
     <?php include '../includes/sidebar.php'; ?>
 
     <div class="content">
-        <div class="container-fluid py-3">
-        <?php show_flash(); ?>
+        <div class="container-fluid py-4">
+            <?php show_flash(); ?>
 
-        <!-- Welcome Section -->
-        <div class="welcome-section">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h2>Welcome back, <?php echo e($current_user['full_name']); ?>!</h2>
-                    <p>Here's an overview of your pre-hospital care forms and recent activity.</p>
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="page-title">Welcome back, <?php echo e($current_user['full_name']); ?></h1>
+                        <p class="page-subtitle">Here's what's happening with your pre-hospital care records</p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <a href="TONYANG.php" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i>Create New Form
+                        </a>
+                    </div>
                 </div>
-                <div class="col-md-4 text-md-end text-start mt-3 mt-md-0">
-                    <a href="TONYANG.php" class="btn btn-primary">
-                        <i class="bi bi-plus-circle me-1"></i> Create New Form
+            </div>
+
+            <!-- Statistics Grid -->
+            <div class="row g-3 g-md-4 mb-4">
+                <div class="col-6 col-lg-4 col-xl-2">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-icon blue">
+                                <i class="bi bi-file-earmark-medical"></i>
+                            </div>
+                        </div>
+                        <div class="stat-label">Total Forms</div>
+                        <div class="stat-value"><?php echo number_format($total_forms); ?></div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-4 col-xl-2">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-icon green">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+                        </div>
+                        <div class="stat-label">Completed</div>
+                        <div class="stat-value"><?php echo number_format($completed_forms); ?></div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-4 col-xl-2">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-icon orange">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </div>
+                        </div>
+                        <div class="stat-label">Draft</div>
+                        <div class="stat-value"><?php echo number_format($draft_forms); ?></div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-4 col-xl-2">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-icon purple">
+                                <i class="bi bi-calendar-day"></i>
+                            </div>
+                        </div>
+                        <div class="stat-label">Today</div>
+                        <div class="stat-value"><?php echo number_format($today_forms); ?></div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-4 col-xl-2">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-icon teal">
+                                <i class="bi bi-calendar-week"></i>
+                            </div>
+                        </div>
+                        <div class="stat-label">This Week</div>
+                        <div class="stat-value"><?php echo number_format($week_forms); ?></div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-4 col-xl-2">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-icon red">
+                                <i class="bi bi-calendar-month"></i>
+                            </div>
+                        </div>
+                        <div class="stat-label">This Month</div>
+                        <div class="stat-value"><?php echo number_format($month_forms); ?></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics & Charts -->
+            <h2 class="section-title">Analytics Overview</h2>
+            <div class="row g-3 g-md-4 mb-4">
+                <!-- Weekly Trend Chart -->
+                <div class="col-12 col-xl-8">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div>
+                                <h3 class="chart-title">Weekly Activity Trend</h3>
+                                <p class="chart-subtitle">Forms created in the last 7 days</p>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="weeklyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Distribution Pie Chart -->
+                <div class="col-12 col-xl-4">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div>
+                                <h3 class="chart-title">Form Status</h3>
+                                <p class="chart-subtitle">Distribution by status</p>
+                            </div>
+                        </div>
+                        <div class="chart-container pie">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Trend Chart -->
+            <div class="row g-3 g-md-4 mb-4">
+                <div class="col-12">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div>
+                                <h3 class="chart-title">Monthly Performance</h3>
+                                <p class="chart-subtitle">Forms created over the last 12 months</p>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="monthlyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <h2 class="section-title">Quick Actions</h2>
+            <div class="row g-3 g-md-4 mb-4">
+                <div class="col-6 col-md-3">
+                    <a href="TONYANG.php" class="action-card">
+                        <div class="action-card-icon">
+                            <i class="bi bi-plus-circle"></i>
+                        </div>
+                        <div class="action-card-title">New Form</div>
+                        <div class="action-card-description">Create a new pre-hospital care form</div>
+                    </a>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <a href="records.php" class="action-card">
+                        <div class="action-card-icon">
+                            <i class="bi bi-list-ul"></i>
+                        </div>
+                        <div class="action-card-title">All Records</div>
+                        <div class="action-card-description">View all your submitted forms</div>
+                    </a>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <a href="records.php?status=draft" class="action-card">
+                        <div class="action-card-icon">
+                            <i class="bi bi-file-earmark-text"></i>
+                        </div>
+                        <div class="action-card-title">Draft Forms</div>
+                        <div class="action-card-description">View forms in progress</div>
+                    </a>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <a href="records.php?status=completed" class="action-card">
+                        <div class="action-card-icon">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="action-card-title">Completed</div>
+                        <div class="action-card-description">View completed forms</div>
                     </a>
                 </div>
             </div>
-        </div>
 
-        <!-- Statistics Cards -->
-        <div class="row g-2 g-md-3 mb-4">
-            <div class="col-6 col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon blue">
-                        <i class="bi bi-file-earmark-medical"></i>
-                    </div>
-                    <p class="stat-value"><?php echo number_format($total_forms); ?></p>
-                    <p class="stat-label">Total Forms</p>
-                </div>
-            </div>
-
-            <div class="col-6 col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon green">
-                        <i class="bi bi-calendar-check"></i>
-                    </div>
-                    <p class="stat-value"><?php echo number_format($today_forms); ?></p>
-                    <p class="stat-label">Today's Forms</p>
-                </div>
-            </div>
-
-            <div class="col-6 col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon orange">
-                        <i class="bi bi-clock"></i>
-                    </div>
-                    <p class="stat-value"><?php echo number_format($pending_forms); ?></p>
-                    <p class="stat-label">Pending Forms</p>
-                </div>
-            </div>
-
-            <div class="col-6 col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon purple">
-                        <i class="bi bi-check-circle"></i>
-                    </div>
-                    <p class="stat-value"><?php echo number_format($completed_forms); ?></p>
-                    <p class="stat-label">Completed Forms</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Forms Table -->
-        <div class="table-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5><i class="bi bi-clock-history me-2"></i>Your Recent Forms</h5>
-                <a href="records.php" class="btn btn-outline-primary btn-sm">
-                    <i class="bi bi-list-ul me-1"></i> View All Records
-                </a>
-            </div>
-
-            <!-- Desktop Table -->
-            <div class="d-none d-md-block">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Form Number</th>
-                                <th>Date</th>
-                                <th>Patient Name</th>
-                                <th>Age/Gender</th>
-                                <th>Vehicle</th>
-                                <th>Hospital</th>
-                                <th>Created By</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (empty($recent_forms)): ?>
-                                <tr>
-                                    <td colspan="9" class="text-center py-5">
-                                        <div class="empty-state">
-                                            <i class="bi bi-inbox"></i>
-                                            <p class="mt-2 mb-3">No forms found</p>
-                                            <a href="TONYANG.php" class="btn btn-primary">
-                                                <i class="bi bi-plus-circle me-1"></i> Create Your First Form
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php else: ?>
-                                <?php foreach ($recent_forms as $form): ?>
-                                    <tr>
-                                        <td><strong><?php echo e($form['form_number']); ?></strong></td>
-                                        <td><?php echo date('M d, Y', strtotime($form['form_date'])); ?></td>
-                                        <td><?php echo e($form['patient_name']); ?></td>
-                                        <td><?php echo e($form['age']); ?> / <?php echo ucfirst(e($form['gender'])); ?></td>
-                                        <td>
-                                            <?php if ($form['vehicle_used']): ?>
-                                                <span class="badge bg-light text-dark border"><?php echo ucfirst(e($form['vehicle_used'])); ?></span>
-                                            <?php else: ?>
-                                                <span class="text-muted">-</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td><?php echo e($form['arrival_hospital_name'] ?: '-'); ?></td>
-                                        <td>
-                                            <i class="bi bi-person-circle" style="color: #6c757d;"></i>
-                                            <?php echo e($form['created_by_name'] ?: 'Unknown'); ?>
-                                        </td>
-                                        <td>
-                                            <?php
-                                            $status_class = [
-                                                'draft' => 'bg-light text-dark',
-                                                'completed' => 'bg-success',
-                                                'pending' => 'bg-warning text-dark',
-                                                'archived' => 'bg-dark'
-                                            ];
-                                            $class = $status_class[$form['status']] ?? 'bg-secondary';
-                                            ?>
-                                            <span class="badge badge-status <?php echo $class; ?>">
-                                                <?php echo ucfirst(e($form['status'])); ?>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div class="btn-group">
-                                                <a href="view_record.php?id=<?php echo $form['id']; ?>"
-                                                   class="btn btn-outline-primary btn-action" title="View">
-                                                    <i class="bi bi-eye"></i>
-                                                </a>
-                                                <a href="edit_record.php?id=<?php echo $form['id']; ?>"
-                                                   class="btn btn-outline-success btn-action" title="Edit">
-                                                    <i class="bi bi-pencil"></i>
-                                                </a>
-                                                <button class="btn btn-outline-danger btn-action" title="Delete"
-                                                        onclick="deleteRecord(<?php echo $form['id']; ?>)">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Mobile Cards -->
-            <div class="d-md-none">
-                <?php if (empty($recent_forms)): ?>
-                    <div class="empty-state">
-                        <i class="bi bi-inbox"></i>
-                        <p class="mt-2 mb-3">No forms found</p>
-                        <a href="TONYANG.php" class="btn btn-primary">
-                            <i class="bi bi-plus-circle me-1"></i> Create Your First Form
-                        </a>
-                    </div>
-                <?php else: ?>
-                    <?php foreach ($recent_forms as $form): ?>
-                        <div class="mobile-card">
-                            <div class="mobile-card-header">
-                                <h6 class="mobile-card-title"><?php echo e($form['form_number']); ?></h6>
-                                <?php
-                                $status_class = [
-                                    'draft' => 'bg-light text-dark',
-                                    'completed' => 'bg-success',
-                                    'pending' => 'bg-warning text-dark',
-                                    'archived' => 'bg-dark'
-                                ];
-                                $class = $status_class[$form['status']] ?? 'bg-secondary';
-                                ?>
-                                <span class="badge mobile-card-badge <?php echo $class; ?>">
-                                    <?php echo ucfirst(e($form['status'])); ?>
-                                </span>
-                            </div>
-                            
-                            <div class="mobile-card-detail">
-                                <span class="mobile-card-label">Date:</span>
-                                <span class="mobile-card-value"><?php echo date('M d, Y', strtotime($form['form_date'])); ?></span>
-                            </div>
-                            
-                            <div class="mobile-card-detail">
-                                <span class="mobile-card-label">Patient:</span>
-                                <span class="mobile-card-value"><?php echo e($form['patient_name']); ?></span>
-                            </div>
-                            
-                            <div class="mobile-card-detail">
-                                <span class="mobile-card-label">Age/Gender:</span>
-                                <span class="mobile-card-value"><?php echo e($form['age']); ?> / <?php echo ucfirst(e($form['gender'])); ?></span>
-                            </div>
-                            
-                            <div class="mobile-card-detail">
-                                <span class="mobile-card-label">Vehicle:</span>
-                                <span class="mobile-card-value">
-                                    <?php if ($form['vehicle_used']): ?>
-                                        <?php echo ucfirst(e($form['vehicle_used'])); ?>
-                                    <?php else: ?>
-                                        <span class="text-muted">-</span>
-                                    <?php endif; ?>
-                                </span>
-                            </div>
-                            
-                            <div class="mobile-card-detail">
-                                <span class="mobile-card-label">Hospital:</span>
-                                <span class="mobile-card-value"><?php echo e($form['arrival_hospital_name'] ?: '-'); ?></span>
-                            </div>
-
-                            <div class="mobile-card-detail">
-                                <span class="mobile-card-label">Created By:</span>
-                                <span class="mobile-card-value">
-                                    <i class="bi bi-person-circle" style="color: #6c757d;"></i>
-                                    <?php echo e($form['created_by_name'] ?: 'Unknown'); ?>
-                                </span>
-                            </div>
-
-                            <div class="mobile-card-actions">
-                                <a href="view_record.php?id=<?php echo $form['id']; ?>"
-                                   class="btn btn-outline-primary btn-action" title="View">
-                                    <i class="bi bi-eye me-1 d-none d-sm-inline"></i> View
-                                </a>
-                                <a href="edit_record.php?id=<?php echo $form['id']; ?>"
-                                   class="btn btn-outline-success btn-action" title="Edit">
-                                    <i class="bi bi-pencil me-1 d-none d-sm-inline"></i> Edit
-                                </a>
-                                <button class="btn btn-outline-danger btn-action" title="Delete"
-                                        onclick="deleteRecord(<?php echo $form['id']; ?>)">
-                                    <i class="bi bi-trash me-1 d-none d-sm-inline"></i> Delete
-                                </button>
-                            </div>
+            <!-- Recent Activity -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="activity-card">
+                        <div class="activity-header">
+                            <h3 class="activity-title">Recent Activity</h3>
+                            <a href="records.php" class="btn-outline-primary">
+                                View All <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
                         </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+
+                        <?php if (empty($recent_activity)): ?>
+                            <div class="empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="bi bi-inbox"></i>
+                                </div>
+                                <div class="empty-state-title">No activity yet</div>
+                                <div class="empty-state-description">You haven't created any forms yet. Get started by creating your first pre-hospital care form.</div>
+                                <a href="TONYANG.php" class="btn btn-primary mt-2">
+                                    <i class="bi bi-plus-circle me-2"></i>Create Your First Form
+                                </a>
+                            </div>
+                        <?php else: ?>
+                            <?php foreach ($recent_activity as $activity): ?>
+                                <?php
+                                $status_classes = [
+                                    'completed' => 'completed',
+                                    'draft' => 'draft',
+                                    'archived' => 'draft'
+                                ];
+                                $status_class = $status_classes[$activity['status']] ?? 'draft';
+                                ?>
+                                <div class="activity-item">
+                                    <div class="activity-icon <?php echo $status_class; ?>">
+                                        <i class="bi bi-file-earmark-medical"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-title-text">
+                                            <?php echo e($activity['form_number']); ?> - <?php echo e($activity['patient_name']); ?>
+                                        </div>
+                                        <div class="activity-meta">
+                                            <?php echo date('M d, Y \a\t h:i A', strtotime($activity['created_at'])); ?>
+                                            <?php if ($activity['arrival_hospital_name']): ?>
+                                                • <?php echo e($activity['arrival_hospital_name']); ?>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="activity-badge <?php echo $status_class; ?>">
+                                            <?php echo ucfirst(e($activity['status'])); ?>
+                                        </span>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
             </div>
-        </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function deleteRecord(id) {
-            if (confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
-                fetch('api/delete_record.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
+        // Chart.js Global Configuration
+        Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, "Helvetica Neue", Arial, sans-serif';
+        Chart.defaults.color = '#6b7280';
+
+        // Weekly Activity Chart (Bar Chart)
+        const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+        const weeklyChart = new Chart(weeklyCtx, {
+            type: 'bar',
+            data: {
+                labels: <?php echo json_encode($last_7_days); ?>,
+                datasets: [{
+                    label: 'Forms Created',
+                    data: <?php echo json_encode($last_7_days_data); ?>,
+                    backgroundColor: '#3b82f6',
+                    borderColor: '#1e40af',
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    barThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
                     },
-                    body: JSON.stringify({ id: id })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Record deleted successfully');
-                        location.reload();
-                    } else {
-                        alert('Error: ' + data.message);
+                    tooltip: {
+                        backgroundColor: '#1f2937',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        borderColor: '#374151',
+                        borderWidth: 1,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + ' form' + (context.parsed.y !== 1 ? 's' : '');
+                            }
+                        }
                     }
-                })
-                .catch(error => {
-                    alert('Error deleting record');
-                    console.error('Error:', error);
-                });
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            font: {
+                                size: 12
+                            }
+                        },
+                        grid: {
+                            color: '#f3f4f6',
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                }
             }
-        }
+        });
+
+        // Status Distribution Chart (Doughnut Chart)
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        const statusChart = new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completed', 'Draft', 'Archived'],
+                datasets: [{
+                    data: [
+                        <?php echo $completed_forms; ?>,
+                        <?php echo $draft_forms; ?>,
+                        <?php echo $archived_count; ?>
+                    ],
+                    backgroundColor: [
+                        '#059669',
+                        '#d97706',
+                        '#dc2626'
+                    ],
+                    borderWidth: 0,
+                    spacing: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: {
+                                size: 12,
+                                weight: '600'
+                            },
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1f2937',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        borderColor: '#374151',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                return label + ': ' + value + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Monthly Performance Chart (Line Chart)
+        const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+        const monthlyChart = new Chart(monthlyCtx, {
+            type: 'line',
+            data: {
+                labels: <?php echo json_encode($monthly_labels); ?>,
+                datasets: [{
+                    label: 'Forms Created',
+                    data: <?php echo json_encode($monthly_data); ?>,
+                    borderColor: '#1e40af',
+                    backgroundColor: 'rgba(30, 64, 175, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#1e40af',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointHoverBackgroundColor: '#1e40af',
+                    pointHoverBorderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#1f2937',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        borderColor: '#374151',
+                        borderWidth: 1,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + ' form' + (context.parsed.y !== 1 ? 's' : '');
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            font: {
+                                size: 12
+                            }
+                        },
+                        grid: {
+                            color: '#f3f4f6',
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            },
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                }
+            }
+        });
     </script>
 </body>
 </html>

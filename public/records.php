@@ -192,7 +192,7 @@ $records = $stmt->fetchAll();
                         <option value="">All Status</option>
                         <option value="completed" <?php echo $status_filter === 'completed' ? 'selected' : ''; ?>>Completed</option>
                         <option value="draft" <?php echo $status_filter === 'draft' ? 'selected' : ''; ?>>Draft</option>
-                        <option value="pending" <?php echo $status_filter === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                        <option value="archived" <?php echo $status_filter === 'archived' ? 'selected' : ''; ?>>Archived</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -316,9 +316,9 @@ $records = $stmt->fetchAll();
                                     $status_class = [
                                         'draft' => 'status-draft',
                                         'completed' => 'status-completed',
-                                        'pending' => 'status-pending'
+                                        'archived' => 'status-archived'
                                     ];
-                                    $class = $status_class[$record['status']] ?? 'status-pending';
+                                    $class = $status_class[$record['status']] ?? 'status-draft';
                                     ?>
                                     <span class="badge-custom <?php echo $class; ?>">
                                         <?php echo ucfirst(e($record['status'])); ?>

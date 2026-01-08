@@ -147,18 +147,20 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
         }
     </style>
 </head>
-<body>
+<body class="loading">
     <!-- Include the sidebar -->
     <?php include '../includes/sidebar.php'; ?>
 
     <div class="content">
         <div class="form-container">
         <div class="form-header">
+            <div class="skeleton-overlay skeleton skeleton-header"></div>
             <h1><i class="bi bi-pencil-square"></i> EDIT PRE-HOSPITAL CARE FORM</h1>
             <p class="subtitle" style="margin-left: 2.15rem;">Record #<?php echo e($record['form_number']); ?> • Edited by <?php echo e($current_user['full_name']); ?></p>
         </div>
 
         <div class="progress-container">
+            <div class="skeleton-overlay skeleton skeleton-progress"></div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                 <span style="font-size: 0.85rem; font-weight: 600; color: #0066cc;">
                     <i class="bi bi-list-check"></i> Form Progress
@@ -173,6 +175,7 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
         </div>
 
         <div class="tabs-container">
+            <div class="skeleton-overlay skeleton skeleton-tabs"></div>
             <ul class="nav nav-tabs" id="formTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="tab1" data-bs-toggle="tab" data-bs-target="#section1" type="button" role="tab">
