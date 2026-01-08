@@ -32,20 +32,114 @@ $current_user = get_auth_user();
     <title>Pre-Hospital Care Form (1x.2025)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
     <link href="css/tonyang-form.css" rel="stylesheet">
+    <style>
+        /* Sidebar Layout Compatibility Fixes */
+        body {
+            overflow: auto !important;
+            height: auto !important;
+        }
+
+        .content {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            padding-bottom: 0 !important;
+            min-height: 100vh;
+            max-height: 100vh;
+            position: relative;
+        }
+
+        .form-container {
+            overflow: visible !important;
+            height: auto !important;
+            max-width: 100%;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .form-body {
+            overflow: visible !important;
+            max-height: none !important;
+            padding-bottom: 2rem !important;
+            min-height: calc(100vh - 400px) !important;
+        }
+
+        .navigation-buttons {
+            position: sticky !important;
+            bottom: 0 !important;
+            left: 0;
+            right: 0;
+            background: #ffffff !important;
+            margin-top: auto !important;
+            margin-bottom: 0 !important;
+            z-index: 1000 !important;
+            border-top: 4px solid #0066cc !important;
+            padding: 1.5rem 2rem !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            gap: 1rem !important;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08) !important;
+            flex-shrink: 0 !important;
+        }
+
+        /* Ensure all content is visible */
+        .tab-content {
+            overflow: visible !important;
+            padding-bottom: 0 !important;
+        }
+
+        /* Consistent spacing for all tabs */
+        .tab-pane {
+            padding-bottom: 0 !important;
+        }
+
+        /* Minimal space at the bottom of form content */
+        .form-section {
+            margin-bottom: 0 !important;
+            padding-bottom: 0 !important;
+        }
+
+        /* Ensure sticky works in all browsers */
+        @supports (position: sticky) {
+            .navigation-buttons {
+                position: -webkit-sticky !important;
+                position: sticky !important;
+            }
+        }
+
+        /* Fix Notiflix Report button underline */
+        div[id^="NotiflixReportWrap"] button {
+            text-decoration: none !important;
+        }
+
+        div[id^="NotiflixReportWrap"] button:hover,
+        div[id^="NotiflixReportWrap"] button:focus,
+        div[id^="NotiflixReportWrap"] button:active {
+            text-decoration: none !important;
+        }
+    </style>
 </head>
 <body>
-    <!-- Top Navigation Bar -->
-    <!-- Include the new navbar -->
-    <?php include '../includes/navbar.php'; ?>
+    <!-- Include the sidebar -->
+    <?php include '../includes/sidebar.php'; ?>
 
-    <div class="form-container">
+    <div class="content">
+        <div class="form-container">
         <div class="form-header">
             <h1><i class="bi bi-file-medical"></i> PRE-HOSPITAL CARE FORM</h1>
-            <p class="subtitle">Form 1x.2025 - Emergency Medical Services</p>
+            <p class="subtitle" style="margin-left: 2.15rem;">Emergency Medical Services</p>
         </div>
 
         <div class="progress-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span style="font-size: 0.85rem; font-weight: 600; color: #0066cc;">
+                    <i class="bi bi-list-check"></i> Form Progress
+                </span>
+                <span id="stepIndicator" style="font-size: 0.85rem; font-weight: 500; color: #6c757d;">
+                    Step 1 of 7
+                </span>
+            </div>
             <div class="progress">
                 <div class="progress-bar" role="progressbar" id="progressBar" style="width: 14%"></div>
             </div>
@@ -55,37 +149,37 @@ $current_user = get_auth_user();
             <ul class="nav nav-tabs" id="formTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="tab1" data-bs-toggle="tab" data-bs-target="#section1" type="button" role="tab">
-                        <i class="bi bi-1-circle"></i> Basic Info
+                        Basic Info
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="tab2" data-bs-toggle="tab" data-bs-target="#section2" type="button" role="tab">
-                        <i class="bi bi-2-circle"></i> Patient
+                        Patient
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="tab3" data-bs-toggle="tab" data-bs-target="#section3" type="button" role="tab">
-                        <i class="bi bi-3-circle"></i> Emergency
+                        Emergency
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="tab4" data-bs-toggle="tab" data-bs-target="#section4" type="button" role="tab">
-                        <i class="bi bi-4-circle"></i> Vitals
+                        Vitals
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="tab5" data-bs-toggle="tab" data-bs-target="#section5" type="button" role="tab">
-                        <i class="bi bi-5-circle"></i> Assessment
+                        Assessment
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="tab6" data-bs-toggle="tab" data-bs-target="#section6" type="button" role="tab">
-                        <i class="bi bi-6-circle"></i> Team
+                        Team
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="tab7" data-bs-toggle="tab" data-bs-target="#section7" type="button" role="tab">
-                        <i class="bi bi-7-circle"></i> Complete
+                        Complete
                     </button>
                 </li>
             </ul>
@@ -968,13 +1062,13 @@ $current_user = get_auth_user();
 
         <div class="navigation-buttons">
             <button type="button" class="btn btn-outline-primary" id="prevBtn" onclick="navigateTab(-1)">
-                <i class="bi bi-arrow-left"></i> Previous
+                <i class="bi bi-chevron-left"></i> Previous
             </button>
             <button type="button" class="btn btn-primary" id="nextBtn" onclick="navigateTab(1)">
-                Next <i class="bi bi-arrow-right"></i>
+                Next <i class="bi bi-chevron-right"></i>
             </button>
             <button type="button" class="btn btn-success" id="submitBtn" style="display: none;" onclick="submitForm()">
-                <i class="bi bi-check-circle"></i> Save Form
+                <i class="bi bi-check2"></i> Save Form
             </button>
         </div>
     </div>
@@ -1028,8 +1122,90 @@ $current_user = get_auth_user();
         </div>
     </div>
     </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
     <script src="js/tonyang-form.js"></script>
+    <script>
+        // Configure Notiflix
+        Notiflix.Notify.init({
+            width: '320px',
+            position: 'right-top',
+            distance: '15px',
+            timeout: 3000,
+            fontSize: '15px',
+            cssAnimationStyle: 'from-right',
+            success: {
+                background: '#28a745',
+                textColor: '#fff',
+                notiflixIconColor: '#fff',
+            },
+            failure: {
+                background: '#dc3545',
+                textColor: '#fff',
+                notiflixIconColor: '#fff',
+            },
+            warning: {
+                background: '#ffc107',
+                textColor: '#333',
+                notiflixIconColor: '#333',
+            },
+            info: {
+                background: '#0066cc',
+                textColor: '#fff',
+                notiflixIconColor: '#fff',
+            },
+        });
+
+        Notiflix.Confirm.init({
+            width: '350px',
+            titleColor: '#0066cc',
+            okButtonBackground: '#0066cc',
+            cancelButtonBackground: '#6c757d',
+            cssAnimationStyle: 'zoom',
+        });
+
+        Notiflix.Report.init({
+            width: '360px',
+            svgSize: '110px',
+            titleFontSize: '18px',
+            messageFontSize: '15px',
+            buttonFontSize: '15px',
+            cssAnimationStyle: 'zoom',
+            success: {
+                svgColor: '#28a745',
+                titleColor: '#1e7e34',
+                messageColor: '#333',
+                buttonBackground: '#28a745',
+                buttonColor: '#fff',
+                backOverlayColor: 'rgba(0,0,0,0.5)',
+            },
+            failure: {
+                svgColor: '#dc3545',
+                titleColor: '#bd2130',
+                messageColor: '#333',
+                buttonBackground: '#dc3545',
+                buttonColor: '#fff',
+                backOverlayColor: 'rgba(0,0,0,0.5)',
+            },
+            warning: {
+                svgColor: '#ffc107',
+                titleColor: '#856404',
+                messageColor: '#333',
+                buttonBackground: '#ffc107',
+                buttonColor: '#333',
+                backOverlayColor: 'rgba(0,0,0,0.5)',
+            },
+            info: {
+                svgColor: '#0066cc',
+                titleColor: '#004d99',
+                messageColor: '#333',
+                buttonBackground: '#0066cc',
+                buttonColor: '#fff',
+                backOverlayColor: 'rgba(0,0,0,0.5)',
+            },
+        });
+    </script>
 </body>
 </html>

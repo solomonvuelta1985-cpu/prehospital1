@@ -95,10 +95,11 @@ $records = $stmt->fetchAll();
     <link href="css/records-style.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Include the new navbar -->
-    <?php include '../includes/navbar.php'; ?>
+    <!-- Include the sidebar -->
+    <?php include '../includes/sidebar.php'; ?>
 
-    <div class="records-container">
+    <div class="content">
+        <div class="records-container">
         <!-- Header Section -->
         <div class="header-section">
             <h1><i class="fas fa-folder-open"></i> Pre-Hospital Care Records</h1>
@@ -374,6 +375,7 @@ $records = $stmt->fetchAll();
                 </ul>
             </nav>
         <?php endif; ?>
+        </div>
     </div>
 
     <!-- Back to Top Button -->

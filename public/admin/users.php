@@ -407,10 +407,11 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </style>
 </head>
 <body>
-    <!-- Include Navbar -->
-    <?php include '../../includes/navbar.php'; ?>
+    <!-- Include Sidebar -->
+    <?php include '../../includes/sidebar.php'; ?>
 
-    <!-- Page Header -->
+    <div class="content">
+        <!-- Page Header -->
     <div class="page-header">
         <div class="container">
             <h1><i class="bi bi-people-fill"></i> User Management</h1>
@@ -655,6 +656,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

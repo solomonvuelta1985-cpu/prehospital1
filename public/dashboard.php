@@ -483,10 +483,11 @@ $recent_forms = $recent_forms_stmt->fetchAll();
     </style>
 </head>
 <body>
-    <!-- Include the navbar -->
-    <?php include '../includes/navbar.php'; ?>
+    <!-- Include the sidebar -->
+    <?php include '../includes/sidebar.php'; ?>
 
-    <div class="container-fluid py-3">
+    <div class="content">
+        <div class="container-fluid py-3">
         <?php show_flash(); ?>
 
         <!-- Welcome Section -->
@@ -729,6 +730,7 @@ $recent_forms = $recent_forms_stmt->fetchAll();
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
+        </div>
         </div>
     </div>
 

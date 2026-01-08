@@ -507,7 +507,11 @@ $current_user = get_auth_user();
     </style>
 </head>
 <body>
-    <div class="form-container">
+    <!-- Include the sidebar -->
+    <?php include '../includes/sidebar.php'; ?>
+
+    <div class="content">
+        <div class="form-container">
         <!-- Header -->
         <div class="header">
             <img src="uploads/logo.png" alt="Logo" class="logo">
@@ -855,6 +859,7 @@ $current_user = get_auth_user();
             <a href="edit_record.php?id=<?php echo $record['id']; ?>" class="btn btn-warning">
                 <i class="bi bi-pencil"></i> Edit
             </a>
+        </div>
         </div>
     </div>
 

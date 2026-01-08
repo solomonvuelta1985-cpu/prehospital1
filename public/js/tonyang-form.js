@@ -110,7 +110,16 @@ function updateNavigation() {
 
 function updateProgress() {
     const progress = ((currentTab + 1) / totalTabs) * 100;
-    document.getElementById('progressBar').style.width = progress + '%';
+    const progressBar = document.getElementById('progressBar');
+    const stepIndicator = document.getElementById('stepIndicator');
+
+    if (progressBar) {
+        progressBar.style.width = progress + '%';
+    }
+
+    if (stepIndicator) {
+        stepIndicator.textContent = `Step ${currentTab + 1} of ${totalTabs}`;
+    }
 }
 
 // Tab click event listeners
@@ -361,14 +370,32 @@ function submitForm() {
     }
 
     if (missingFields.length > 0) {
-        alert('Please fill out the following required fields:\n\n' + missingFields.join('\n'));
+        const fieldsList = missingFields.map(field => `<strong style="color: #dc3545;">•</strong> <strong>${field}</strong>`).join('<br>');
+        Notiflix.Report.warning(
+            'Required Fields Missing',
+            `Please fill out the following required fields:<br><br>${fieldsList}`,
+            'OK'
+        );
         return;
     }
 
     // Confirmation prompt
-    if (!confirm('Are you sure you want to save this form? Please review all information before proceeding.')) {
-        return;
-    }
+    Notiflix.Confirm.show(
+        'Confirm Submission',
+        'Are you sure you want to save this form? Please review all information before proceeding.',
+        'Yes, Save Form',
+        'Cancel',
+        function okCb() {
+            // Submit the form
+            submitFormData();
+        },
+        function cancelCb() {
+            // Do nothing
+        }
+    );
+}
+
+function submitFormData() {
 
     const formData = new FormData(document.getElementById('preHospitalForm'));
     const data = {};
@@ -414,15 +441,25 @@ function printForm() {
 }
 
 function clearForm() {
-    if (confirm('Are you sure you want to clear all form data? This action cannot be undone.')) {
-        document.getElementById('preHospitalForm').reset();
-        clearAllInjuries();
-        currentTab = 0;
-        navigateTab(0);
-        document.querySelectorAll('.nav-link').forEach(tab => {
-            tab.classList.remove('completed');
-        });
-    }
+    Notiflix.Confirm.show(
+        'Clear Form Data',
+        'Are you sure you want to clear all form data? This action cannot be undone.',
+        'Yes, Clear All',
+        'Cancel',
+        function okCb() {
+            document.getElementById('preHospitalForm').reset();
+            clearAllInjuries();
+            currentTab = 0;
+            navigateTab(0);
+            document.querySelectorAll('.nav-link').forEach(tab => {
+                tab.classList.remove('completed');
+            });
+            Notiflix.Notify.success('Form data cleared successfully');
+        },
+        function cancelCb() {
+            // Do nothing
+        }
+    );
 }
 
 // Keyboard shortcuts
@@ -562,29 +599,50 @@ function updateInjuryNotes(id, notes) {
 }
 
 function deleteInjury(id) {
-    if (confirm('Delete this injury marker?')) {
-        injuries = injuries.filter(i => i.id !== id);
+    Notiflix.Confirm.show(
+        'Delete Injury',
+        'Are you sure you want to delete this injury marker?',
+        'Yes, Delete',
+        'Cancel',
+        function okCb() {
+            injuries = injuries.filter(i => i.id !== id);
 
-        const marker = document.querySelector(`.injury-marker[data-id="${id}"]`);
-        if (marker) {
-            marker.remove();
+            const marker = document.querySelector(`.injury-marker[data-id="${id}"]`);
+            if (marker) {
+                marker.remove();
+            }
+
+            updateInjuryList();
+            Notiflix.Notify.success('Injury marker deleted');
+        },
+        function cancelCb() {
+            // Do nothing
         }
-
-        updateInjuryList();
-    }
+    );
 }
 
 function clearAllInjuries() {
     if (injuries.length === 0) {
+        Notiflix.Notify.info('No injury markers to clear');
         return;
     }
-    
-    if (confirm(`Clear all ${injuries.length} injury markers?`)) {
-        injuries = [];
-        injuryCounter = 0;
-        document.querySelectorAll('.injury-marker').forEach(m => m.remove());
-        updateInjuryList();
-    }
+
+    Notiflix.Confirm.show(
+        'Clear All Injuries',
+        `Are you sure you want to clear all ${injuries.length} injury markers?`,
+        'Yes, Clear All',
+        'Cancel',
+        function okCb() {
+            injuries = [];
+            injuryCounter = 0;
+            document.querySelectorAll('.injury-marker').forEach(m => m.remove());
+            updateInjuryList();
+            Notiflix.Notify.success('All injury markers cleared');
+        },
+        function cancelCb() {
+            // Do nothing
+        }
+    );
 }
 
 function repositionMarkers() {
@@ -608,7 +666,7 @@ function repositionMarkers() {
 
 function exportInjuryData() {
     if (injuries.length === 0) {
-        alert('No injuries to export! Please mark some injuries first.');
+        Notiflix.Notify.warning('No injuries to export! Please mark some injuries first.');
         return;
     }
 
@@ -633,7 +691,7 @@ function exportInjuryData() {
     link.download = `injury-assessment-${Date.now()}.json`;
     link.click();
 
-    alert(`✅ Successfully exported ${injuries.length} injuries!`);
+    Notiflix.Notify.success(`Successfully exported ${injuries.length} injury markers!`);
 }
 
 // ============================================
@@ -714,7 +772,7 @@ function openCamera() {
 
     // Check if browser supports getUserMedia
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert('Camera access is not supported in your browser. Please use a modern browser or upload a file instead.');
+        Notiflix.Notify.failure('Camera access is not supported in your browser. Please use a modern browser or upload a file instead.');
         return;
     }
 
@@ -746,7 +804,7 @@ function openCamera() {
             errorMessage += 'Error: ' + error.message;
         }
 
-        alert(errorMessage);
+        Notiflix.Notify.failure(errorMessage);
     });
 }
 
@@ -782,7 +840,7 @@ function capturePhoto() {
         // Close camera
         closeCamera();
 
-        alert('Photo captured successfully!');
+        Notiflix.Notify.success('Photo captured successfully!');
     }, 'image/jpeg', 0.9);
 }
 
@@ -902,13 +960,13 @@ function setupVehicleModals() {
                     plate: plateNumber
                 });
                 
-                alert(`Ambulance ${ambulanceId} with plate ${plateNumber} selected.`);
-                
+                Notiflix.Notify.success(`Ambulance ${ambulanceId} (${plateNumber}) selected`);
+
                 // Close modal
                 const ambulanceModal = bootstrap.Modal.getInstance(document.getElementById('ambulanceModal'));
                 ambulanceModal.hide();
             } else {
-                alert('Please select an ambulance.');
+                Notiflix.Notify.warning('Please select an ambulance');
             }
         });
     }
@@ -930,13 +988,13 @@ function setupVehicleModals() {
                     name: fireTruckName
                 });
                 
-                alert(`${fireTruckName} selected.`);
-                
+                Notiflix.Notify.success(`${fireTruckName} selected`);
+
                 // Close modal
                 const fireTruckModal = bootstrap.Modal.getInstance(document.getElementById('fireTruckModal'));
                 fireTruckModal.hide();
             } else {
-                alert('Please select a fire truck type.');
+                Notiflix.Notify.warning('Please select a fire truck type');
             }
         });
     }
