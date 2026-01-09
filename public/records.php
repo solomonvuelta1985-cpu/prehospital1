@@ -293,7 +293,7 @@ $records = $stmt->fetchAll();
                         <?php foreach ($records as $record): ?>
                             <tr>
                                 <td><strong><?php echo e($record['form_number']); ?></strong></td>
-                                <td><?php echo date('M d, Y', strtotime($record['form_date'])); ?></td>
+                                <td><?php echo ($record['form_date'] && $record['form_date'] !== '0000-00-00') ? date('M d, Y', strtotime($record['form_date'])) : 'N/A'; ?></td>
                                 <td><?php echo e($record['patient_name']); ?></td>
                                 <td>
                                     <?php echo e($record['age']); ?> /

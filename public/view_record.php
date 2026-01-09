@@ -34,6 +34,36 @@ $injury_sql = "SELECT * FROM injuries WHERE form_id = ? ORDER BY injury_number";
 $injury_stmt = db_query($injury_sql, [$record_id]);
 $injuries = $injury_stmt->fetchAll();
 
+// Clean up date and time fields - don't show invalid/empty values
+$dateTimeFields = [
+    'departure_time', 'arrival_time', 'arrival_scene_time', 'departure_scene_time',
+    'arrival_hospital_time', 'departure_hospital_time', 'arrival_station_time',
+    'incident_time', 'call_arrival_time', 'initial_time', 'followup_time',
+    'delivery_time', 'endorsement_datetime'
+];
+
+foreach ($dateTimeFields as $field) {
+    if (isset($record[$field])) {
+        // Clear time fields if they are '00:00:00' or NULL or empty
+        if ($record[$field] === '00:00:00' || $record[$field] === null || $record[$field] === '' ||
+            $record[$field] === '0000-00-00 00:00:00') {
+            $record[$field] = '';
+        }
+    }
+}
+
+// Clean up date-only fields
+$dateFields = ['date_of_birth', 'lmp', 'edc'];
+foreach ($dateFields as $field) {
+    if (isset($record[$field])) {
+        // Clear date fields if they are '0000-00-00' or NULL or empty
+        if ($record[$field] === '0000-00-00' || $record[$field] === null || $record[$field] === '' ||
+            $record[$field] === '0000-00-00 00:00:00') {
+            $record[$field] = '';
+        }
+    }
+}
+
 // Get current user
 $current_user = get_auth_user();
 ?>
@@ -539,7 +569,7 @@ $current_user = get_auth_user();
         <div class="form-row">
             <div class="form-group">
                 <label>Form Date</label>
-                <div class="value"><?php echo date('F d, Y', strtotime($record['form_date'])); ?></div>
+                <div class="value"><?php echo $record['form_date'] ? date('F d, Y', strtotime($record['form_date'])) : 'N/A'; ?></div>
             </div>
             <div class="form-group">
                 <label>Departure Time</label>
@@ -595,7 +625,7 @@ $current_user = get_auth_user();
         <div class="form-row">
             <div class="form-group">
                 <label>Date of Birth</label>
-                <div class="value"><?php echo date('F d, Y', strtotime($record['date_of_birth'])); ?></div>
+                <div class="value"><?php echo $record['date_of_birth'] ? date('F d, Y', strtotime($record['date_of_birth'])) : 'N/A'; ?></div>
             </div>
             <div class="form-group">
                 <label>Age</label>

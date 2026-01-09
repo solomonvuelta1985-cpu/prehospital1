@@ -41,8 +41,8 @@ if (count($name_parts) >= 2) {
         <div style="display: flex; align-items: center; gap: 8px;">
             <!-- User Profile Dropdown (Mobile) -->
             <div class="user-profile-dropdown">
-                <button class="user-profile-btn" id="mobileUserProfileBtn" type="button">
-                    <div class="user-avatar">
+                <button class="user-profile-btn mobile-avatar-btn" id="mobileUserProfileBtn" type="button">
+                    <div class="user-avatar mobile-avatar">
                         <?php echo htmlspecialchars($initials); ?>
                     </div>
                 </button>
@@ -480,6 +480,48 @@ if (count($name_parts) >= 2) {
     width: 48px;
     height: 48px;
     font-size: 16px;
+}
+
+/* Mobile Avatar - Modern Design */
+.mobile-avatar-btn {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+}
+
+.mobile-avatar-btn:hover,
+.mobile-avatar-btn:active,
+.mobile-avatar-btn.active {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.user-avatar.mobile-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+    border: 2px solid #ffffff;
+    transition: all 0.3s ease;
+}
+
+.mobile-avatar-btn:hover .user-avatar.mobile-avatar {
+    transform: scale(1.08);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+.mobile-avatar-btn.active .user-avatar.mobile-avatar {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
 }
 
 .user-profile-info {

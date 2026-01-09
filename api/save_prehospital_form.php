@@ -39,20 +39,21 @@ if (!verify_token($_POST['csrf_token'] ?? '')) {
     json_response(['success' => false, 'message' => 'Invalid security token'], 403);
 }
 
-// Handle file upload security
-$endorsement_attachment_path = null;
-if (isset($_FILES['endorsement_attachment']) && $_FILES['endorsement_attachment']['error'] !== UPLOAD_ERR_NO_FILE) {
-    $file = $_FILES['endorsement_attachment'];
+
+// Handle file upload security - Patient Documentation
+$patient_documentation_path = null;
+if (isset($_FILES['patient_documentation']) && $_FILES['patient_documentation']['error'] !== UPLOAD_ERR_NO_FILE) {
+    $file = $_FILES['patient_documentation'];
 
     // Security checks
     if ($file['error'] !== UPLOAD_ERR_OK) {
-        throw new Exception('File upload error: ' . $file['error']);
+        throw new Exception('Patient documentation upload error: ' . $file['error']);
     }
 
     // Validate file size (5MB max)
     $maxSize = 5 * 1024 * 1024; // 5MB
     if ($file['size'] > $maxSize) {
-        throw new Exception('File size exceeds 5MB limit');
+        throw new Exception('Patient documentation file size exceeds 5MB limit');
     }
 
     // Validate MIME type
@@ -62,7 +63,7 @@ if (isset($_FILES['endorsement_attachment']) && $_FILES['endorsement_attachment'
     finfo_close($finfo);
 
     if (!in_array($mimeType, $allowedMimeTypes)) {
-        throw new Exception('Invalid file type. Only images are allowed.');
+        throw new Exception('Invalid patient documentation file type. Only images are allowed.');
     }
 
     // Validate file extension matches MIME type
@@ -71,23 +72,24 @@ if (isset($_FILES['endorsement_attachment']) && $_FILES['endorsement_attachment'
     $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
     if (!in_array($extension, $allowedExtensions)) {
-        throw new Exception('File extension not allowed');
+        throw new Exception('Patient documentation file extension not allowed');
     }
 
     // Additional security: Check for malicious content
     if (function_exists('exif_imagetype')) {
         $imageType = exif_imagetype($file['tmp_name']);
         if (!$imageType || !in_array($imageType, [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP])) {
-            throw new Exception('Invalid image file');
+            throw new Exception('Invalid patient documentation image file');
         }
     }
 
-    // Generate secure filename
+    // Generate secure filename with date and unique ID
     $uniqueId = bin2hex(random_bytes(16));
-    $safeFileName = 'endorsement_' . $uniqueId . '.' . $extension;
+    $dateFolder = date('Y-m-d'); // Organize by date: 2026-01-09
+    $safeFileName = 'patient_' . date('YmdHis') . '_' . $uniqueId . '.' . $extension;
 
-    // Create uploads directory in public folder if it doesn't exist
-    $uploadDir = '../public/uploads/endorsements/';
+    // Create uploads directory with date subfolder for better organization
+    $uploadDir = '../public/uploads/patient_docs/' . $dateFolder . '/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0750, true);
     }
@@ -96,11 +98,14 @@ if (isset($_FILES['endorsement_attachment']) && $_FILES['endorsement_attachment'
 
     // Move uploaded file
     if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
-        throw new Exception('Failed to save uploaded file');
+        throw new Exception('Failed to save patient documentation file');
     }
 
     // Store relative path for database (accessible via web)
-    $endorsement_attachment_path = 'uploads/endorsements/' . $safeFileName;
+    $patient_documentation_path = 'uploads/patient_docs/' . $dateFolder . '/' . $safeFileName;
+
+    // Add metadata comment for tracking
+    // File saved with metadata: date, time, unique ID, original extension
 }
 
 // Start transaction
@@ -196,6 +201,7 @@ try {
     $personal_belongings = array_map('sanitize', $personal_belongings);
     $personal_belongings_json = json_encode($personal_belongings);
     $other_belongings = sanitize($_POST['other_belongings'] ?? null);
+    $patient_documentation = $patient_documentation_path; // Store the file path
     
     // Emergency Call Type
     $emergency_medical = isset($_POST['emergency_medical']) ? 1 : 0;
@@ -276,12 +282,6 @@ try {
     $first_aider = sanitize($_POST['first_aider'] ?? null);
     $second_aider = sanitize($_POST['second_aider'] ?? null);
     
-    // Hospital Endorsement
-    $endorsement = sanitize($_POST['endorsement'] ?? null);
-    $hospital_name = sanitize($_POST['hospital_name'] ?? null);
-    $received_by = sanitize($_POST['received_by'] ?? null);
-    $endorsement_datetime = sanitize($_POST['endorsement_datetime'] ?? null);
-    $endorsement_attachment = $endorsement_attachment_path; // Store the file path
     
     // Get current user ID
     $created_by = $_SESSION['user_id'];
@@ -323,7 +323,7 @@ try {
         $patient_name, $date_of_birth, $age, $gender, $civil_status, $address, $zone, $occupation,
         $place_of_incident, $zone_landmark, $incident_time,
         $informant_name, $informant_address, $arrival_type, $call_arrival_time, $contact_number,
-        $relationship_victim, $personal_belongings_json, $other_belongings,
+        $relationship_victim, $personal_belongings_json, $other_belongings, $patient_documentation,
         $emergency_medical, $emergency_medical_details, $emergency_trauma, $emergency_trauma_details,
         $emergency_ob, $emergency_ob_details, $emergency_general, $emergency_general_details,
         $care_management_json, $oxygen_lpm, $other_care,
@@ -334,8 +334,7 @@ try {
         $chief_complaints_json, $other_complaints,
         $fast_face_drooping, $fast_arm_weakness, $fast_speech_difficulty, $fast_time_to_call, $fast_sample_details,
         $ob_baby_status, $ob_delivery_time, $ob_placenta, $ob_lmp, $ob_aog, $ob_edc,
-        $team_leader_notes, $team_leader, $data_recorder, $logistic, $first_aider, $second_aider,
-        $endorsement, $hospital_name, $received_by, $endorsement_datetime, $endorsement_attachment
+        $team_leader_notes, $team_leader, $data_recorder, $logistic, $first_aider, $second_aider
     ];
 
     if ($is_updating_draft) {
@@ -348,7 +347,7 @@ try {
             patient_name = ?, date_of_birth = ?, age = ?, gender = ?, civil_status = ?, address = ?, zone = ?, occupation = ?,
             place_of_incident = ?, zone_landmark = ?, incident_time = ?,
             informant_name = ?, informant_address = ?, arrival_type = ?, call_arrival_time = ?, contact_number = ?,
-            relationship_victim = ?, personal_belongings = ?, other_belongings = ?,
+            relationship_victim = ?, personal_belongings = ?, other_belongings = ?, patient_documentation = ?,
             emergency_medical = ?, emergency_medical_details = ?, emergency_trauma = ?, emergency_trauma_details = ?,
             emergency_ob = ?, emergency_ob_details = ?, emergency_general = ?, emergency_general_details = ?,
             care_management = ?, oxygen_lpm = ?, other_care = ?,
@@ -360,7 +359,6 @@ try {
             fast_face_drooping = ?, fast_arm_weakness = ?, fast_speech_difficulty = ?, fast_time_to_call = ?, fast_sample_details = ?,
             ob_baby_status = ?, ob_delivery_time = ?, ob_placenta = ?, ob_lmp = ?, ob_aog = ?, ob_edc = ?,
             team_leader_notes = ?, team_leader = ?, data_recorder = ?, logistic = ?, first_aider = ?, second_aider = ?,
-            endorsement = ?, hospital_name = ?, received_by = ?, endorsement_datetime = ?, endorsement_attachment = ?,
             status = 'completed',
             updated_at = NOW()
             WHERE id = ? AND created_by = ?";
@@ -383,7 +381,7 @@ try {
             patient_name, date_of_birth, age, gender, civil_status, address, zone, occupation,
             place_of_incident, zone_landmark, incident_time,
             informant_name, informant_address, arrival_type, call_arrival_time, contact_number,
-            relationship_victim, personal_belongings, other_belongings,
+            relationship_victim, personal_belongings, other_belongings, patient_documentation,
             emergency_medical, emergency_medical_details, emergency_trauma, emergency_trauma_details,
             emergency_ob, emergency_ob_details, emergency_general, emergency_general_details,
             care_management, oxygen_lpm, other_care,
@@ -395,7 +393,6 @@ try {
             fast_face_drooping, fast_arm_weakness, fast_speech_difficulty, fast_time_to_call, fast_sample_details,
             ob_baby_status, ob_delivery_time, ob_placenta, ob_lmp, ob_aog, ob_edc,
             team_leader_notes, team_leader, data_recorder, logistic, first_aider, second_aider,
-            endorsement, hospital_name, received_by, endorsement_datetime, endorsement_attachment,
             created_by, status
         ) VALUES (
             ?, ?, ?, ?, ?, ?, ?,
@@ -405,7 +402,7 @@ try {
             ?, ?, ?, ?, ?, ?, ?, ?,
             ?, ?, ?,
             ?, ?, ?, ?, ?,
-            ?, ?, ?,
+            ?, ?, ?, ?,
             ?, ?, ?, ?,
             ?, ?, ?, ?,
             ?, ?, ?,
@@ -415,7 +412,6 @@ try {
             ?, ?, ?,
             ?, ?,
             ?, ?, ?, ?, ?,
-            ?, ?, ?, ?, ?, ?,
             ?, ?, ?, ?, ?, ?,
             ?, ?, ?, ?, ?,
             ?, 'completed'

@@ -48,6 +48,36 @@ $current_user = get_auth_user();
 // Decode JSON fields
 $persons_present = json_decode($record['persons_present'] ?? '[]', true);
 $personal_belongings = json_decode($record['personal_belongings'] ?? '[]', true);
+
+// Clean up date and time fields - don't show invalid/empty values
+$dateTimeFields = [
+    'departure_time', 'arrival_time', 'arrival_scene_time', 'departure_scene_time',
+    'arrival_hospital_time', 'departure_hospital_time', 'arrival_station_time',
+    'incident_time', 'call_arrival_time', 'initial_time', 'followup_time',
+    'delivery_time', 'endorsement_datetime'
+];
+
+foreach ($dateTimeFields as $field) {
+    if (isset($record[$field])) {
+        // Clear time fields if they are '00:00:00' or NULL or empty
+        if ($record[$field] === '00:00:00' || $record[$field] === null || $record[$field] === '' ||
+            $record[$field] === '0000-00-00 00:00:00') {
+            $record[$field] = '';
+        }
+    }
+}
+
+// Clean up date-only fields
+$dateFields = ['date_of_birth', 'lmp', 'edc'];
+foreach ($dateFields as $field) {
+    if (isset($record[$field])) {
+        // Clear date fields if they are '0000-00-00' or NULL or empty
+        if ($record[$field] === '0000-00-00' || $record[$field] === null || $record[$field] === '' ||
+            $record[$field] === '0000-00-00 00:00:00') {
+            $record[$field] = '';
+        }
+    }
+}
 $care_management = json_decode($record['care_management'] ?? '[]', true);
 $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
 ?>
@@ -145,6 +175,129 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
         div[id^="NotiflixReportWrap"] button:active {
             text-decoration: none !important;
         }
+
+        /* Clean Corporate Navigation Tabs with Subtle Arrows */
+        .tabs-container {
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            overflow-y: visible;
+        }
+
+        .nav-tabs {
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 0;
+            padding: 0;
+            position: relative;
+        }
+
+        .nav-item {
+            flex: 0 0 auto;
+            min-width: auto;
+            position: relative;
+            margin: 0;
+        }
+
+        .nav-link {
+            background: transparent;
+            color: #6c757d;
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 0.75rem 0.875rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            font-style: italic;
+            text-align: center;
+            position: relative;
+            border-radius: 0;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+        }
+
+        /* Subtle arrow separator */
+        .nav-item:not(:last-child) .nav-link::after {
+            content: '›';
+            position: absolute;
+            right: -4px;
+            font-size: 1.25rem;
+            color: #dee2e6;
+            font-weight: 300;
+            z-index: 1;
+        }
+
+        .nav-link:hover {
+            color: #0066cc;
+            background: rgba(0, 102, 204, 0.05);
+            border-bottom-color: #0066cc;
+        }
+
+        .nav-link.active {
+            color: #0066cc;
+            background: transparent;
+            border-bottom-color: #0066cc;
+            font-weight: 700;
+        }
+
+        .nav-link.active::after {
+            color: #0066cc !important;
+        }
+
+        /* Completed tabs - subtle green indicator */
+        .nav-link.completed:not(.active) {
+            color: #059669;
+            position: relative;
+        }
+
+        .nav-link.completed:not(.active)::before {
+            content: '✓';
+            position: absolute;
+            left: 0.5rem;
+            font-size: 0.75rem;
+            color: #059669;
+        }
+
+        /* Mobile responsive - cleaner approach */
+        @media (max-width: 992px) {
+            .nav-link {
+                font-size: 0.8rem;
+                padding: 0.65rem 0.75rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-link {
+                font-size: 0.75rem;
+                padding: 0.6rem 0.65rem;
+                gap: 0.25rem;
+            }
+
+            .nav-item:not(:last-child) .nav-link::after {
+                font-size: 1.1rem;
+                right: -3px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .tabs-container {
+                margin-left: -0.5rem;
+                margin-right: -0.5rem;
+                padding: 0 0.25rem;
+            }
+
+            .nav-link {
+                font-size: 0.7rem;
+                padding: 0.5rem 0.4rem;
+            }
+
+            .nav-item:not(:last-child) .nav-link::after {
+                display: none; /* Hide arrows on very small screens */
+            }
+        }
     </style>
 </head>
 <body class="loading">
@@ -212,7 +365,7 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
 
         <?php // Flash messages now handled by Notiflix - see JavaScript below ?>
 
-        <form id="editForm" class="form-body" method="POST" action="../api/update_record.php">
+        <form id="editForm" class="form-body" method="POST" action="../api/update_record.php" enctype="multipart/form-data">
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
             <input type="hidden" name="record_id" value="<?php echo $record_id; ?>">
             <input type="hidden" name="injuries_data" id="injuriesData" value='<?php echo json_encode($injuries); ?>'>
@@ -527,6 +680,47 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                             <label for="otherBelongings" class="form-label">Other Belongings (specify)</label>
                             <input type="text" class="form-control" id="otherBelongings" name="other_belongings"
                                    value="<?php echo e($record['other_belongings']); ?>" placeholder="List other belongings not mentioned above">
+                        </div>
+
+                        <!-- Patient Documentation -->
+                        <div class="mb-section">
+                            <label class="form-label">PATIENT DOCUMENTATION</label>
+                            <?php if (!empty($record['patient_documentation'])): ?>
+                                <div class="mb-2">
+                                    <div class="alert alert-info d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <i class="bi bi-file-earmark-image"></i>
+                                            <strong>Current Document:</strong>
+                                            <a href="<?php echo e($record['patient_documentation']); ?>" target="_blank" class="alert-link">
+                                                View Document <i class="bi bi-box-arrow-up-right"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <img src="<?php echo e($record['patient_documentation']); ?>" alt="Patient Documentation" style="max-width: 200px; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                </div>
+                            <?php endif; ?>
+                            <div class="attachment-section">
+                                <div class="attachment-controls">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" id="openPatientCameraBtn">
+                                        <i class="bi bi-camera"></i> Open Camera
+                                    </button>
+                                    <input type="file" class="form-control form-control-sm" id="patientFileUpload" name="patient_documentation" accept="image/jpeg,image/png,image/gif,image/webp" style="display: inline-block; width: auto;" onchange="validatePatientFileUpload(this)">
+                                    <small class="text-muted">Max file size: 5MB. Allowed formats: JPG, PNG, GIF, WebP</small>
+                                </div>
+                                <div id="patientCameraContainer" style="display: none; margin-top: 10px;">
+                                    <video id="patientCameraVideo" autoplay playsinline style="width: 100%; max-width: 300px;"></video>
+                                    <br>
+                                    <button type="button" class="btn btn-success btn-sm" id="capturePatientBtn" onclick="capturePatientPhoto()">Capture Photo</button>
+                                    <button type="button" class="btn btn-secondary btn-sm" id="closePatientCameraBtn" onclick="closePatientCamera()">Close Camera</button>
+                                </div>
+                                <div id="patientPreviewContainer" style="margin-top: 10px;">
+                                    <img id="patientAttachmentPreview" src="" alt="Patient Documentation Preview" style="max-width: 200px; display: none;">
+                                    <button type="button" class="btn btn-outline-danger btn-sm" id="removePatientAttachmentBtn" style="display: none;" onclick="removePatientAttachment()">
+                                        <i class="bi bi-trash"></i> Remove
+                                    </button>
+                                </div>
+                                <div id="patientUploadError" class="text-danger" style="display: none;"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1106,39 +1300,6 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                                 <label for="aider2" class="form-label">2nd Aider</label>
                                 <input type="text" class="form-control" id="aider2" name="aider2"
                                        value="<?php echo e($record['second_aider']); ?>" placeholder="Name">
-                            </div>
-                        </div>
-
-                        <div class="section-title">
-                            <i class="bi bi-building"></i> Hospital Endorsement
-                        </div>
-
-                        <div class="grid-2 mb-section">
-                            <div>
-                                <label for="endorsement" class="form-label">Endorsement</label>
-                                <input type="text" class="form-control" id="endorsement" name="endorsement"
-                                       value="<?php echo e($record['endorsement']); ?>" placeholder="Facility">
-                            </div>
-                            <div>
-                                <label for="hospital" class="form-label">Hospital Name</label>
-                                <input type="text" class="form-control" id="hospital" name="hospital_name"
-                                       value="<?php echo e($record['hospital_name']); ?>" placeholder="Hospital name">
-                            </div>
-                        </div>
-
-                        <div class="grid-2 mb-section">
-                            <div>
-                                <label class="form-label">Received by (Signature)</label>
-                                <div class="signature-box">
-                                    <i class="bi bi-pen"></i>
-                                    <p>Signature over printed name</p>
-                                </div>
-                                <input type="hidden" name="received_by_signature" id="receivedBySignature" value="<?php echo e($record['received_by']); ?>">
-                            </div>
-                            <div>
-                                <label for="dateTime" class="form-label">Date & Time</label>
-                                <input type="datetime-local" class="form-control" id="dateTime" name="endorsement_datetime"
-                                       value="<?php echo e($record['endorsement_datetime']); ?>">
                             </div>
                         </div>
 

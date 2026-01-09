@@ -108,6 +108,13 @@ $current_user = get_auth_user();
             }
         }
 
+        /* Hide navigation buttons on mobile when sidebar is open */
+        @media (max-width: 768px) {
+            body.sidebar-open .navigation-buttons {
+                display: none !important;
+            }
+        }
+
         /* Fix Notiflix Report button underline */
         div[id^="NotiflixReportWrap"] button {
             text-decoration: none !important;
@@ -117,6 +124,129 @@ $current_user = get_auth_user();
         div[id^="NotiflixReportWrap"] button:focus,
         div[id^="NotiflixReportWrap"] button:active {
             text-decoration: none !important;
+        }
+
+        /* Clean Corporate Navigation Tabs with Subtle Arrows */
+        .tabs-container {
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            overflow-y: visible;
+        }
+
+        .nav-tabs {
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 0;
+            padding: 0;
+            position: relative;
+        }
+
+        .nav-item {
+            flex: 0 0 auto;
+            min-width: auto;
+            position: relative;
+            margin: 0;
+        }
+
+        .nav-link {
+            background: transparent;
+            color: #6c757d;
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 0.75rem 0.875rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            font-style: italic;
+            text-align: center;
+            position: relative;
+            border-radius: 0;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+        }
+
+        /* Subtle arrow separator */
+        .nav-item:not(:last-child) .nav-link::after {
+            content: '›';
+            position: absolute;
+            right: -4px;
+            font-size: 1.25rem;
+            color: #dee2e6;
+            font-weight: 300;
+            z-index: 1;
+        }
+
+        .nav-link:hover {
+            color: #0066cc;
+            background: rgba(0, 102, 204, 0.05);
+            border-bottom-color: #0066cc;
+        }
+
+        .nav-link.active {
+            color: #0066cc;
+            background: transparent;
+            border-bottom-color: #0066cc;
+            font-weight: 700;
+        }
+
+        .nav-link.active::after {
+            color: #0066cc !important;
+        }
+
+        /* Completed tabs - subtle green indicator */
+        .nav-link.completed:not(.active) {
+            color: #059669;
+            position: relative;
+        }
+
+        .nav-link.completed:not(.active)::before {
+            content: '✓';
+            position: absolute;
+            left: 0.5rem;
+            font-size: 0.75rem;
+            color: #059669;
+        }
+
+        /* Mobile responsive - cleaner approach */
+        @media (max-width: 992px) {
+            .nav-link {
+                font-size: 0.8rem;
+                padding: 0.65rem 0.75rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-link {
+                font-size: 0.75rem;
+                padding: 0.6rem 0.65rem;
+                gap: 0.25rem;
+            }
+
+            .nav-item:not(:last-child) .nav-link::after {
+                font-size: 1.1rem;
+                right: -3px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .tabs-container {
+                margin-left: -0.5rem;
+                margin-right: -0.5rem;
+                padding: 0 0.25rem;
+            }
+
+            .nav-link {
+                font-size: 0.7rem;
+                padding: 0.5rem 0.4rem;
+            }
+
+            .nav-item:not(:last-child) .nav-link::after {
+                display: none; /* Hide arrows on very small screens */
+            }
         }
     </style>
 </head>
@@ -331,8 +461,8 @@ $current_user = get_auth_user();
                                 <input type="text" class="form-control" id="patientName" name="patient_name" placeholder="Last Name, First Name, Middle Initial" required>
                             </div>
                             <div>
-                                <label for="dateOfBirth" class="form-label required-field">Date of Birth</label>
-                                <input type="date" class="form-control" id="dateOfBirth" name="date_of_birth" required>
+                                <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="dateOfBirth" name="date_of_birth">
                             </div>
                             <div>
                                 <label for="age" class="form-label required-field">Age</label>
@@ -466,6 +596,33 @@ $current_user = get_auth_user();
                         <div class="mb-section">
                             <label for="otherBelongings" class="form-label">Other Belongings (specify)</label>
                             <input type="text" class="form-control" id="otherBelongings" name="other_belongings" placeholder="List other belongings not mentioned above">
+                        </div>
+
+                        <!-- Patient Documentation -->
+                        <div class="mb-section">
+                            <label class="form-label">PATIENT DOCUMENTATION</label>
+                            <div class="attachment-section">
+                                <div class="attachment-controls">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" id="openPatientCameraBtn">
+                                        <i class="bi bi-camera"></i> Open Camera
+                                    </button>
+                                    <input type="file" class="form-control form-control-sm" id="patientFileUpload" name="patient_documentation" accept="image/jpeg,image/png,image/gif,image/webp" style="display: inline-block; width: auto;" onchange="validatePatientFileUpload(this)">
+                                    <small class="text-muted">Max file size: 5MB. Allowed formats: JPG, PNG, GIF, WebP</small>
+                                </div>
+                                <div id="patientCameraContainer" style="display: none; margin-top: 10px;">
+                                    <video id="patientCameraVideo" autoplay playsinline style="width: 100%; max-width: 300px;"></video>
+                                    <br>
+                                    <button type="button" class="btn btn-success btn-sm" id="capturePatientBtn" onclick="capturePatientPhoto()">Capture Photo</button>
+                                    <button type="button" class="btn btn-secondary btn-sm" id="closePatientCameraBtn" onclick="closePatientCamera()">Close Camera</button>
+                                </div>
+                                <div id="patientPreviewContainer" style="margin-top: 10px;">
+                                    <img id="patientAttachmentPreview" src="" alt="Patient Documentation Preview" style="max-width: 200px; display: none;">
+                                    <button type="button" class="btn btn-outline-danger btn-sm" id="removePatientAttachmentBtn" style="display: none;" onclick="removePatientAttachment()">
+                                        <i class="bi bi-trash"></i> Remove
+                                    </button>
+                                </div>
+                                <div id="patientUploadError" class="text-danger" style="display: none;"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -985,52 +1142,6 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
-                        <div class="section-title">
-                            <i class="bi bi-building"></i> Hospital Endorsement
-                        </div>
-
-                        <div class="grid-2 mb-section">
-                            <div>
-                                <label for="endorsement" class="form-label">Endorsement</label>
-                                <input type="text" class="form-control" id="endorsement" name="endorsement" placeholder="Facility">
-                            </div>
-                            <div>
-                                <label for="hospital" class="form-label">Hospital Name</label>
-                                <input type="text" class="form-control" id="hospital" name="hospital_name" placeholder="Hospital name">
-                            </div>
-                        </div>
-
-                        <div class="grid-2">
-                            <div>
-                                <label class="form-label">ENDORSEMENT ATTACHMENT</label>
-                                <div class="attachment-section">
-                                    <div class="attachment-controls">
-                                        <button type="button" class="btn btn-outline-primary btn-sm" id="openCameraBtn">
-                                            <i class="bi bi-camera"></i> Open Camera
-                                        </button>
-                                        <input type="file" class="form-control form-control-sm" id="fileUpload" name="endorsement_attachment" accept="image/jpeg,image/png,image/gif,image/webp" style="display: inline-block; width: auto;" onchange="validateFileUpload(this)">
-                                        <small class="text-muted">Max file size: 5MB. Allowed formats: JPG, PNG, GIF, WebP</small>
-                                    </div>
-                                    <div id="cameraContainer" style="display: none; margin-top: 10px;">
-                                        <video id="cameraVideo" autoplay playsinline style="width: 100%; max-width: 300px;"></video>
-                                        <br>
-                                        <button type="button" class="btn btn-success btn-sm" id="captureBtn" onclick="capturePhoto()">Capture Photo</button>
-                                        <button type="button" class="btn btn-secondary btn-sm" id="closeCameraBtn" onclick="closeCamera()">Close Camera</button>
-                                    </div>
-                                    <div id="previewContainer" style="margin-top: 10px;">
-                                        <img id="attachmentPreview" src="" alt="Attachment Preview" style="max-width: 200px; display: none;">
-                                        <button type="button" class="btn btn-outline-danger btn-sm" id="removeAttachmentBtn" style="display: none;" onclick="removeAttachment()">
-                                            <i class="bi bi-trash"></i> Remove
-                                        </button>
-                                    </div>
-                                    <div id="uploadError" class="text-danger" style="display: none;"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <label for="dateTime" class="form-label">Date & Time</label>
-                                <input type="datetime-local" class="form-control" id="dateTime" name="endorsement_datetime">
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -1235,6 +1346,10 @@ $current_user = get_auth_user();
         const resumeDraftId = urlParams.get('draft_id');
         if (resumeDraftId) {
             currentDraftId = resumeDraftId;
+            // Set the draft_id in the hidden field immediately
+            document.getElementById('draftIdField').value = resumeDraftId;
+            console.log('Draft ID from URL:', resumeDraftId);
+            console.log('Hidden field set to:', document.getElementById('draftIdField').value);
             loadDraft(resumeDraftId);
         }
 
@@ -1431,12 +1546,68 @@ $current_user = get_auth_user();
 
         // Function to populate form with draft data
         function populateForm(data) {
-            // Text inputs
+            console.log('Populating form with data:', data);
+
+            // Handle emergency types (stored as separate boolean columns in DB)
+            const emergencyTypes = [];
+            if (data.emergency_medical == 1) {
+                emergencyTypes.push('medical');
+                const medicalInput = document.querySelector('[name="medical_specify"]');
+                if (medicalInput && data.emergency_medical_details) {
+                    medicalInput.value = data.emergency_medical_details;
+                }
+            }
+            if (data.emergency_trauma == 1) {
+                emergencyTypes.push('trauma');
+                const traumaInput = document.querySelector('[name="trauma_specify"]');
+                if (traumaInput && data.emergency_trauma_details) {
+                    traumaInput.value = data.emergency_trauma_details;
+                }
+            }
+            if (data.emergency_ob == 1) {
+                emergencyTypes.push('ob');
+                const obInput = document.querySelector('[name="ob_specify"]');
+                if (obInput && data.emergency_ob_details) {
+                    obInput.value = data.emergency_ob_details;
+                }
+            }
+            if (data.emergency_general == 1) {
+                emergencyTypes.push('general');
+                const generalInput = document.querySelector('[name="general_specify"]');
+                if (generalInput && data.emergency_general_details) {
+                    generalInput.value = data.emergency_general_details;
+                }
+            }
+
+            // Check emergency type checkboxes
+            emergencyTypes.forEach(type => {
+                const checkbox = document.querySelector(`[name="emergency_type[]"][value="${type}"]`);
+                if (checkbox) checkbox.checked = true;
+            });
+
+            // Text inputs and other fields
             for (let key in data) {
-                const input = document.querySelector(`[name="${key}"]`);
+                // Skip non-field columns and already-handled emergency fields
+                if (['id', 'form_number', 'created_by', 'created_at', 'updated_at', 'status',
+                     'endorsement_attachment', 'patient_documentation', 'waiver_patient_signature',
+                     'waiver_witness_signature', 'emergency_medical', 'emergency_medical_details',
+                     'emergency_trauma', 'emergency_trauma_details', 'emergency_ob', 'emergency_ob_details',
+                     'emergency_general', 'emergency_general_details', 'received_by'].includes(key)) {
+                    continue;
+                }
+
+                let fieldName = key;
+                let input = document.querySelector(`[name="${fieldName}"]`);
+
+                // If not found, try without underscore conversions or special cases
+                if (!input) {
+                    // Try array notation for multi-select fields
+                    input = document.querySelector(`[name="${fieldName}[]"]`);
+                }
+
                 if (input) {
                     if (input.type === 'radio') {
-                        const radio = document.querySelector(`[name="${key}"][value="${data[key]}"]`);
+                        const radio = document.querySelector(`[name="${fieldName}"][value="${data[key]}"]`);
                         if (radio) radio.checked = true;
                     } else if (input.type === 'checkbox') {
                         // Handle JSON arrays
@@ -1444,13 +1615,27 @@ $current_user = get_auth_user();
                             const values = JSON.parse(data[key]);
                             if (Array.isArray(values)) {
                                 values.forEach(val => {
-                                    const checkbox = document.querySelector(`[name="${key}[]"][value="${val}"]`);
+                                    const checkbox = document.querySelector(`[name="${fieldName}[]"][value="${val}"]`);
                                     if (checkbox) checkbox.checked = true;
                                 });
                             }
                         } catch (e) {
                             // Single checkbox
                             input.checked = !!data[key];
+                        }
+                    } else if (input.tagName === 'SELECT' && input.multiple) {
+                        // Handle multi-select dropdowns
+                        try {
+                            const values = JSON.parse(data[key]);
+                            if (Array.isArray(values)) {
+                                Array.from(input.options).forEach(option => {
+                                    if (values.includes(option.value)) {
+                                        option.selected = true;
+                                    }
+                                });
+                            }
+                        } catch (e) {
+                            console.error('Error parsing multi-select data for', key, e);
                         }
                     } else {
                         // Handle time fields - don't populate if value is 00:00:00 or null
@@ -1471,8 +1656,12 @@ $current_user = get_auth_user();
                             input.value = data[key] || '';
                         }
                     }
+                } else {
+                    console.log('Field not found for database column:', key);
                 }
             }
+
+            console.log('Form population complete');
         }
 
         // Initialize autosave listeners after page loads

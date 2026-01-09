@@ -321,7 +321,7 @@ $drafts = $stmt->fetchAll();
                         </div>
 
                         <div class="draft-details">
-                            <?php if ($draft['form_date']): ?>
+                            <?php if ($draft['form_date'] && $draft['form_date'] !== '0000-00-00'): ?>
                                 <div class="draft-detail-item">
                                     <i class="bi bi-calendar"></i>
                                     <span>Date: <?php echo date('M d, Y', strtotime($draft['form_date'])); ?></span>

@@ -123,6 +123,72 @@ try {
     $personal_belongings_json = json_encode($personal_belongings);
     $other_belongings = !empty($_POST['other_belongings']) ? sanitize($_POST['other_belongings']) : null;
 
+    // Handle file upload security - Patient Documentation
+    // Get existing patient documentation from database first
+    $existing_patient_doc_sql = "SELECT patient_documentation FROM prehospital_forms WHERE id = ?";
+    $existing_patient_doc_stmt = db_query($existing_patient_doc_sql, [$record_id]);
+    $existing_patient_doc_row = $existing_patient_doc_stmt->fetch();
+    $patient_documentation_path = $existing_patient_doc_row['patient_documentation'] ?? null;
+
+    // Only process upload if a new file is provided
+    if (isset($_FILES['patient_documentation']) && $_FILES['patient_documentation']['error'] !== UPLOAD_ERR_NO_FILE) {
+        $file = $_FILES['patient_documentation'];
+
+        // Security checks
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            throw new Exception('Patient documentation upload error: ' . $file['error']);
+        }
+
+        // Check file size (max 5MB)
+        $maxFileSize = 5 * 1024 * 1024; // 5MB in bytes
+        if ($file['size'] > $maxFileSize) {
+            throw new Exception('Patient documentation file size exceeds 5MB limit');
+        }
+
+        // Validate MIME type
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $fileMimeType = mime_content_type($file['tmp_name']);
+        if (!in_array($fileMimeType, $allowedMimeTypes)) {
+            throw new Exception('Invalid patient documentation file type. Only JPG, PNG, GIF, and WebP are allowed');
+        }
+
+        // Validate file extension
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $fileExtension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($fileExtension, $allowedExtensions)) {
+            throw new Exception('Invalid patient documentation file extension');
+        }
+
+        // Additional check: verify it's actually an image
+        $imageInfo = getimagesize($file['tmp_name']);
+        if ($imageInfo === false) {
+            throw new Exception('Uploaded file is not a valid image');
+        }
+
+        // Generate safe filename with metadata
+        $timestamp = date('YmdHis');
+        $uniqueId = bin2hex(random_bytes(8));
+        $safeFileName = 'patient_' . $timestamp . '_' . $uniqueId . '.' . $fileExtension;
+
+        // Create uploads directory structure with date-based organization
+        $dateFolder = date('Y-m-d');
+        $uploadDir = dirname(__DIR__) . '/public/uploads/patient_docs/' . $dateFolder;
+        if (!is_dir($uploadDir)) {
+            if (!mkdir($uploadDir, 0755, true)) {
+                throw new Exception('Failed to create patient documentation upload directory');
+            }
+        }
+
+        // Move file to uploads directory
+        $targetPath = $uploadDir . '/' . $safeFileName;
+        if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+            throw new Exception('Failed to save patient documentation file');
+        }
+
+        // Store relative path for database (accessible via web)
+        $patient_documentation_path = 'uploads/patient_docs/' . $dateFolder . '/' . $safeFileName;
+    }
+
     // Emergency Call Types
     $emergency_medical = isset($_POST['emergency_type']) && in_array('medical', $_POST['emergency_type']) ? 1 : 0;
     $emergency_medical_details = !empty($_POST['medical_specify']) ? sanitize($_POST['medical_specify']) : null;
@@ -198,11 +264,6 @@ try {
     $first_aider = !empty($_POST['aider1']) ? sanitize($_POST['aider1']) : null;
     $second_aider = !empty($_POST['aider2']) ? sanitize($_POST['aider2']) : null;
 
-    // Hospital Endorsement
-    $endorsement = !empty($_POST['endorsement']) ? sanitize($_POST['endorsement']) : null;
-    $hospital_name = !empty($_POST['hospital_name']) ? sanitize($_POST['hospital_name']) : null;
-    $received_by = !empty($_POST['received_by_signature']) ? sanitize($_POST['received_by_signature']) : null;
-    $endorsement_datetime = !empty($_POST['endorsement_datetime']) ? sanitize($_POST['endorsement_datetime']) : null;
 
     // Waiver
     $waiver_patient_signature = !empty($_POST['patient_signature']) ? sanitize($_POST['patient_signature']) : null;
@@ -245,6 +306,7 @@ try {
         relationship_victim = ?,
         personal_belongings = ?,
         other_belongings = ?,
+        patient_documentation = ?,
         emergency_medical = ?,
         emergency_medical_details = ?,
         emergency_trauma = ?,
@@ -294,10 +356,6 @@ try {
         logistic = ?,
         first_aider = ?,
         second_aider = ?,
-        endorsement = ?,
-        hospital_name = ?,
-        received_by = ?,
-        endorsement_datetime = ?,
         waiver_patient_signature = ?,
         waiver_witness_signature = ?,
         updated_at = NOW()
@@ -339,6 +397,7 @@ try {
         $relationship_victim,
         $personal_belongings_json,
         $other_belongings,
+        $patient_documentation_path,
         $emergency_medical,
         $emergency_medical_details,
         $emergency_trauma,
@@ -388,10 +447,6 @@ try {
         $logistic,
         $first_aider,
         $second_aider,
-        $endorsement,
-        $hospital_name,
-        $received_by,
-        $endorsement_datetime,
         $waiver_patient_signature,
         $waiver_witness_signature,
         $record_id
