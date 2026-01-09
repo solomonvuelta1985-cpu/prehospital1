@@ -1142,6 +1142,53 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
+                        <div class="section-title" style="margin-top: 1.5rem;">
+                            <i class="bi bi-building"></i> Hospital Endorsement
+                        </div>
+
+                        <div class="grid-2 mb-section">
+                            <div>
+                                <label for="endorsement" class="form-label">Endorsement</label>
+                                <input type="text" class="form-control" id="endorsement" name="endorsement" placeholder="Facility">
+                            </div>
+                            <div>
+                                <label for="hospital" class="form-label">Hospital Name</label>
+                                <input type="text" class="form-control" id="hospital" name="hospital_name" placeholder="Hospital name">
+                            </div>
+                        </div>
+
+                        <div class="grid-2 mb-section">
+                            <div>
+                                <label class="form-label">ENDORSEMENT ATTACHMENT</label>
+                                <div class="attachment-section">
+                                    <div class="attachment-controls">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="openCameraBtn">
+                                            <i class="bi bi-camera"></i> Open Camera
+                                        </button>
+                                        <input type="file" class="form-control form-control-sm" id="fileUpload" name="endorsement_attachment" accept="image/jpeg,image/png,image/gif,image/webp" style="display: inline-block; width: auto;" onchange="validateFileUpload(this)">
+                                        <small class="text-muted">Max file size: 5MB. Allowed formats: JPG, PNG, GIF, WebP</small>
+                                    </div>
+                                    <div id="cameraContainer" style="display: none; margin-top: 10px;">
+                                        <video id="cameraVideo" autoplay playsinline style="width: 100%; max-width: 300px;"></video>
+                                        <br>
+                                        <button type="button" class="btn btn-success btn-sm" id="captureBtn" onclick="capturePhoto()">Capture Photo</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" id="closeCameraBtn" onclick="closeCamera()">Close Camera</button>
+                                    </div>
+                                    <div id="previewContainer" style="margin-top: 10px;">
+                                        <img id="attachmentPreview" src="" alt="Attachment Preview" style="max-width: 200px; display: none;">
+                                        <button type="button" class="btn btn-outline-danger btn-sm" id="removeAttachmentBtn" style="display: none;" onclick="removeAttachment()">
+                                            <i class="bi bi-trash"></i> Remove
+                                        </button>
+                                    </div>
+                                    <div id="uploadError" class="text-danger" style="display: none;"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="dateTime" class="form-label">Date & Time</label>
+                                <input type="datetime-local" class="form-control" id="dateTime" name="endorsement_datetime">
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -1526,6 +1573,24 @@ $current_user = get_auth_user();
                             'Continue Editing'
                         );
                     } else {
+                        // Check if draft was already completed/submitted
+                        if (result.message && result.message.includes('Draft not found')) {
+                            // Draft was already submitted - silently clear the URL parameter and draft ID
+                            console.log('Draft was already submitted, starting fresh form');
+
+                            // Clear the draft ID from hidden field and global variable
+                            currentDraftId = null;
+                            document.getElementById('draftIdField').value = '';
+
+                            // Clear URL parameter
+                            const url = new URL(window.location);
+                            url.searchParams.delete('draft_id');
+                            window.history.replaceState({}, '', url);
+
+                            // Don't show error, just start with fresh form
+                            return;
+                        }
+
                         Notiflix.Report.failure(
                             'Load Failed',
                             result.message || 'Could not load draft',

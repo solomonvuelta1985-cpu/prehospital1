@@ -761,7 +761,7 @@ if (count($name_parts) >= 2) {
     color: var(--text-secondary);
     text-decoration: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 10px;
+    border-radius: 60px;
     font-size: 13.5px;
     font-weight: 500;
     line-height: 1.5;
@@ -782,7 +782,7 @@ if (count($name_parts) >= 2) {
 
 .sidebar-menu li a.active {
     background: var(--sidebar-item-active);
-    color: #b7e4ff;
+    color: #87e87cff;
     font-weight: 600;
     transform: translateX(0);
     animation: menuItemActivate 0.4s cubic-bezier(0.4, 0, 0.2, 1);

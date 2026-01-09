@@ -55,6 +55,15 @@ try {
     // Basic Information
     $departure_time = !empty($_POST['departure_time']) ? sanitize($_POST['departure_time']) : null;
     $arrival_time = !empty($_POST['arrival_time']) ? sanitize($_POST['arrival_time']) : null;
+
+    // Strip seconds from time if present (HTML5 time input may include seconds)
+    if ($departure_time && strlen($departure_time) === 8) {
+        $departure_time = substr($departure_time, 0, 5); // Convert HH:MM:SS to HH:MM
+    }
+    if ($arrival_time && strlen($arrival_time) === 8) {
+        $arrival_time = substr($arrival_time, 0, 5); // Convert HH:MM:SS to HH:MM
+    }
+
     $vehicle_used = !empty($_POST['vehicle_used']) ? sanitize($_POST['vehicle_used']) : null;
     $vehicle_details = !empty($_POST['vehicle_details']) ? sanitize($_POST['vehicle_details']) : null;
     $driver_name = !empty($_POST['driver_name']) ? sanitize($_POST['driver_name']) : null;
@@ -264,6 +273,76 @@ try {
     $first_aider = !empty($_POST['aider1']) ? sanitize($_POST['aider1']) : null;
     $second_aider = !empty($_POST['aider2']) ? sanitize($_POST['aider2']) : null;
 
+    // Hospital Endorsement
+    $endorsement = !empty($_POST['endorsement']) ? sanitize($_POST['endorsement']) : null;
+    $hospital_name = !empty($_POST['hospital_name']) ? sanitize($_POST['hospital_name']) : null;
+    $endorsement_datetime = !empty($_POST['endorsement_datetime']) ? sanitize($_POST['endorsement_datetime']) : null;
+
+    // Handle file upload security - Endorsement Attachment
+    // Get existing endorsement attachment from database first
+    $existing_endorsement_sql = "SELECT endorsement_attachment FROM prehospital_forms WHERE id = ?";
+    $existing_endorsement_stmt = db_query($existing_endorsement_sql, [$record_id]);
+    $existing_endorsement_row = $existing_endorsement_stmt->fetch();
+    $endorsement_attachment_path = $existing_endorsement_row['endorsement_attachment'] ?? null;
+
+    // Only process upload if a new file is provided
+    if (isset($_FILES['endorsement_attachment']) && $_FILES['endorsement_attachment']['error'] !== UPLOAD_ERR_NO_FILE) {
+        $file = $_FILES['endorsement_attachment'];
+
+        // Security checks
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            throw new Exception('Endorsement attachment upload error: ' . $file['error']);
+        }
+
+        // Check file size (max 5MB)
+        $maxFileSize = 5 * 1024 * 1024; // 5MB in bytes
+        if ($file['size'] > $maxFileSize) {
+            throw new Exception('Endorsement attachment file size exceeds 5MB limit');
+        }
+
+        // Validate MIME type
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $fileMimeType = mime_content_type($file['tmp_name']);
+        if (!in_array($fileMimeType, $allowedMimeTypes)) {
+            throw new Exception('Invalid endorsement attachment file type. Only JPG, PNG, GIF, and WebP are allowed');
+        }
+
+        // Validate file extension
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $fileExtension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($fileExtension, $allowedExtensions)) {
+            throw new Exception('Invalid endorsement attachment file extension');
+        }
+
+        // Additional check: verify it's actually an image
+        $imageInfo = getimagesize($file['tmp_name']);
+        if ($imageInfo === false) {
+            throw new Exception('Uploaded file is not a valid image');
+        }
+
+        // Generate safe filename with metadata
+        $timestamp = date('YmdHis');
+        $uniqueId = bin2hex(random_bytes(8));
+        $safeFileName = 'endorsement_' . $timestamp . '_' . $uniqueId . '.' . $fileExtension;
+
+        // Create uploads directory structure with date-based organization
+        $dateFolder = date('Y-m-d');
+        $uploadDir = dirname(__DIR__) . '/public/uploads/endorsements/' . $dateFolder;
+        if (!is_dir($uploadDir)) {
+            if (!mkdir($uploadDir, 0755, true)) {
+                throw new Exception('Failed to create endorsement attachment upload directory');
+            }
+        }
+
+        // Move file to uploads directory
+        $targetPath = $uploadDir . '/' . $safeFileName;
+        if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+            throw new Exception('Failed to save endorsement attachment file');
+        }
+
+        // Store relative path for database (accessible via web)
+        $endorsement_attachment_path = 'uploads/endorsements/' . $dateFolder . '/' . $safeFileName;
+    }
 
     // Waiver
     $waiver_patient_signature = !empty($_POST['patient_signature']) ? sanitize($_POST['patient_signature']) : null;
@@ -356,6 +435,10 @@ try {
         logistic = ?,
         first_aider = ?,
         second_aider = ?,
+        endorsement = ?,
+        hospital_name = ?,
+        endorsement_attachment = ?,
+        endorsement_datetime = ?,
         waiver_patient_signature = ?,
         waiver_witness_signature = ?,
         updated_at = NOW()
@@ -447,6 +530,10 @@ try {
         $logistic,
         $first_aider,
         $second_aider,
+        $endorsement,
+        $hospital_name,
+        $endorsement_attachment_path,
+        $endorsement_datetime,
         $waiver_patient_signature,
         $waiver_witness_signature,
         $record_id

@@ -1303,6 +1303,66 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                             </div>
                         </div>
 
+                        <div class="section-title" style="margin-top: 1.5rem;">
+                            <i class="bi bi-building"></i> Hospital Endorsement
+                        </div>
+
+                        <div class="grid-2 mb-section">
+                            <div>
+                                <label for="endorsement" class="form-label">Endorsement</label>
+                                <input type="text" class="form-control" id="endorsement" name="endorsement"
+                                       value="<?php echo e($record['endorsement']); ?>" placeholder="Facility">
+                            </div>
+                            <div>
+                                <label for="hospital" class="form-label">Hospital Name</label>
+                                <input type="text" class="form-control" id="hospital" name="hospital_name"
+                                       value="<?php echo e($record['hospital_name']); ?>" placeholder="Hospital name">
+                            </div>
+                        </div>
+
+                        <div class="grid-2 mb-section">
+                            <div>
+                                <label class="form-label">ENDORSEMENT ATTACHMENT</label>
+                                <div class="attachment-section">
+                                    <?php if (!empty($record['endorsement_attachment'])): ?>
+                                        <div class="current-attachment mb-2">
+                                            <img src="<?php echo e($record['endorsement_attachment']); ?>"
+                                                 alt="Current Endorsement" style="max-width: 200px; border: 1px solid #ddd; padding: 5px;">
+                                            <p class="text-muted small">Current attachment</p>
+                                        </div>
+                                    <?php endif; ?>
+                                    <div class="attachment-controls">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="openCameraBtn">
+                                            <i class="bi bi-camera"></i> Open Camera
+                                        </button>
+                                        <input type="file" class="form-control form-control-sm" id="fileUpload"
+                                               name="endorsement_attachment" accept="image/jpeg,image/png,image/gif,image/webp"
+                                               style="display: inline-block; width: auto;" onchange="validateFileUpload(this)">
+                                        <small class="text-muted">Max file size: 5MB. Allowed formats: JPG, PNG, GIF, WebP</small>
+                                    </div>
+                                    <div id="cameraContainer" style="display: none; margin-top: 10px;">
+                                        <video id="cameraVideo" autoplay playsinline style="width: 100%; max-width: 300px;"></video>
+                                        <br>
+                                        <button type="button" class="btn btn-success btn-sm" id="captureBtn" onclick="capturePhoto()">Capture Photo</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" id="closeCameraBtn" onclick="closeCamera()">Close Camera</button>
+                                    </div>
+                                    <div id="previewContainer" style="margin-top: 10px;">
+                                        <img id="attachmentPreview" src="" alt="Attachment Preview" style="max-width: 200px; display: none;">
+                                        <button type="button" class="btn btn-outline-danger btn-sm" id="removeAttachmentBtn"
+                                                style="display: none;" onclick="removeAttachment()">
+                                            <i class="bi bi-trash"></i> Remove
+                                        </button>
+                                    </div>
+                                    <div id="uploadError" class="text-danger" style="display: none;"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="dateTime" class="form-label">Date & Time</label>
+                                <input type="datetime-local" class="form-control" id="dateTime" name="endorsement_datetime"
+                                       value="<?php echo e($record['endorsement_datetime']); ?>">
+                            </div>
+                        </div>
+
                         <div class="section-title">
                             <i class="bi bi-pencil-square"></i> Team Leader Notes
                         </div>

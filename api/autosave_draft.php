@@ -132,6 +132,8 @@ try {
         'logistic' => $data['logistic'] ?? null,
         'first_aider' => $data['aider1'] ?? null,
         'second_aider' => $data['aider2'] ?? null,
+
+        // Hospital Endorsement
         'endorsement' => $data['endorsement'] ?? null,
         'hospital_name' => $data['hospital_name'] ?? null,
         'endorsement_datetime' => $data['endorsement_datetime'] ?? null,

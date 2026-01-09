@@ -122,12 +122,21 @@ try {
     $form_number = 'PHC-' . date('Ymd') . '-' . strtoupper(bin2hex(random_bytes(4)));
     
     // Basic Information
-    $departure_time = sanitize($_POST['departure_time'] ?? null);
-    $arrival_time = sanitize($_POST['arrival_time'] ?? null);
+    $departure_time = !empty($_POST['departure_time']) ? sanitize($_POST['departure_time']) : null;
+    $arrival_time = !empty($_POST['arrival_time']) ? sanitize($_POST['arrival_time']) : null;
+
+    // Strip seconds from time if present (HTML5 time input may include seconds)
+    if ($departure_time && strlen($departure_time) === 8) {
+        $departure_time = substr($departure_time, 0, 5); // Convert HH:MM:SS to HH:MM
+    }
+    if ($arrival_time && strlen($arrival_time) === 8) {
+        $arrival_time = substr($arrival_time, 0, 5); // Convert HH:MM:SS to HH:MM
+    }
+
     $vehicle_used = sanitize($_POST['vehicle_used'] ?? null);
     $vehicle_details = sanitize($_POST['vehicle_details'] ?? null);
     $driver_name = sanitize($_POST['driver_name'] ?? null);
-    
+
     // Validate times if provided
     if ($departure_time && !validate_time($departure_time)) {
         throw new Exception('Invalid departure time format');
@@ -281,8 +290,77 @@ try {
     $logistic = sanitize($_POST['logistic'] ?? null);
     $first_aider = sanitize($_POST['first_aider'] ?? null);
     $second_aider = sanitize($_POST['second_aider'] ?? null);
-    
-    
+
+    // Hospital Endorsement
+    $endorsement = sanitize($_POST['endorsement'] ?? null);
+    $hospital_name = sanitize($_POST['hospital_name'] ?? null);
+    $endorsement_datetime = sanitize($_POST['endorsement_datetime'] ?? null);
+
+    // Handle file upload security - Endorsement Attachment
+    $endorsement_attachment_path = null;
+    if (isset($_FILES['endorsement_attachment']) && $_FILES['endorsement_attachment']['error'] !== UPLOAD_ERR_NO_FILE) {
+        $file = $_FILES['endorsement_attachment'];
+
+        // Security checks
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            throw new Exception('Endorsement attachment upload error: ' . $file['error']);
+        }
+
+        // Validate file size (5MB max)
+        $maxSize = 5 * 1024 * 1024; // 5MB
+        if ($file['size'] > $maxSize) {
+            throw new Exception('Endorsement attachment file size exceeds 5MB limit');
+        }
+
+        // Validate MIME type
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+
+        if (!in_array($mimeType, $allowedMimeTypes)) {
+            throw new Exception('Invalid endorsement attachment file type. Only images are allowed.');
+        }
+
+        // Validate file extension matches MIME type
+        $fileName = strtolower($file['name']);
+        $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+        if (!in_array($extension, $allowedExtensions)) {
+            throw new Exception('Endorsement attachment file extension not allowed');
+        }
+
+        // Additional security: Check for malicious content
+        if (function_exists('exif_imagetype')) {
+            $imageType = exif_imagetype($file['tmp_name']);
+            if (!$imageType || !in_array($imageType, [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP])) {
+                throw new Exception('Invalid endorsement attachment image file');
+            }
+        }
+
+        // Generate secure filename with date and unique ID
+        $uniqueId = bin2hex(random_bytes(16));
+        $dateFolder = date('Y-m-d'); // Organize by date: 2026-01-09
+        $safeFileName = 'endorsement_' . date('YmdHis') . '_' . $uniqueId . '.' . $extension;
+
+        // Create uploads directory with date subfolder for better organization
+        $uploadDir = '../public/uploads/endorsements/' . $dateFolder . '/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0750, true);
+        }
+
+        $targetPath = $uploadDir . $safeFileName;
+
+        // Move uploaded file
+        if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+            throw new Exception('Failed to save endorsement attachment file');
+        }
+
+        // Store relative path for database (accessible via web)
+        $endorsement_attachment_path = 'uploads/endorsements/' . $dateFolder . '/' . $safeFileName;
+    }
+
     // Get current user ID
     $created_by = $_SESSION['user_id'];
 
@@ -334,7 +412,8 @@ try {
         $chief_complaints_json, $other_complaints,
         $fast_face_drooping, $fast_arm_weakness, $fast_speech_difficulty, $fast_time_to_call, $fast_sample_details,
         $ob_baby_status, $ob_delivery_time, $ob_placenta, $ob_lmp, $ob_aog, $ob_edc,
-        $team_leader_notes, $team_leader, $data_recorder, $logistic, $first_aider, $second_aider
+        $team_leader_notes, $team_leader, $data_recorder, $logistic, $first_aider, $second_aider,
+        $endorsement, $hospital_name, $endorsement_attachment_path, $endorsement_datetime
     ];
 
     if ($is_updating_draft) {
@@ -359,6 +438,7 @@ try {
             fast_face_drooping = ?, fast_arm_weakness = ?, fast_speech_difficulty = ?, fast_time_to_call = ?, fast_sample_details = ?,
             ob_baby_status = ?, ob_delivery_time = ?, ob_placenta = ?, ob_lmp = ?, ob_aog = ?, ob_edc = ?,
             team_leader_notes = ?, team_leader = ?, data_recorder = ?, logistic = ?, first_aider = ?, second_aider = ?,
+            endorsement = ?, hospital_name = ?, endorsement_attachment = ?, endorsement_datetime = ?,
             status = 'completed',
             updated_at = NOW()
             WHERE id = ? AND created_by = ?";
@@ -393,6 +473,7 @@ try {
             fast_face_drooping, fast_arm_weakness, fast_speech_difficulty, fast_time_to_call, fast_sample_details,
             ob_baby_status, ob_delivery_time, ob_placenta, ob_lmp, ob_aog, ob_edc,
             team_leader_notes, team_leader, data_recorder, logistic, first_aider, second_aider,
+            endorsement, hospital_name, endorsement_attachment, endorsement_datetime,
             created_by, status
         ) VALUES (
             ?, ?, ?, ?, ?, ?, ?,
@@ -414,6 +495,7 @@ try {
             ?, ?, ?, ?, ?,
             ?, ?, ?, ?, ?, ?,
             ?, ?, ?, ?, ?,
+            ?, ?, ?, ?,
             ?, 'completed'
         )";
 
@@ -456,14 +538,9 @@ try {
     // Log activity
     log_activity('form_created', "Created form: $form_number for patient: $patient_name");
     
-    // Success response
+    // Success response - redirect to records page
     set_flash('Form saved successfully! Form Number: ' . $form_number, 'success');
-    json_response([
-        'success' => true,
-        'message' => 'Form saved successfully',
-        'form_number' => $form_number,
-        'form_id' => $form_id
-    ], 200);
+    redirect('../public/records.php');
     
 } catch (Exception $e) {
     // Rollback on error

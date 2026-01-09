@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(\"c:\\xampp\\htdocs\\123\\public\\records.temp.php\")"
+      "Bash(\"c:\\xampp\\htdocs\\123\\public\\records.temp.php\")",
+      "Bash(c:/xampp/php/php.exe:*)"
     ],
     "deny": [],
     "ask": []

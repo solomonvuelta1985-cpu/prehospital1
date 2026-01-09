@@ -15,6 +15,9 @@ function sanitize($data) {
     if (is_array($data)) {
         return array_map('sanitize', $data);
     }
+    if ($data === null || $data === '') {
+        return null;
+    }
     return htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
 }
 
