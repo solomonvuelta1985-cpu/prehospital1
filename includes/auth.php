@@ -149,15 +149,15 @@ function get_auth_user() {
             'full_name' => 'Guest User'
         ];
     }
-    
+
     global $pdo;
     $sql = "SELECT id, username, role, email, full_name FROM users WHERE id = ? LIMIT 1";
     $stmt = db_query($sql, [$_SESSION['user_id']]);
-    
+
     if ($stmt && $stmt->rowCount() > 0) {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-    
+
     // Fallback if user not found in database
     return [
         'id' => $_SESSION['user_id'] ?? 0,
@@ -166,4 +166,117 @@ function get_auth_user() {
         'email' => '',
         'full_name' => $_SESSION['username'] ?? 'Unknown User'
     ];
+}
+
+/**
+ * Define page access permissions by role
+ * Returns array of allowed pages for each role
+ */
+function get_role_permissions() {
+    return [
+        'admin' => [
+            // Admin pages
+            'admin/dashboard.php',
+            'admin/users.php',
+            'admin/settings.php',
+            'admin/reports.php',
+            'admin/logs.php',
+
+            // User pages (admin has access to all user pages too)
+            'index.php',
+            'dashboard.php',
+            'profile.php',
+            'form_a.php',
+            'form_b.php',
+            'my_records.php',
+            'view_record.php',
+            'edit_record.php'
+        ],
+        'user' => [
+            // User pages only
+            'index.php',
+            'dashboard.php',
+            'profile.php',
+            'form_a.php',
+            'form_b.php',
+            'my_records.php',
+            'view_record.php',
+            'edit_record.php'
+        ]
+    ];
+}
+
+/**
+ * Check if current user has permission to access a page
+ *
+ * @param string $page_path The page path relative to public directory (e.g., 'admin/users.php')
+ * @return bool True if user has permission, false otherwise
+ */
+function has_page_permission($page_path) {
+    if (!is_logged_in()) {
+        return false;
+    }
+
+    $role = $_SESSION['user_role'] ?? 'user';
+    $permissions = get_role_permissions();
+
+    // If role not defined, deny access
+    if (!isset($permissions[$role])) {
+        return false;
+    }
+
+    // Normalize the page path
+    $page_path = str_replace('\\', '/', $page_path);
+    $page_path = ltrim($page_path, '/');
+
+    // Check if page is in allowed list
+    return in_array($page_path, $permissions[$role]);
+}
+
+/**
+ * Require permission to access a specific page
+ * Redirects if user doesn't have permission
+ *
+ * @param string $page_path The page path to check permission for
+ */
+function require_page_permission($page_path) {
+    require_login();
+
+    if (!has_page_permission($page_path)) {
+        set_flash('Access denied. You do not have permission to access this page.', 'error');
+
+        // Redirect based on role
+        if (is_admin()) {
+            redirect('../admin/dashboard.php');
+        } else {
+            redirect('../public/index.php');
+        }
+        exit;
+    }
+}
+
+/**
+ * Get current page name from script
+ * Returns the page name relative to public directory
+ */
+function get_current_page() {
+    $script = $_SERVER['SCRIPT_NAME'];
+    $script = str_replace('\\', '/', $script);
+
+    // Extract path after 'public/'
+    if (preg_match('#/public/(.+)$#', $script, $matches)) {
+        return $matches[1];
+    }
+
+    // Fallback to basename
+    return basename($script);
+}
+
+/**
+ * Auto-check page permission based on current script
+ * Call this at the top of protected pages
+ */
+function check_current_page_permission() {
+    $current_page = get_current_page();
+    require_page_permission($current_page);
 }

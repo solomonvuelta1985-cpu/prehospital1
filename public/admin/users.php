@@ -36,6 +36,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <title>User Management - Admin Panel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
     <style>
         /* Clean Professional Design - Admin Users Page */
         body {
@@ -515,6 +516,9 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <button class="btn btn-sm btn-info btn-action" onclick="viewUser(<?= $user['id'] ?>)" title="View Details">
                                 <i class="bi bi-eye"></i>
                             </button>
+                            <button class="btn btn-sm btn-primary btn-action" onclick="editUser(<?= $user['id'] ?>)" title="Edit User">
+                                <i class="bi bi-pencil"></i>
+                            </button>
                             <button class="btn btn-sm btn-warning btn-action" onclick="changePassword(<?= $user['id'] ?>, '<?= htmlspecialchars($user['username']) ?>')" title="Change Password">
                                 <i class="bi bi-key"></i>
                             </button>
@@ -640,6 +644,61 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil"></i> Edit User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editUserForm" method="POST" action="../../api/admin/update_user.php">
+                    <div class="modal-body">
+                        <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
+                        <input type="hidden" name="user_id" id="editUserId">
+
+                        <div class="mb-3">
+                            <label for="editFullName" class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" id="editFullName" name="full_name" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editUsername" class="form-label">Username *</label>
+                            <input type="text" class="form-control" id="editUsername" name="username" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editEmail" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="editEmail" name="email" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editRole" class="form-label">Role *</label>
+                            <select class="form-select" id="editRole" name="role" required>
+                                <option value="user">User</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editStatus" class="form-label">Status *</label>
+                            <select class="form-select" id="editStatus" name="status" required>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Update User
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- View User Modal -->
     <div class="modal fade" id="viewUserModal" tabindex="-1">
         <div class="modal-dialog">
@@ -660,6 +719,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.js"></script>
     <script>
         // Search functionality
         document.getElementById('searchInput').addEventListener('keyup', function() {
@@ -671,6 +731,31 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 row.style.display = text.includes(searchTerm) ? '' : 'none';
             });
         });
+
+        // Edit user function
+        function editUser(userId) {
+            fetch(`../../api/admin/get_user.php?id=${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const user = data.user;
+                        document.getElementById('editUserId').value = user.id;
+                        document.getElementById('editFullName').value = user.full_name;
+                        document.getElementById('editUsername').value = user.username;
+                        document.getElementById('editEmail').value = user.email || '';
+                        document.getElementById('editRole').value = user.role;
+                        document.getElementById('editStatus').value = user.status;
+
+                        new bootstrap.Modal(document.getElementById('editUserModal')).show();
+                    } else {
+                        alert('Error loading user details');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error loading user details');
+                });
+        }
 
         // Change password function
         function changePassword(userId, username) {
@@ -787,6 +872,124 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 alert('Password must be at least 6 characters long!');
                 return false;
             }
+        });
+
+        // Password validation helper
+        function validatePassword(password) {
+            const errors = [];
+            if (password.length < 8) {
+                errors.push('Password must be at least 8 characters');
+            }
+            if (!/[A-Z]/.test(password)) {
+                errors.push('Password must contain at least one uppercase letter');
+            }
+            if (!/[a-z]/.test(password)) {
+                errors.push('Password must contain at least one lowercase letter');
+            }
+            if (!/[0-9]/.test(password)) {
+                errors.push('Password must contain at least one number');
+            }
+            if (!/[^A-Za-z0-9]/.test(password)) {
+                errors.push('Password must contain at least one special character');
+            }
+            return errors;
+        }
+
+        // Create user form submission
+        document.getElementById('createUserForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Client-side password validation
+            const password = document.getElementById('password').value;
+            const passwordErrors = validatePassword(password);
+
+            if (passwordErrors.length > 0) {
+                if (typeof Notiflix !== 'undefined') {
+                    Notiflix.Notify.failure(passwordErrors.join(', '));
+                } else {
+                    alert(passwordErrors.join('\n'));
+                }
+                return false;
+            }
+
+            const formData = new FormData(this);
+
+            fetch('../../api/admin/create_user.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    if (typeof Notiflix !== 'undefined') {
+                        Notiflix.Notify.success(data.message);
+                    } else {
+                        alert(data.message);
+                    }
+                    // Close modal
+                    bootstrap.Modal.getInstance(document.getElementById('createUserModal')).hide();
+                    // Reload page after short delay
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    // Show error message
+                    if (typeof Notiflix !== 'undefined') {
+                        Notiflix.Notify.failure(data.message);
+                    } else {
+                        alert(data.message || 'Error creating user');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                if (typeof Notiflix !== 'undefined') {
+                    Notiflix.Notify.failure('Network error occurred while creating user');
+                } else {
+                    alert('Network error occurred while creating user');
+                }
+            });
+        });
+
+        // Edit user form submission
+        document.getElementById('editUserForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            fetch('../../api/admin/update_user.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    if (typeof Notiflix !== 'undefined') {
+                        Notiflix.Notify.success(data.message);
+                    } else {
+                        alert(data.message);
+                    }
+                    // Close modal
+                    bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
+                    // Reload page after short delay
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    // Show error message
+                    if (typeof Notiflix !== 'undefined') {
+                        Notiflix.Notify.failure(data.message);
+                    } else {
+                        alert(data.message || 'Error updating user');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                if (typeof Notiflix !== 'undefined') {
+                    Notiflix.Notify.failure('Network error occurred while updating user');
+                } else {
+                    alert('Network error occurred while updating user');
+                }
+            });
         });
     </script>
 </body>

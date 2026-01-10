@@ -8,28 +8,34 @@ require_once '../../includes/config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/auth.php';
 
+// Security headers
+header("X-Frame-Options: DENY");
+header("X-Content-Type-Options: nosniff");
+header("X-XSS-Protection: 1; mode=block");
+header('Content-Type: application/json');
+
 // Require admin authentication
 require_login();
 require_admin();
 
-// Rate limiting - prevent abuse
-if (!check_rate_limit('admin_create_user', 10, 300)) {
-    set_flash('error', 'Too many user creation attempts. Please wait 5 minutes.');
-    header('Location: ../../public/admin/users.php');
-    exit;
-}
-
-// Check request method
+// Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    set_flash('error', 'Invalid request method');
-    header('Location: ../../public/admin/users.php');
+    http_response_code(405);
+    echo json_encode(['success' => false, 'message' => 'Method not allowed']);
     exit;
 }
 
 // Verify CSRF token
 if (!verify_token($_POST['csrf_token'] ?? '')) {
-    set_flash('error', 'Invalid security token');
-    header('Location: ../../public/admin/users.php');
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Invalid CSRF token']);
+    exit;
+}
+
+// Rate limiting - prevent abuse
+if (!check_rate_limit('admin_create_user', 10, 300)) {
+    http_response_code(429);
+    echo json_encode(['success' => false, 'message' => 'Too many user creation attempts. Please wait 5 minutes.']);
     exit;
 }
 
@@ -97,8 +103,12 @@ if (empty($errors)) {
 
 // If there are errors, return
 if (!empty($errors)) {
-    set_flash('error', implode('<br>', $errors));
-    header('Location: ../../public/admin/users.php');
+    http_response_code(400);
+    echo json_encode([
+        'success' => false,
+        'message' => implode(', ', $errors),
+        'errors' => $errors
+    ]);
     exit;
 }
 
@@ -121,13 +131,31 @@ try {
         $status
     ]);
 
-    set_flash('success', "User '$username' created successfully!");
-    header('Location: ../../public/admin/users.php');
-    exit;
+    // Log the action
+    error_log("Admin created new user: " . $username . " (Role: " . $role . ")");
+
+    // Set success flash message for page reload
+    set_flash("User '$username' created successfully!", 'success');
+
+    echo json_encode([
+        'success' => true,
+        'message' => "User '$username' created successfully!",
+        'user' => [
+            'id' => $pdo->lastInsertId(),
+            'username' => $username,
+            'full_name' => $full_name,
+            'email' => $email,
+            'role' => $role,
+            'status' => $status
+        ]
+    ]);
 
 } catch (PDOException $e) {
     error_log("Error creating user: " . $e->getMessage());
-    set_flash('error', 'Database error occurred while creating user');
-    header('Location: ../../public/admin/users.php');
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Database error occurred while creating user'
+    ]);
     exit;
 }

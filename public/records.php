@@ -30,9 +30,15 @@ $status_filter = isset($_GET['status']) ? sanitize($_GET['status']) : '';
 $date_from = isset($_GET['date_from']) ? sanitize($_GET['date_from']) : '';
 $date_to = isset($_GET['date_to']) ? sanitize($_GET['date_to']) : '';
 
-// Build query
+// Build query - Filter by user unless admin
 $where_conditions = [];
 $params = [];
+
+// IMPORTANT: Users can only see their own records (admins see all)
+if (!is_admin()) {
+    $where_conditions[] = "created_by = ?";
+    $params[] = $current_user['id'];
+}
 
 if (!empty($search)) {
     $where_conditions[] = "(form_number LIKE ? OR patient_name LIKE ? OR place_of_incident LIKE ?)";
@@ -104,7 +110,13 @@ $records = $stmt->fetchAll();
         <!-- Header Section -->
         <div class="header-section">
             <h1><i class="fas fa-folder-open"></i> Pre-Hospital Care Records</h1>
-            <h2>View and manage all saved forms | User: <?php echo e($current_user['full_name']); ?></h2>
+            <h2>
+                <?php if (is_admin()): ?>
+                    View and manage all records from all users | Admin: <?php echo e($current_user['full_name']); ?>
+                <?php else: ?>
+                    View and manage your personal records | User: <?php echo e($current_user['full_name']); ?>
+                <?php endif; ?>
+            </h2>
         </div>
 
         <?php show_flash(); ?>
@@ -132,13 +144,18 @@ $records = $stmt->fetchAll();
             <!-- Actual Cards -->
             <div class="stat-card">
                 <h3><?php echo number_format($total_records); ?></h3>
-                <p><i class="fas fa-file-alt"></i> Total Records</p>
+                <p><i class="fas fa-file-alt"></i> <?php echo is_admin() ? 'Total Records' : 'My Records'; ?></p>
             </div>
             <div class="stat-card">
                 <h3>
                     <?php
-                    $completed_sql = "SELECT COUNT(*) as count FROM prehospital_forms WHERE status = 'completed'";
-                    $completed_stmt = db_query($completed_sql);
+                    if (is_admin()) {
+                        $completed_sql = "SELECT COUNT(*) as count FROM prehospital_forms WHERE status = 'completed'";
+                        $completed_stmt = db_query($completed_sql);
+                    } else {
+                        $completed_sql = "SELECT COUNT(*) as count FROM prehospital_forms WHERE status = 'completed' AND created_by = ?";
+                        $completed_stmt = db_query($completed_sql, [$current_user['id']]);
+                    }
                     echo number_format($completed_stmt->fetch()['count']);
                     ?>
                 </h3>
@@ -147,8 +164,13 @@ $records = $stmt->fetchAll();
             <div class="stat-card">
                 <h3>
                     <?php
-                    $today_sql = "SELECT COUNT(*) as count FROM prehospital_forms WHERE DATE(created_at) = CURDATE()";
-                    $today_stmt = db_query($today_sql);
+                    if (is_admin()) {
+                        $today_sql = "SELECT COUNT(*) as count FROM prehospital_forms WHERE DATE(created_at) = CURDATE()";
+                        $today_stmt = db_query($today_sql);
+                    } else {
+                        $today_sql = "SELECT COUNT(*) as count FROM prehospital_forms WHERE DATE(created_at) = CURDATE() AND created_by = ?";
+                        $today_stmt = db_query($today_sql, [$current_user['id']]);
+                    }
                     echo number_format($today_stmt->fetch()['count']);
                     ?>
                 </h3>
@@ -157,8 +179,13 @@ $records = $stmt->fetchAll();
             <div class="stat-card">
                 <h3>
                     <?php
-                    $week_sql = "SELECT COUNT(*) as count FROM prehospital_forms WHERE YEARWEEK(created_at) = YEARWEEK(NOW())";
-                    $week_stmt = db_query($week_sql);
+                    if (is_admin()) {
+                        $week_sql = "SELECT COUNT(*) as count FROM prehospital_forms WHERE YEARWEEK(created_at) = YEARWEEK(NOW())";
+                        $week_stmt = db_query($week_sql);
+                    } else {
+                        $week_sql = "SELECT COUNT(*) as count FROM prehospital_forms WHERE YEARWEEK(created_at) = YEARWEEK(NOW()) AND created_by = ?";
+                        $week_stmt = db_query($week_sql, [$current_user['id']]);
+                    }
                     echo number_format($week_stmt->fetch()['count']);
                     ?>
                 </h3>

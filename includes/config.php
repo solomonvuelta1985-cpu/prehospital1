@@ -19,10 +19,11 @@ error_reporting(E_ALL); // Still log all errors, just don't display them
 // ini_set('display_errors', '1');
 
 // Database credentials
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'pre_hospital_db');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+// PRODUCTION: Update these with your actual production database credentials
+define('DB_HOST', 'localhost'); // Update if different
+define('DB_NAME', 'rescue116link_prehospital_db'); // Update with your actual database name
+define('DB_USER', 'rescue116link_dbuser'); // Update with your actual database user
+define('DB_PASS', 'YOUR_SECURE_PASSWORD_HERE'); // IMPORTANT: Set your actual database password
 define('DB_CHARSET', 'utf8mb4');
 
 // Application settings
@@ -32,19 +33,18 @@ define('UPLOAD_DIR', __DIR__ . '/../uploads/');
 define('MAX_FILE_SIZE', 5242880); // 5MB
 
 // reCAPTCHA settings (get keys from https://www.google.com/recaptcha/admin)
-// Using Google's test keys for localhost testing - replace with your own keys for production
-define('RECAPTCHA_SITE_KEY', '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI');
-define('RECAPTCHA_SECRET_KEY', '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe');
+// PRODUCTION: Replace with your own reCAPTCHA keys from Google
+// Register your domain at: https://www.google.com/recaptcha/admin
+define('RECAPTCHA_SITE_KEY', 'YOUR_RECAPTCHA_SITE_KEY'); // Get from Google reCAPTCHA
+define('RECAPTCHA_SECRET_KEY', 'YOUR_RECAPTCHA_SECRET_KEY'); // Get from Google reCAPTCHA
 
-// Force HTTPS redirect (comment out for localhost development)
-// Uncomment the following lines when deploying to production with HTTPS
-/*
+// Force HTTPS redirect - ENABLED FOR PRODUCTION
+// This ensures all traffic uses HTTPS for security
 if (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] !== 'on') {
     $redirect_url = "https://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
     header("Location: " . $redirect_url, true, 301);
     exit();
 }
-*/
 
 // Session configuration
 ini_set('session.cookie_httponly', 1);

@@ -1,8 +1,13 @@
 # Enable PHP error logging
-php_flag display_errors On
+# PRODUCTION: Disable display_errors, only log errors
+# For local development with folder name "prehospital":
+php_flag display_errors Off
 php_flag log_errors On
-php_value error_log "C:/xampp/htdocs/123/php_error.log"
+php_value error_log "C:/xampp/htdocs/prehospital/php_error.log"
 php_value error_reporting 32767
+
+# NOTE: When deploying to production, change the error_log path to:
+# php_value error_log "/home/rescue116link/public_html/php_error.log"
 
 # Enable rewrite engine
 RewriteEngine On
