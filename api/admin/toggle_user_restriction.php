@@ -52,8 +52,15 @@ try {
     }
 
     // Update restriction status
-    $update_sql = "UPDATE users SET is_restricted = ? WHERE id = ?";
-    $update_stmt = db_query($update_sql, [$is_restricted, $user_id]);
+    if ($is_restricted) {
+        // Restricting user
+        $update_sql = "UPDATE users SET is_restricted = ? WHERE id = ?";
+        $update_stmt = db_query($update_sql, [$is_restricted, $user_id]);
+    } else {
+        // Unrestricting user - also reset failed attempts and unlock
+        $update_sql = "UPDATE users SET is_restricted = ?, failed_attempts = 0, locked_until = NULL WHERE id = ?";
+        $update_stmt = db_query($update_sql, [$is_restricted, $user_id]);
+    }
 
     if (!$update_stmt) {
         throw new Exception('Failed to update user restriction');

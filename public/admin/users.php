@@ -450,10 +450,10 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <div class="col-md-4">
                 <div class="stats-card inactive">
                     <div class="icon">
-                        <i class="bi bi-x-circle-fill"></i>
+                        <i class="bi bi-ban"></i>
                     </div>
-                    <h3 id="inactiveUsers"><?= count(array_filter($users, fn($u) => $u['status'] === 'inactive')) ?></h3>
-                    <p>Inactive Users</p>
+                    <h3 id="restrictedUsers"><?= count(array_filter($users, fn($u) => isset($u['is_restricted']) && $u['is_restricted'] == 1)) ?></h3>
+                    <p>Restricted Users</p>
                 </div>
             </div>
         </div>

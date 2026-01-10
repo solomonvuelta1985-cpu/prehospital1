@@ -441,14 +441,14 @@ function record_failed_attempt($username, $max_attempts = 5, $lockout_minutes = 
         $failed_attempts = (int)$user['failed_attempts'] + 1;
 
         if ($failed_attempts >= $max_attempts) {
-            // Lock the account
+            // PERMANENTLY RESTRICT the account - Admin must unrestrict manually
             $locked_until = date('Y-m-d H:i:s', time() + ($lockout_minutes * 60));
             $update_sql = "UPDATE users
-                          SET failed_attempts = ?, locked_until = ?
+                          SET failed_attempts = ?, locked_until = ?, is_restricted = 1
                           WHERE username = ?";
             db_query($update_sql, [$failed_attempts, $locked_until, $username]);
 
-            log_activity('account_locked', "Account locked for user: $username after $failed_attempts failed attempts");
+            log_activity('account_restricted', "Account RESTRICTED for user: $username after $failed_attempts failed login attempts. Admin action required.");
         } else {
             // Increment failed attempts
             $update_sql = "UPDATE users
