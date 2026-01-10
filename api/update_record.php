@@ -53,16 +53,21 @@ try {
     }
     
     // Basic Information
-    $departure_time = !empty($_POST['departure_time']) ? sanitize($_POST['departure_time']) : null;
-    $arrival_time = !empty($_POST['arrival_time']) ? sanitize($_POST['arrival_time']) : null;
+    $departure_time = !empty($_POST['departure_time']) ? $_POST['departure_time'] : null;
+    $arrival_time = !empty($_POST['arrival_time']) ? $_POST['arrival_time'] : null;
 
     // Strip seconds from time if present (HTML5 time input may include seconds)
-    if ($departure_time && strlen($departure_time) === 8) {
-        $departure_time = substr($departure_time, 0, 5); // Convert HH:MM:SS to HH:MM
+    // Do this BEFORE sanitization to preserve the time format
+    if ($departure_time && strlen(trim($departure_time)) === 8 && substr_count($departure_time, ':') === 2) {
+        $departure_time = substr(trim($departure_time), 0, 5); // Convert HH:MM:SS to HH:MM
     }
-    if ($arrival_time && strlen($arrival_time) === 8) {
-        $arrival_time = substr($arrival_time, 0, 5); // Convert HH:MM:SS to HH:MM
+    if ($arrival_time && strlen(trim($arrival_time)) === 8 && substr_count($arrival_time, ':') === 2) {
+        $arrival_time = substr(trim($arrival_time), 0, 5); // Convert HH:MM:SS to HH:MM
     }
+
+    // Now sanitize after format conversion
+    $departure_time = $departure_time ? sanitize($departure_time) : null;
+    $arrival_time = $arrival_time ? sanitize($arrival_time) : null;
 
     $vehicle_used = !empty($_POST['vehicle_used']) ? sanitize($_POST['vehicle_used']) : null;
     $vehicle_details = !empty($_POST['vehicle_details']) ? sanitize($_POST['vehicle_details']) : null;

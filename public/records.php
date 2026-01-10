@@ -324,13 +324,13 @@ $records = $stmt->fetchAll();
                                 <td><?php echo e($record['patient_name']); ?></td>
                                 <td>
                                     <?php echo e($record['age']); ?> /
-                                    <?php echo $record['gender'] ? ucfirst($record['gender']) : '-'; ?>
+                                    <?php echo $record['gender'] ? ucfirst((string)$record['gender']) : '-'; ?>
                                 </td>
                                 <td><?php echo e($record['place_of_incident'] ?: '-'); ?></td>
                                 <td><?php echo e($record['arrival_hospital_name'] ?: '-'); ?></td>
                                 <td>
                                     <?php if ($record['vehicle_used']): ?>
-                                        <span class="badge-custom status-pending"><?php echo ucfirst(e($record['vehicle_used'])); ?></span>
+                                        <span class="badge-custom status-pending"><?php echo ucfirst((string)e($record['vehicle_used'])); ?></span>
                                     <?php else: ?>
                                         <span class="text-muted">-</span>
                                     <?php endif; ?>
@@ -349,7 +349,7 @@ $records = $stmt->fetchAll();
                                     $class = $status_class[$record['status']] ?? 'status-draft';
                                     ?>
                                     <span class="badge-custom <?php echo $class; ?>">
-                                        <?php echo ucfirst(e($record['status'])); ?>
+                                        <?php echo ucfirst((string)e($record['status'])); ?>
                                     </span>
                                 </td>
                                 <td>

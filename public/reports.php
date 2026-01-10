@@ -608,7 +608,7 @@ if ($is_admin) {
                     <div class="stat-icon">
                         <i class="bi bi-check-circle"></i>
                     </div>
-                    <p class="stat-value"><?php echo number_format($summary['completed_forms']); ?></p>
+                    <p class="stat-value"><?php echo number_format((int)($summary['completed_forms'] ?? 0)); ?></p>
                     <p class="stat-label">Completed Forms</p>
                     <?php if ($summary['total_forms'] > 0): ?>
                         <div class="progress-custom mt-2">
@@ -620,28 +620,28 @@ if ($is_admin) {
                     <div class="stat-icon">
                         <i class="bi bi-calendar-day"></i>
                     </div>
-                    <p class="stat-value"><?php echo number_format($summary['today_forms']); ?></p>
+                    <p class="stat-value"><?php echo number_format((int)($summary['today_forms'] ?? 0)); ?></p>
                     <p class="stat-label">Today's Forms</p>
                 </div>
                 <div class="stat-card purple">
                     <div class="stat-icon">
                         <i class="bi bi-calendar-week"></i>
                     </div>
-                    <p class="stat-value"><?php echo number_format($summary['week_forms']); ?></p>
+                    <p class="stat-value"><?php echo number_format((int)($summary['week_forms'] ?? 0)); ?></p>
                     <p class="stat-label">This Week</p>
                 </div>
                 <div class="stat-card orange">
                     <div class="stat-icon">
                         <i class="bi bi-file-earmark-text"></i>
                     </div>
-                    <p class="stat-value"><?php echo number_format($summary['draft_forms']); ?></p>
+                    <p class="stat-value"><?php echo number_format((int)($summary['draft_forms'] ?? 0)); ?></p>
                     <p class="stat-label">Draft Forms</p>
                 </div>
                 <div class="stat-card red">
                     <div class="stat-icon">
                         <i class="bi bi-archive"></i>
                     </div>
-                    <p class="stat-value"><?php echo number_format($summary['archived_forms']); ?></p>
+                    <p class="stat-value"><?php echo number_format((int)($summary['archived_forms'] ?? 0)); ?></p>
                     <p class="stat-label">Archived Forms</p>
                 </div>
             </div>
