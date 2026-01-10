@@ -21,9 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!verify_token($_POST['csrf_token'] ?? '')) {
         set_flash('Invalid security token', 'error');
-    } elseif (!verify_recaptcha($recaptcha_response)) {
-        set_flash('Please complete the CAPTCHA verification', 'error');
     } else {
+        // reCAPTCHA verification is handled inside login_user() to avoid double verification
         $result = login_user($username, $password, $recaptcha_response);
 
         if ($result['success']) {

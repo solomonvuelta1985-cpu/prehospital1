@@ -1,0 +1,90 @@
+===============================================
+HOW TO IMPORT DATABASE TO PRODUCTION
+===============================================
+
+PROBLEM: Error when importing pre_hospital_db.sql to production
+
+SOLUTION: You need to prepare the database before importing
+
+METHOD 1: Using phpMyAdmin (EASIEST)
+-------------------------------------
+1. Login to cPanel and open phpMyAdmin
+2. Select database: btrahnqi_pre_hospital_db
+3. Click "Operations" tab
+4. Scroll down and click "Drop the database (DROP)"
+   WARNING: This will delete all existing data!
+5. Create the database again:
+   - Go back to cPanel -> MySQL Databases
+   - Database should already exist
+6. Click "Import" tab
+7. Choose your SQL file: pre_hospital_db.sql
+8. Scroll down and click "Go"
+
+METHOD 2: Fix the SQL file and import (RECOMMENDED)
+---------------------------------------------------
+The error is caused by the DEFINER in the VIEW statement.
+You need to modify the SQL file before importing.
+
+STEP 1: Open pre_hospital_db.sql in a text editor
+
+STEP 2: Find this line (near the end of the file):
+```
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `form_summary`
+```
+
+STEP 3: Replace it with this (removes the DEFINER):
+```
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `form_summary`
+```
+
+STEP 4: Add these lines at the BEGINNING of the file
+(after the initial comments, before any CREATE TABLE):
+
+```sql
+-- Disable foreign key checks
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- Drop existing tables if they exist
+DROP TABLE IF EXISTS `injuries`;
+DROP TABLE IF EXISTS `prehospital_forms`;
+DROP TABLE IF EXISTS `activity_logs`;
+DROP TABLE IF EXISTS `rate_limits`;
+DROP TABLE IF EXISTS `users`;
+DROP TABLE IF EXISTS `vehicles`;
+DROP VIEW IF EXISTS `form_summary`;
+
+-- Re-enable foreign key checks
+SET FOREIGN_KEY_CHECKS = 1;
+```
+
+STEP 5: Save the file and import it using phpMyAdmin
+
+METHOD 3: Import only structure (if you have production data)
+--------------------------------------------------------------
+If you have EXISTING DATA in production that you want to keep:
+
+1. Export ONLY the data from production first (backup!)
+2. Import the new structure using Method 1 or 2
+3. Then import your data back
+
+===============================================
+IMPORTANT NOTES
+===============================================
+
+1. ALWAYS backup your production database before importing!
+   - In phpMyAdmin, click "Export" tab
+   - Click "Go" to download backup
+   - Save it with filename: backup_YYYY-MM-DD.sql
+
+2. The AUTO_INCREMENT value (43) in the SQL is normal
+   - It means next inserted record will have ID 43
+   - The gap from ID 35 to 43 is from deleted records
+   - This is expected behavior and NOT a problem
+
+3. After successful import, check:
+   - Tables are created: 6 tables + 1 view
+   - Users exist: admin, rich, team
+   - Vehicles exist: 14 vehicles
+   - At least 1 prehospital_forms record exists
+
+===============================================

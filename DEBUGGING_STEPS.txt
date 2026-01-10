@@ -1,0 +1,84 @@
+===============================================
+DRAFT ID ISSUE - DEBUGGING STEPS
+===============================================
+
+PROBLEM:
+- Draft URLs showing draft_id=0 instead of proper ID numbers
+- Error "Draft ID is required" when trying to load drafts
+- Autosave returning draft_id as 0 or undefined
+
+FILES MODIFIED FOR DEBUGGING:
+1. api/autosave_draft.php - Added comprehensive logging
+2. public/drafts.php - Added draft ID type logging (line 403)
+3. public/check_drafts.php - NEW diagnostic script
+4. public/check_schema.php - NEW schema checker
+
+STEPS TO DEBUG ON PRODUCTION:
+
+1. Upload the modified files to production:
+   - api/autosave_draft.php
+   - public/drafts.php
+   - public/check_drafts.php
+   - public/check_schema.php
+
+2. Run schema checker:
+   Visit: https://rescue116-link.online/prehospital/public/check_schema.php
+   This will show:
+   - The database structure of the 'id' column
+   - Sample draft records with their IDs and types
+
+3. Run draft checker:
+   Visit: https://rescue116-link.online/prehospital/public/check_drafts.php
+   This will show:
+   - All your draft records
+   - The exact type and value of each draft ID
+   - How PDO is returning the data
+
+4. Create a new draft form:
+   - Visit: https://rescue116-link.online/prehospital/public/prehospital_form.php
+   - Enter some data in the form
+   - Wait for autosave to trigger (or manually save)
+   - Check browser console for errors
+   - Note the draft_id returned in the response
+
+5. Check error logs:
+   Look for these log entries:
+   - "DEBUG AUTOSAVE: lastInsertId() raw value = ..."
+   - "WARNING: lastInsertId() returned 0..."
+   - "Fallback query result: ..."
+   - "Draft ID type: ... Value: ..."
+
+6. Visit drafts page:
+   Visit: https://rescue116-link.online/prehospital/public/drafts.php
+   - Check the error logs for "Draft ID type: ..."
+   - Note what the draft ID shows in the UI
+
+EXPECTED FINDINGS:
+
+If lastInsertId() is working:
+- Should see: "DEBUG AUTOSAVE: lastInsertId() raw value = '2667'"
+- draft_id should be a positive integer
+
+If lastInsertId() returns 0:
+- Should see: "WARNING: lastInsertId() returned 0..."
+- Fallback should find the record
+- Should see: "Fallback successful - Found Draft ID: 2667"
+
+If both fail:
+- Database AUTO_INCREMENT might be disabled
+- PDO connection might not be configured correctly
+- Table might use a non-standard primary key
+
+CLEANUP AFTER DEBUGGING:
+
+Once issue is identified and fixed, DELETE these files:
+- public/check_drafts.php
+- public/check_schema.php
+- public/debug_recaptcha.php (if still exists)
+- public/test_recaptcha_verify.php (if still exists)
+
+And REMOVE these debug lines:
+- autosave_draft.php lines with "DEBUG AUTOSAVE" and "WARNING"
+- drafts.php line 403 (error_log for draft ID)
+
+===============================================

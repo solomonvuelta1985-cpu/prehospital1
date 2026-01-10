@@ -398,6 +398,10 @@ $drafts = $stmt->fetchAll();
                 </div>
             <?php else: ?>
                 <?php foreach ($drafts as $draft): ?>
+                    <?php
+                    // Debug: Log draft ID
+                    error_log("Draft ID type: " . gettype($draft['id']) . ", Value: " . var_export($draft['id'], true));
+                    ?>
                     <div class="draft-card">
                         <div class="draft-header">
                             <div>
@@ -470,24 +474,35 @@ $drafts = $stmt->fetchAll();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function deleteDraft(id) {
+            console.log('Deleting draft ID:', id, 'Type:', typeof id);
+
+            if (!id || id <= 0) {
+                alert('Invalid draft ID: ' + id);
+                return;
+            }
+
             if (confirm('Are you sure you want to delete this draft?\n\nThis action cannot be undone.')) {
                 fetch('../api/delete_record.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ id: id })
+                    body: JSON.stringify({ id: parseInt(id) })
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Response data:', data);
                     if (data.success) {
                         location.reload();
                     } else {
-                        alert('Error: ' + data.message);
+                        alert('Error: ' + (data.message || 'Unknown error'));
                     }
                 })
                 .catch(error => {
-                    alert('Error deleting draft');
+                    alert('Error deleting draft: ' + error.message);
                     console.error('Error:', error);
                 });
             }

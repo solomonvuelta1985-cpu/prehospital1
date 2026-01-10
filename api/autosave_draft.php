@@ -197,15 +197,39 @@ try {
         }
 
         // Get the last inserted ID
-        $draft_id = (int)$pdo->lastInsertId();
+        $raw_last_id = $pdo->lastInsertId();
+        $draft_id = (int)$raw_last_id;
+
+        error_log("DEBUG AUTOSAVE: lastInsertId() raw value = " . var_export($raw_last_id, true) . ", casted to int = {$draft_id}");
+
+        // Fallback: If lastInsertId() returns 0, try to find by form_number
+        if ($draft_id === 0) {
+            error_log("WARNING: lastInsertId() returned 0, attempting fallback method");
+            error_log("Fallback search params - Form Number: {$form_number}, User ID: {$user_id}");
+
+            $fallback_sql = "SELECT id FROM prehospital_forms WHERE form_number = ? AND created_by = ? ORDER BY id DESC LIMIT 1";
+            $fallback_stmt = db_query($fallback_sql, [$form_number, $user_id]);
+            $fallback_result = $fallback_stmt->fetch();
+
+            if ($fallback_result) {
+                error_log("Fallback query result: " . var_export($fallback_result, true));
+                $draft_id = (int)$fallback_result['id'];
+                error_log("Fallback successful - Found Draft ID: {$draft_id}");
+            } else {
+                error_log("ERROR: Both lastInsertId() and fallback query failed!");
+                error_log("Fallback query returned no results");
+                throw new Exception('Failed to get draft ID after insert');
+            }
+        }
+
+        // Final verification
+        if ($draft_id <= 0) {
+            error_log("CRITICAL ERROR: Draft ID is still 0 or negative after all attempts: {$draft_id}");
+            throw new Exception('Invalid draft ID generated: ' . $draft_id);
+        }
 
         // Log for debugging
         error_log("AUTOSAVE INSERT SUCCESS - Draft ID: {$draft_id}, Form Number: {$form_number}");
-
-        if ($draft_id === 0) {
-            error_log("ERROR: lastInsertId() returned 0 after INSERT!");
-            throw new Exception('Failed to get draft ID after insert');
-        }
 
         echo json_encode([
             'success' => true,

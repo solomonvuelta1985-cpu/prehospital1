@@ -25,7 +25,7 @@ $csrf_token = generate_token();
 $current_user = get_auth_user();
 
 // Get all users
-$stmt = $pdo->query("SELECT id, username, full_name, email, role, status, created_at, last_login FROM users ORDER BY created_at DESC");
+$stmt = $pdo->query("SELECT id, username, full_name, email, role, status, is_restricted, created_at, last_login FROM users ORDER BY created_at DESC");
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
@@ -231,6 +231,12 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             background: #f8d7da;
             color: #842029;
             border-color: #f5c2c7;
+        }
+
+        .status-badge.restricted {
+            background: #343a40;
+            color: #ffffff;
+            border-color: #212529;
         }
 
         .role-badge {
@@ -482,6 +488,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <th>Email</th>
                         <th>Role</th>
                         <th>Status</th>
+                        <th>Restricted</th>
                         <th>Last Login</th>
                         <th>Actions</th>
                     </tr>
@@ -511,6 +518,17 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <?= ucfirst($user['status']) ?>
                             </span>
                         </td>
+                        <td>
+                            <?php if ($user['is_restricted']): ?>
+                                <span class="status-badge restricted">
+                                    <i class="bi bi-ban"></i> Restricted
+                                </span>
+                            <?php else: ?>
+                                <span class="text-success">
+                                    <i class="bi bi-check-circle"></i> Allowed
+                                </span>
+                            <?php endif; ?>
+                        </td>
                         <td><?= $user['last_login'] ? date('M d, Y', strtotime($user['last_login'])) : 'Never' ?></td>
                         <td>
                             <button class="btn btn-sm btn-info btn-action" onclick="viewUser(<?= $user['id'] ?>)" title="View Details">
@@ -522,6 +540,15 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <button class="btn btn-sm btn-warning btn-action" onclick="changePassword(<?= $user['id'] ?>, '<?= htmlspecialchars($user['username']) ?>')" title="Change Password">
                                 <i class="bi bi-key"></i>
                             </button>
+                            <?php if ($user['is_restricted']): ?>
+                            <button class="btn btn-sm btn-success btn-action" onclick="toggleRestriction(<?= $user['id'] ?>, 0)" title="Unrestrict User">
+                                <i class="bi bi-unlock"></i>
+                            </button>
+                            <?php else: ?>
+                            <button class="btn btn-sm btn-secondary btn-action" onclick="toggleRestriction(<?= $user['id'] ?>, 1)" title="Restrict User">
+                                <i class="bi bi-lock"></i>
+                            </button>
+                            <?php endif; ?>
                             <?php if ($user['status'] === 'active'): ?>
                             <button class="btn btn-sm btn-danger btn-action" onclick="toggleUserStatus(<?= $user['id'] ?>, 'inactive')" title="Deactivate">
                                 <i class="bi bi-x-circle"></i>
@@ -853,6 +880,51 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             .catch(error => {
                 console.error('Error:', error);
                 alert('Error updating user status');
+            });
+        }
+
+        // Toggle user restriction
+        function toggleRestriction(userId, isRestricted) {
+            const action = isRestricted ? 'restrict' : 'unrestrict';
+            const message = isRestricted
+                ? 'Are you sure you want to restrict this user? They will not be able to login.'
+                : 'Are you sure you want to unrestrict this user? They will be able to login again.';
+
+            if (!confirm(message)) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('csrf_token', '<?= $csrf_token ?>');
+            formData.append('user_id', userId);
+            formData.append('is_restricted', isRestricted);
+
+            fetch('../../api/admin/toggle_user_restriction.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (typeof Notiflix !== 'undefined') {
+                        Notiflix.Notify.success(data.message);
+                    }
+                    location.reload();
+                } else {
+                    if (typeof Notiflix !== 'undefined') {
+                        Notiflix.Notify.failure(data.message || 'Error updating user restriction');
+                    } else {
+                        alert(data.message || 'Error updating user restriction');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                if (typeof Notiflix !== 'undefined') {
+                    Notiflix.Notify.failure('Error updating user restriction');
+                } else {
+                    alert('Error updating user restriction');
+                }
             });
         }
 

@@ -18,12 +18,26 @@ error_reporting(E_ALL); // Still log all errors, just don't display them
 // For development, uncomment this line to see errors:
 // ini_set('display_errors', '1');
 
-// Database credentials
-// PRODUCTION: Update these with your actual production database credentials
-define('DB_HOST', 'localhost'); // Update if different
-define('DB_NAME', 'rescue116link_prehospital_db'); // Update with your actual database name
-define('DB_USER', 'rescue116link_dbuser'); // Update with your actual database user
-define('DB_PASS', 'YOUR_SECURE_PASSWORD_HERE'); // IMPORTANT: Set your actual database password
+// Environment detection (must be before database config)
+$is_localhost = in_array($_SERVER['HTTP_HOST'], ['localhost', '127.0.0.1']) ||
+                strpos($_SERVER['HTTP_HOST'], 'localhost:') === 0 ||
+                strpos($_SERVER['HTTP_HOST'], '127.0.0.1:') === 0;
+define('IS_LOCALHOST', $is_localhost);
+
+// Database credentials - Environment specific
+if (IS_LOCALHOST) {
+    // LOCAL DEVELOPMENT DATABASE
+    define('DB_HOST', 'localhost');
+    define('DB_NAME', 'pre_hospital_db'); // Your local database name
+    define('DB_USER', 'root'); // Default XAMPP user
+    define('DB_PASS', ''); // Default XAMPP password (empty)
+} else {
+    // PRODUCTION DATABASE
+    define('DB_HOST', 'localhost');
+    define('DB_NAME', 'btrahnqi_pre_hospital_db'); // Production database name
+    define('DB_USER', 'btrahnqi_richmond'); // Production database user
+    define('DB_PASS', 'Almondmamon@17'); // Production database password
+}
 define('DB_CHARSET', 'utf8mb4');
 
 // Application settings
@@ -35,15 +49,18 @@ define('MAX_FILE_SIZE', 5242880); // 5MB
 // reCAPTCHA settings (get keys from https://www.google.com/recaptcha/admin)
 // PRODUCTION: Replace with your own reCAPTCHA keys from Google
 // Register your domain at: https://www.google.com/recaptcha/admin
-define('RECAPTCHA_SITE_KEY', 'YOUR_RECAPTCHA_SITE_KEY'); // Get from Google reCAPTCHA
-define('RECAPTCHA_SECRET_KEY', 'YOUR_RECAPTCHA_SECRET_KEY'); // Get from Google reCAPTCHA
+// IMPORTANT: Add 'localhost' to allowed domains in reCAPTCHA admin for local testing
+define('RECAPTCHA_SITE_KEY', '6LeJ5kUsAAAAAHJQkM9upH2rVKlFb15MikEPG1gw');
+define('RECAPTCHA_SECRET_KEY', '6LeJ5kUsAAAAACnDq8gUHRulFgD3To17FLUB2WO7');
 
-// Force HTTPS redirect - ENABLED FOR PRODUCTION
-// This ensures all traffic uses HTTPS for security
-if (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] !== 'on') {
-    $redirect_url = "https://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-    header("Location: " . $redirect_url, true, 301);
-    exit();
+// Force HTTPS redirect - ONLY ON PRODUCTION
+// Disabled for localhost development
+if (!IS_LOCALHOST) {
+    if (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] !== 'on') {
+        $redirect_url = "https://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        header("Location: " . $redirect_url, true, 301);
+        exit();
+    }
 }
 
 // Session configuration
@@ -51,7 +68,7 @@ ini_set('session.cookie_httponly', 1);
 ini_set('session.use_only_cookies', 1);
 ini_set('session.cookie_samesite', 'Strict');
 
-// Add secure flag if HTTPS is enabled
+// Add secure flag ONLY if HTTPS is actually enabled
 if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
     ini_set('session.cookie_secure', 1);
 }
