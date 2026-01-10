@@ -13,6 +13,10 @@ if (is_logged_in()) {
     redirect('dashboard.php');
 }
 
+// Check if user is restricted (to disable form)
+$is_restricted = false;
+$restricted_username = '';
+
 // Handle login form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = sanitize($_POST['username'] ?? '');
@@ -29,6 +33,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('dashboard.php');
         } else {
             set_flash($result['message'], 'error');
+
+            // Check if this is a restriction error
+            if (strpos($result['message'], 'restricted') !== false) {
+                $is_restricted = true;
+                $restricted_username = $username;
+            }
         }
     }
 }
@@ -162,6 +172,30 @@ $csrf_token = generate_token();
             color: #94a3b8;
         }
 
+        .form-control:disabled {
+            background-color: #f1f5f9;
+            color: #94a3b8;
+            cursor: not-allowed;
+            border-color: #e2e8f0;
+        }
+
+        .alert-danger {
+            background-color: #fee;
+            border: 1px solid #fcc;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .alert-danger i {
+            font-size: 20px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
         .btn-login {
             background: #0066cc;
             border: none;
@@ -279,12 +313,18 @@ $csrf_token = generate_token();
         <div class="login-right">
             <div class="login-header">
                 <h1>Welcome Back</h1>
-                <p>Please sign in to your account to continue</p>
+                <?php if ($is_restricted): ?>
+                    <p style="color: #dc3545; font-weight: 600;">
+                        <i class="bi bi-ban"></i> Account Restricted - Contact Administrator
+                    </p>
+                <?php else: ?>
+                    <p>Please sign in to your account to continue</p>
+                <?php endif; ?>
             </div>
 
             <?php // Flash messages handled by Notiflix ?>
 
-            <form method="POST" action="">
+            <form method="POST" action="" id="loginForm">
                 <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
 
                 <div class="mb-3">
@@ -292,7 +332,9 @@ $csrf_token = generate_token();
                     <div class="input-icon">
                         <i class="bi bi-person-circle"></i>
                         <input type="text" class="form-control" id="username" name="username"
-                               placeholder="Enter your username" required autofocus>
+                               placeholder="Enter your username"
+                               value="<?php echo htmlspecialchars($restricted_username); ?>"
+                               <?php echo $is_restricted ? 'disabled' : 'required autofocus'; ?>>
                     </div>
                 </div>
 
@@ -301,17 +343,30 @@ $csrf_token = generate_token();
                     <div class="input-icon">
                         <i class="bi bi-lock-fill"></i>
                         <input type="password" class="form-control" id="password" name="password"
-                               placeholder="Enter your password" required>
+                               placeholder="Enter your password"
+                               <?php echo $is_restricted ? 'disabled' : 'required'; ?>>
                     </div>
                 </div>
 
-                <div class="recaptcha-wrapper">
-                    <div class="g-recaptcha" data-sitekey="<?php echo RECAPTCHA_SITE_KEY; ?>"></div>
-                </div>
+                <?php if (!$is_restricted): ?>
+                    <div class="recaptcha-wrapper">
+                        <div class="g-recaptcha" data-sitekey="<?php echo RECAPTCHA_SITE_KEY; ?>"></div>
+                    </div>
 
-                <button type="submit" class="btn btn-login">
-                    Sign In
-                </button>
+                    <button type="submit" class="btn btn-login">
+                        Sign In
+                    </button>
+                <?php else: ?>
+                    <div class="alert alert-danger" style="margin-top: 20px;">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <strong>Account Restricted</strong><br>
+                        Your account has been restricted due to multiple failed login attempts.<br>
+                        Please contact the system administrator to regain access.
+                    </div>
+                    <button type="button" class="btn btn-login" disabled style="opacity: 0.5; cursor: not-allowed;">
+                        <i class="bi bi-lock-fill"></i> Account Restricted
+                    </button>
+                <?php endif; ?>
             </form>
 
             <div class="login-footer">

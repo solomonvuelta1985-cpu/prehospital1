@@ -77,7 +77,7 @@ function login_user($username, $password, $recaptcha_response = null) {
         return ['success' => false, 'message' => "Account is temporarily locked due to multiple failed login attempts. Try again in $minutes minute(s)."];
     }
 
-    $sql = "SELECT id, username, password, role, status, is_restricted FROM users WHERE username = ? LIMIT 1";
+    $sql = "SELECT id, username, password, role, status, is_restricted, failed_attempts FROM users WHERE username = ? LIMIT 1";
     $stmt = db_query($sql, [$username]);
 
     if (!$stmt || $stmt->rowCount() === 0) {
@@ -87,17 +87,19 @@ function login_user($username, $password, $recaptcha_response = null) {
 
     $user = $stmt->fetch();
 
+    // Check restriction FIRST - before any other checks
+    if (isset($user['is_restricted']) && $user['is_restricted'] == 1) {
+        // Log the restricted login attempt
+        log_activity('restricted_login_attempt', "Restricted user '{$username}' attempted to login");
+        return ['success' => false, 'message' => 'Your account has been restricted. Please contact the administrator.'];
+    }
+
     if ($user['status'] !== 'active') {
         return ['success' => false, 'message' => 'Account is inactive. Contact administrator.'];
     }
 
-    // Check if user is restricted
-    if (isset($user['is_restricted']) && $user['is_restricted'] == 1) {
-        return ['success' => false, 'message' => 'Your account has been restricted. Please contact the administrator.'];
-    }
-
     if (!password_verify($password, $user['password'])) {
-        // Record failed attempt
+        // Record failed attempt - this may auto-restrict the user
         record_failed_attempt($username, 5, 15);
         return ['success' => false, 'message' => 'Invalid username or password'];
     }
