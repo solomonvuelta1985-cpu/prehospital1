@@ -297,7 +297,7 @@ $records = $stmt->fetchAll();
                                 <td><?php echo e($record['patient_name']); ?></td>
                                 <td>
                                     <?php echo e($record['age']); ?> /
-                                    <?php echo ucfirst($record['gender']); ?>
+                                    <?php echo $record['gender'] ? ucfirst($record['gender']) : '-'; ?>
                                 </td>
                                 <td><?php echo e($record['place_of_incident'] ?: '-'); ?></td>
                                 <td><?php echo e($record['arrival_hospital_name'] ?: '-'); ?></td>

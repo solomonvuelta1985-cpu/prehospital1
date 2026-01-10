@@ -135,7 +135,7 @@ body {
     padding: clamp(8px, 2vw, 10px) clamp(15px, 3.5vw, 18px);
     font-size: clamp(0.85rem, 2.3vw, 0.9rem);
     border-radius: 4px;
-    text-decoration: none;
+    text-decoration: none !important;
     transition: all 0.2s;
     border: none;
     cursor: pointer;
@@ -144,6 +144,40 @@ body {
     gap: clamp(5px, 1.5vw, 8px);
     white-space: nowrap;
     font-weight: 500;
+}
+
+/* Remove underline from all buttons globally */
+button,
+.btn,
+.btn-custom,
+.btn-table,
+[type="button"],
+[type="submit"],
+[role="button"],
+a,
+a:hover,
+a:focus,
+a:active {
+    text-decoration: none !important;
+}
+
+/* Specifically target Notiflix buttons and notifications */
+#NotiflixConfirmWrap button,
+#NotiflixConfirmWrap a,
+#NotiflixNotifyWrap button,
+#NotiflixNotifyWrap a,
+#NotiflixReportWrap button,
+#NotiflixReportWrap a,
+#NotiflixBlockWrap button,
+#NotiflixBlockWrap a,
+.notiflix-confirm-button,
+.notiflix-report-button,
+.nx-button,
+[id^="Notiflix"] button,
+[id^="Notiflix"] a,
+[class*="notiflix"] button,
+[class*="notiflix"] a {
+    text-decoration: none !important;
 }
 
 .btn-primary-custom {

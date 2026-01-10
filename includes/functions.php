@@ -123,15 +123,18 @@ function redirect_back() {
  * Validate date format
  */
 function validate_date($date, $format = 'Y-m-d') {
+    if (empty($date) || $date === null) {
+        return false;
+    }
     $d = DateTime::createFromFormat($format, $date);
     return $d && $d->format($format) === $date;
 }
 
 /**
- * Validate time format
+ * Validate time format (accepts both HH:MM and HH:MM:SS)
  */
 function validate_time($time) {
-    return preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $time);
+    return preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/', $time);
 }
 
 /**

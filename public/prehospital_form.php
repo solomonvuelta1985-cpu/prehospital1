@@ -197,18 +197,10 @@ $current_user = get_auth_user();
             color: #0066cc !important;
         }
 
-        /* Completed tabs - subtle green indicator */
+        /* Completed tabs - subtle green color only */
         .nav-link.completed:not(.active) {
             color: #059669;
             position: relative;
-        }
-
-        .nav-link.completed:not(.active)::before {
-            content: '✓';
-            position: absolute;
-            left: 0.5rem;
-            font-size: 0.75rem;
-            color: #059669;
         }
 
         /* Mobile responsive - cleaner approach */
@@ -1203,6 +1195,49 @@ $current_user = get_auth_user();
                             <!-- Summary will be populated by JavaScript -->
                         </div>
 
+                        <!-- NARRATIVE REPORT SECTION -->
+                        <div class="section-title" style="margin-top: 2rem;">
+                            <i class="bi bi-file-text"></i> Narrative Report
+                        </div>
+
+                        <div class="narrative-report-container">
+                            <div class="narrative-controls">
+                                <div class="narrative-format-toggle">
+                                    <button type="button" class="format-btn active" data-format="professional" onclick="switchNarrativeFormat('professional')">
+                                        <i class="bi bi-journal-text"></i> Professional
+                                    </button>
+                                    <button type="button" class="format-btn" data-format="concise" onclick="switchNarrativeFormat('concise')">
+                                        <i class="bi bi-list-ul"></i> Concise
+                                    </button>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="generateNarrative()">
+                                    <i class="bi bi-arrow-clockwise"></i> Regenerate
+                                </button>
+                            </div>
+
+                            <div class="narrative-content" id="narrativeContent">
+                                <div class="narrative-placeholder">
+                                    <i class="bi bi-file-text" style="font-size: 3rem; color: #dee2e6;"></i>
+                                    <p>Narrative report will be generated automatically when you complete the form.</p>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="generateNarrative()">
+                                        Generate Now
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="narrative-actions">
+                                <button type="button" class="btn btn-primary" onclick="copyNarrativeToClipboard()">
+                                    <i class="bi bi-clipboard-check"></i> Copy to Clipboard
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="printNarrative()">
+                                    <i class="bi bi-printer"></i> Print Report
+                                </button>
+                                <button type="button" class="btn btn-outline-success" onclick="exportNarrativeAsText()">
+                                    <i class="bi bi-download"></i> Download .txt
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="alert alert-success" style="margin-top: 1.5rem;">
                             <h5 class="alert-heading"><i class="bi bi-check-circle"></i> Ready to Submit</h5>
                             <p class="mb-3">Review all information above before submitting. Navigate back using tabs to make changes.</p>
@@ -1729,6 +1764,104 @@ $current_user = get_auth_user();
             console.log('Form population complete');
         }
 
+        // ============================================
+        // SECTION PERSISTENCE - Remember current section on refresh ONLY
+        // ============================================
+
+        // Set a flag when the page is being refreshed (not navigated away from)
+        let wasRefreshed = sessionStorage.getItem('pageRefreshed') === 'true';
+
+        // Mark that we're on the prehospital form page
+        sessionStorage.setItem('onPrehospitalForm', 'true');
+
+        // Save current section to localStorage
+        function saveCurrentSection() {
+            const activeTab = document.querySelector('.nav-link.active');
+            if (activeTab) {
+                const sectionId = activeTab.getAttribute('data-bs-target');
+                localStorage.setItem('currentSection', sectionId);
+                localStorage.setItem('sectionTimestamp', Date.now().toString());
+                console.log('Current section saved:', sectionId);
+            }
+        }
+
+        // Restore section ONLY if it was a refresh (not navigation)
+        function restoreCurrentSection() {
+            const savedSection = localStorage.getItem('currentSection');
+            const sectionTimestamp = localStorage.getItem('sectionTimestamp');
+
+            // Only restore if:
+            // 1. This was a page refresh (not a new navigation)
+            // 2. The timestamp is recent (within last 5 seconds - indicates refresh, not new visit)
+            const timeSinceLastSave = Date.now() - parseInt(sectionTimestamp || '0');
+            const wasRecentlySaved = timeSinceLastSave < 5000; // 5 seconds
+
+            console.log('Restore check:', {
+                wasRefreshed,
+                savedSection,
+                timeSinceLastSave,
+                wasRecentlySaved
+            });
+
+            if (wasRefreshed && wasRecentlySaved && savedSection && savedSection !== '#section1') {
+                console.log('Restoring section after refresh:', savedSection);
+
+                // Find and activate the tab
+                const tab = document.querySelector(`[data-bs-target="${savedSection}"]`);
+                if (tab) {
+                    const bsTab = new bootstrap.Tab(tab);
+                    bsTab.show();
+                }
+            } else {
+                console.log('Starting fresh at Section 1 (new navigation)');
+                // Clear the saved section since this is a new navigation
+                localStorage.removeItem('currentSection');
+                localStorage.removeItem('sectionTimestamp');
+            }
+
+            // Reset the refresh flag
+            sessionStorage.removeItem('pageRefreshed');
+        }
+
+        // Add listeners to all tabs to save current section
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.nav-link[data-bs-toggle="tab"]');
+            tabs.forEach(tab => {
+                tab.addEventListener('shown.bs.tab', function() {
+                    saveCurrentSection();
+                });
+            });
+
+            // Restore section after a short delay to ensure form is loaded
+            setTimeout(() => {
+                restoreCurrentSection();
+            }, 500);
+        });
+
+        // Detect page refresh vs navigation
+        window.addEventListener('beforeunload', function() {
+            // Mark that the user might be refreshing
+            sessionStorage.setItem('pageRefreshed', 'true');
+
+            // This will be reset if they navigate to a different page
+            setTimeout(() => {
+                sessionStorage.removeItem('pageRefreshed');
+            }, 100);
+        });
+
+        // Clear the "on prehospital form" flag when leaving the page
+        window.addEventListener('pagehide', function() {
+            sessionStorage.removeItem('onPrehospitalForm');
+        });
+
+        // Clear section memory when form is submitted or cleared
+        function clearSectionMemory() {
+            localStorage.removeItem('currentSection');
+            localStorage.removeItem('sectionTimestamp');
+            sessionStorage.removeItem('pageRefreshed');
+            console.log('Section memory cleared');
+        }
+
         // Initialize autosave listeners after page loads
         function initializeAutosave() {
             const formInputs = document.querySelectorAll('#preHospitalForm input, #preHospitalForm select, #preHospitalForm textarea');
@@ -1806,28 +1939,36 @@ $current_user = get_auth_user();
         });
 
         // Intercept sidebar links to show draft continuation prompt
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebarLinks = document.querySelectorAll('.sidebar a[href]');
+        function setupSidebarInterception() {
+            const sidebarLinks = document.querySelectorAll('.sidebar a[href], #sidebar a[href]');
+            console.log('Found sidebar links:', sidebarLinks.length);
 
             sidebarLinks.forEach(link => {
                 // Skip the prehospital_form.php link itself
                 if (link.href.includes('prehospital_form.php')) {
+                    console.log('Skipping prehospital_form.php link');
                     return;
                 }
 
                 link.addEventListener('click', function(e) {
+                    console.log('Sidebar link clicked:', this.href);
+                    console.log('isFormDirty:', isFormDirty);
+                    console.log('hasFormData():', hasFormData());
+
                     // Check if form has unsaved data
                     if (isFormDirty && hasFormData()) {
+                        console.log('Preventing navigation and showing prompt');
                         e.preventDefault();
+                        e.stopPropagation();
                         const targetUrl = this.href;
 
                         Notiflix.Confirm.show(
-                            'Continue or Discard Draft?',
-                            'You have unsaved work in progress. What would you like to do?',
-                            'Continue Later',
-                            'Discard & Leave',
+                            'Save Your Progress?',
+                            'You have an unfinished record. Would you like to save it and continue later from "My Drafts", or discard all changes?',
+                            'Save & Continue Later',
+                            'Discard Changes',
                             function() {
-                                // Continue Later - save draft and navigate
+                                // Save draft and navigate
                                 isFormDirty = true;
                                 fetch('../api/autosave_draft.php', {
                                     method: 'POST',
@@ -1837,7 +1978,7 @@ $current_user = get_auth_user();
                                 .then(response => response.json())
                                 .then(result => {
                                     if (result.success) {
-                                        Notiflix.Notify.success('Draft saved! You can resume from "My Drafts"', {
+                                        Notiflix.Notify.success('Draft saved! You can resume editing from "My Drafts"', {
                                             timeout: 3000
                                         });
                                         setTimeout(() => {
@@ -1852,25 +1993,59 @@ $current_user = get_auth_user();
                                 });
                             },
                             function() {
-                                // Discard - just navigate away
-                                Notiflix.Notify.warning('Draft discarded', {
-                                    timeout: 2000
-                                });
-                                setTimeout(() => {
-                                    window.location.href = targetUrl;
-                                }, 500);
+                                // Discard - delete draft if exists and navigate
+                                if (currentDraftId) {
+                                    fetch('../api/delete_record.php', {
+                                        method: 'POST',
+                                        headers: {'Content-Type': 'application/json'},
+                                        body: JSON.stringify({ id: currentDraftId })
+                                    })
+                                    .then(() => {
+                                        Notiflix.Notify.warning('Changes discarded', {
+                                            timeout: 2000
+                                        });
+                                        setTimeout(() => {
+                                            window.location.href = targetUrl;
+                                        }, 500);
+                                    })
+                                    .catch(() => {
+                                        window.location.href = targetUrl;
+                                    });
+                                } else {
+                                    Notiflix.Notify.warning('Changes discarded', {
+                                        timeout: 2000
+                                    });
+                                    setTimeout(() => {
+                                        window.location.href = targetUrl;
+                                    }, 500);
+                                }
                             },
                             {
-                                width: '400px',
+                                width: '450px',
                                 titleColor: '#0066cc',
                                 okButtonBackground: '#28a745',
                                 cancelButtonBackground: '#dc3545',
                             }
                         );
+                    } else {
+                        console.log('Allowing navigation - no unsaved data');
                     }
-                });
+                }, true); // Use capture phase to ensure we catch it first
             });
+        }
+
+        // Call setup function when DOM is ready AND after a delay
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, setting up sidebar interception...');
+            // Delay to ensure sidebar is fully loaded
+            setTimeout(setupSidebarInterception, 1000);
         });
+
+        // Also try to set it up immediately if DOM is already loaded
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            console.log('DOM already loaded, setting up sidebar interception...');
+            setTimeout(setupSidebarInterception, 1000);
+        }
 
         // Manual save button - positioned in top-right, below navbar
         const manualSaveBtn = document.createElement('button');
@@ -1921,6 +2096,610 @@ $current_user = get_auth_user();
             performAutosave();
         };
         document.body.appendChild(manualSaveBtn);
+
+        // ============================================
+        // NARRATIVE REPORT GENERATION
+        // ============================================
+
+        let currentNarrativeFormat = 'professional';
+
+        // Switch narrative format
+        function switchNarrativeFormat(format) {
+            currentNarrativeFormat = format;
+
+            // Update button states
+            document.querySelectorAll('.format-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.format === format) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Regenerate narrative with new format
+            generateNarrative();
+        }
+
+        // Main narrative generation function
+        function generateNarrative() {
+            console.log('Generating narrative report in', currentNarrativeFormat, 'format');
+
+            // Collect form data
+            const formData = collectNarrativeData();
+
+            // Generate narrative based on format
+            let narrative = '';
+            if (currentNarrativeFormat === 'professional') {
+                narrative = generateProfessionalNarrative(formData);
+            } else {
+                narrative = generateConciseNarrative(formData);
+            }
+
+            // Display narrative
+            const narrativeContent = document.getElementById('narrativeContent');
+            narrativeContent.innerHTML = '<div class="narrative-text">' + narrative + '</div>';
+
+            console.log('Narrative generated successfully');
+        }
+
+        // Collect all form data for narrative
+        function collectNarrativeData() {
+            const getFieldValue = (name) => {
+                const field = document.querySelector(`[name="${name}"]`);
+                return field ? field.value : '';
+            };
+
+            const getRadioValue = (name) => {
+                const field = document.querySelector(`[name="${name}"]:checked`);
+                return field ? field.value : '';
+            };
+
+            const getCheckboxValues = (name) => {
+                const fields = document.querySelectorAll(`[name="${name}"]:checked`);
+                return Array.from(fields).map(f => f.value);
+            };
+
+            const getSelectMultipleValues = (name) => {
+                const field = document.querySelector(`[name="${name}"]`);
+                if (!field) return [];
+                return Array.from(field.selectedOptions).map(o => o.value);
+            };
+
+            return {
+                // Basic Info
+                formDate: getFieldValue('form_date'),
+                departureTime: getFieldValue('departure_time'),
+                arrivalTime: getFieldValue('arrival_time'),
+                vehicleUsed: getRadioValue('vehicle_used'),
+
+                // Patient Info
+                patientName: getFieldValue('patient_name'),
+                age: getFieldValue('age'),
+                gender: getRadioValue('gender'),
+                address: getFieldValue('address'),
+                zone: getFieldValue('zone'),
+
+                // Incident Details
+                placeOfIncident: getFieldValue('place_of_incident'),
+                zoneLandmark: getFieldValue('zone_landmark'),
+                incidentTime: getFieldValue('incident_time'),
+                callArrivalTime: getFieldValue('call_arrival_time'),
+
+                // Emergency Type
+                emergencyType: getCheckboxValues('emergency_type[]'),
+                medicalSpecify: getFieldValue('medical_specify'),
+                traumaSpecify: getFieldValue('trauma_specify'),
+                obSpecify: getFieldValue('ob_specify'),
+                generalSpecify: getFieldValue('general_specify'),
+
+                // Assessment
+                helmetStatus: getRadioValue('initial_helmet'),
+                consciousness: getRadioValue('initial_consciousness'),
+                chiefComplaints: getCheckboxValues('chief_complaints[]'),
+                otherComplaints: getFieldValue('other_complaints'),
+
+                // Vitals
+                initialBP: getFieldValue('initial_bp'),
+                initialTemp: getFieldValue('initial_temp'),
+                initialPulse: getFieldValue('initial_pulse'),
+                initialResp: getFieldValue('initial_resp'),
+                initialSPO2: getFieldValue('initial_spo2'),
+
+                // Injuries
+                injuriesData: getFieldValue('injuries_data'),
+
+                // Care Management
+                careManagement: getCheckboxValues('care_management[]'),
+                oxygenLPM: getFieldValue('oxygen_lpm'),
+                otherCare: getFieldValue('other_care'),
+
+                // Team
+                teamLeader: getFieldValue('team_leader'),
+                teamLeaderNotes: getFieldValue('team_leader_notes'),
+
+                // Hospital
+                hospitalName: getFieldValue('hospital_name') || getFieldValue('arrival_hospital_name'),
+                endorsement: getFieldValue('endorsement')
+            };
+        }
+
+        // Generate professional format narrative
+        function generateProfessionalNarrative(data) {
+            let narrative = '';
+
+            // Header
+            const teamName = data.teamLeader ? data.teamLeader.toUpperCase() : 'RESCUE TEAM';
+            narrative += `RESCUE 116 EMS Team ${teamName}\n\n`;
+
+            // Incident Details
+            narrative += `Name/Nature of Incident / Mechanism of Injury:\n`;
+            const emergencyDetails = formatEmergencyType(data);
+            narrative += `${emergencyDetails}\n\n`;
+
+            narrative += `Place of Incident: ${data.placeOfIncident || 'Not specified'}`;
+            if (data.zoneLandmark) {
+                narrative += ` - ${data.zoneLandmark}`;
+            }
+            narrative += `\n`;
+
+            narrative += `Date of Incident: ${formatDate(data.formDate)}\n`;
+            narrative += `Time of Response: ${formatTime(data.departureTime || data.callArrivalTime)}\n\n`;
+
+            // Patient Information
+            narrative += `Patient Information:\n`;
+            const gender = data.gender === 'male' ? 'Male' : data.gender === 'female' ? 'Female' : 'Not specified';
+            narrative += `${gender}, ${data.age || 'unknown'} years old\n`;
+            if (data.address) {
+                narrative += `Resident of ${data.address}`;
+                if (data.zone) {
+                    narrative += `, ${data.zone}`;
+                }
+                narrative += `\n`;
+            }
+            narrative += `\n`;
+
+            // Assessment
+            narrative += `Assessment:\n`;
+            narrative += formatAssessmentSection(data);
+            narrative += `\n`;
+
+            // Management
+            narrative += `Management Provided:\n`;
+            narrative += formatManagementSection(data);
+            narrative += `\n`;
+
+            // Endorsement
+            const hospital = data.hospitalName || data.endorsement || 'the receiving medical facility';
+            narrative += `The patient was transported and formally endorsed to ${hospital} for further evaluation, diagnostic procedures, and definitive medical management.\n\n`;
+
+            // Footer
+            narrative += `For emergencies, please contact 0966-206-8444.`;
+
+            return narrative;
+        }
+
+        // Generate concise format narrative
+        function generateConciseNarrative(data) {
+            let narrative = '';
+
+            // Header
+            const teamName = data.teamLeader ? data.teamLeader.toUpperCase() : 'TEAM';
+            narrative += `EMS TEAM ${teamName}\n\n`;
+
+            // Incident summary
+            const emergencyDetails = formatEmergencyType(data);
+            narrative += `Name/Nature of Incident/Mechanism of Injury: ${emergencyDetails}\n`;
+            narrative += `Place of Incident: ${data.placeOfIncident || 'Not specified'}`;
+            if (data.zoneLandmark) {
+                narrative += ` ${data.zoneLandmark}`;
+            }
+            narrative += `\n`;
+            narrative += `Date of Incident: ${formatDate(data.formDate)}\n`;
+            narrative += `Time of Response: ${formatTime(data.departureTime || data.callArrivalTime)}\n`;
+
+            // Patient
+            const gender = data.gender === 'male' ? 'MALE' : data.gender === 'female' ? 'FEMALE' : 'PATIENT';
+            narrative += `PATIENT : ${gender} ${data.age || 'unknown'} YEARS OLD`;
+            if (data.address) {
+                narrative += ` FROM ${data.address.toUpperCase()}`;
+            }
+            narrative += `\n\n`;
+
+            // Assessment
+            narrative += `Assessment:\n`;
+            narrative += formatConciseAssessment(data);
+            narrative += `\n`;
+
+            // Management
+            narrative += `Management:\n`;
+            narrative += formatConciseManagement(data);
+            narrative += `\n`;
+
+            // Endorsement
+            const hospital = data.hospitalName || data.endorsement || 'hospital';
+            narrative += `\nTHE PATIENT WAS TRANSPORTED AND ENDORSED TO ${hospital.toUpperCase()} FOR FURTHER EVALUATIONS AND MANAGEMENT.\n\n`;
+
+            // Footer
+            narrative += `For emergencies, please call 0966-206-8444`;
+
+            return narrative;
+        }
+
+        // Format emergency type
+        function formatEmergencyType(data) {
+            const types = [];
+
+            if (data.emergencyType.includes('trauma')) {
+                const detail = data.traumaSpecify || 'Unspecified';
+                types.push(`Trauma (${detail})`);
+            }
+            if (data.emergencyType.includes('medical')) {
+                const detail = data.medicalSpecify || 'Unspecified';
+                types.push(`Medical (${detail})`);
+            }
+            if (data.emergencyType.includes('ob')) {
+                const detail = data.obSpecify || 'Unspecified';
+                types.push(`OB (${detail})`);
+            }
+            if (data.emergencyType.includes('general')) {
+                const detail = data.generalSpecify || 'Unspecified';
+                types.push(`General (${detail})`);
+            }
+
+            return types.length > 0 ? types.join(', ') : 'Emergency Response';
+        }
+
+        // Format assessment section (Professional)
+        function formatAssessmentSection(data) {
+            let assessment = '';
+
+            // Consciousness
+            const consciousness = formatConsciousness(data.consciousness);
+            assessment += `Upon arrival at the scene, the patient was found ${consciousness}. `;
+
+            // Helmet status
+            if (data.helmetStatus) {
+                if (data.helmetStatus === 'none') {
+                    assessment += `The patient was noted to be without a helmet at the time of the incident. `;
+                } else if (data.helmetStatus === 'ab') {
+                    assessment += `Helmet was present and properly worn. `;
+                }
+            }
+
+            assessment += `\n\nPhysical examination revealed:\n`;
+
+            // Injuries
+            const injuries = parseInjuries(data.injuriesData);
+            if (injuries.length > 0) {
+                injuries.forEach(injury => {
+                    assessment += `- ${injury.type} on ${injury.location}\n`;
+                });
+            }
+
+            // Chief complaints
+            if (data.chiefComplaints.length > 0) {
+                data.chiefComplaints.forEach(complaint => {
+                    assessment += `- ${formatComplaint(complaint)}\n`;
+                });
+            }
+
+            if (data.otherComplaints) {
+                assessment += `- ${data.otherComplaints}\n`;
+            }
+
+            // Vitals summary
+            if (data.initialBP || data.initialTemp || data.initialPulse) {
+                assessment += `\nVital Signs:\n`;
+                if (data.initialBP) assessment += `- Blood Pressure: ${data.initialBP}\n`;
+                if (data.initialTemp) assessment += `- Temperature: ${data.initialTemp}°C\n`;
+                if (data.initialPulse) assessment += `- Pulse: ${data.initialPulse} BPM\n`;
+                if (data.initialResp) assessment += `- Respiratory Rate: ${data.initialResp}\n`;
+                if (data.initialSPO2) assessment += `- SPO2: ${data.initialSPO2}%\n`;
+            }
+
+            return assessment;
+        }
+
+        // Format management section (Professional)
+        function formatManagementSection(data) {
+            let management = '';
+
+            // Standard procedures
+            management += `- Initial assessment conducted\n`;
+            management += `- Vital signs taken and documented\n`;
+
+            // Care management actions
+            if (data.careManagement.length > 0) {
+                data.careManagement.forEach(action => {
+                    management += `- ${formatCareAction(action)}\n`;
+                });
+            }
+
+            // Oxygen
+            if (data.oxygenLPM) {
+                management += `- Oxygen administered: ${data.oxygenLPM}\n`;
+            }
+
+            // Other care
+            if (data.otherCare) {
+                management += `- ${data.otherCare}\n`;
+            }
+
+            // Standard transport
+            management += `- Patient positioned in a position of comfort during transport\n`;
+
+            return management;
+        }
+
+        // Format concise assessment
+        function formatConciseAssessment(data) {
+            let assessment = '';
+
+            // Helmet
+            if (data.helmetStatus === 'none') {
+                assessment += `-NO HELMET\n`;
+            }
+
+            // Consciousness
+            const consciousness = formatConsciousness(data.consciousness).toUpperCase();
+            assessment += `-${consciousness}\n`;
+
+            // Injuries
+            const injuries = parseInjuries(data.injuriesData);
+            if (injuries.length > 0) {
+                injuries.forEach(injury => {
+                    assessment += `- ${injury.type.toUpperCase()} ON ${injury.location.toUpperCase()}\n`;
+                });
+            }
+
+            // Complaints
+            if (data.chiefComplaints.length > 0) {
+                data.chiefComplaints.forEach(complaint => {
+                    assessment += `- ${formatComplaint(complaint).toUpperCase()}\n`;
+                });
+            }
+
+            return assessment;
+        }
+
+        // Format concise management
+        function formatConciseManagement(data) {
+            let management = '';
+
+            // Care actions
+            if (data.careManagement.length > 0) {
+                data.careManagement.forEach(action => {
+                    management += `-${formatCareAction(action).toUpperCase()}\n`;
+                });
+            }
+
+            // Standard items
+            management += `- POSITIONED PATIENT INTO COMFORT WHILE ON TRANSPORT\n`;
+            management += `-INITIAL ASSESSMENT DONE\n`;
+            management += `-VITAL SIGNS TAKEN AND RECORDED\n`;
+
+            return management;
+        }
+
+        // Helper: Format consciousness level
+        function formatConsciousness(level) {
+            const map = {
+                'alert': 'awake and coherent',
+                'verbal': 'responsive to verbal stimuli',
+                'pain': 'responsive to pain stimuli only',
+                'unconscious': 'unresponsive'
+            };
+            return map[level] || 'under assessment';
+        }
+
+        // Helper: Format chief complaint
+        function formatComplaint(complaint) {
+            const map = {
+                'chestPain': 'Chest Pain',
+                'headache': 'Headache',
+                'blurredVision': 'Blurred Vision',
+                'difficultyBreathing': 'Difficulty Breathing',
+                'dizziness': 'Dizziness',
+                'bodyMalaise': 'Body Malaise'
+            };
+            return map[complaint] || complaint;
+        }
+
+        // Helper: Format care action
+        function formatCareAction(action) {
+            const map = {
+                'immobilization': 'Immobilization provided',
+                'cpr': 'CPR administered',
+                'bandaging': 'Wound care and bandaging done',
+                'woundCare': 'Appropriate wound care administered',
+                'cCollar': 'C-Collar applied',
+                'aed': 'AED utilized',
+                'ked': 'KED device applied'
+            };
+            return map[action] || action;
+        }
+
+        // Helper: Parse injuries from JSON
+        function parseInjuries(injuriesJson) {
+            if (!injuriesJson) return [];
+
+            try {
+                const injuries = JSON.parse(injuriesJson);
+                return injuries.map(injury => ({
+                    type: injury.type || 'injury',
+                    location: injury.location || injury.notes || 'unspecified area'
+                }));
+            } catch (e) {
+                return [];
+            }
+        }
+
+        // Helper: Format date
+        function formatDate(dateStr) {
+            if (!dateStr) return 'Not specified';
+
+            try {
+                const date = new Date(dateStr);
+                const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+                return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+            } catch (e) {
+                return dateStr;
+            }
+        }
+
+        // Helper: Format time
+        function formatTime(timeStr) {
+            if (!timeStr) return 'Not specified';
+
+            try {
+                const [hours, minutes] = timeStr.split(':');
+                const hour = parseInt(hours);
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const displayHour = hour % 12 || 12;
+                return `${displayHour}:${minutes} ${ampm}`;
+            } catch (e) {
+                return timeStr;
+            }
+        }
+
+        // Copy narrative to clipboard
+        function copyNarrativeToClipboard() {
+            const narrativeElement = document.getElementById('narrativeContent');
+            const narrativeText = narrativeElement.innerText;
+
+            if (!narrativeText || narrativeText.includes('Narrative report will be generated')) {
+                Notiflix.Notify.warning('Please generate the narrative report first', {
+                    timeout: 3000
+                });
+                return;
+            }
+
+            // Use modern clipboard API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(narrativeText)
+                    .then(() => {
+                        Notiflix.Notify.success('Narrative copied to clipboard!', {
+                            timeout: 2500,
+                            position: 'right-top'
+                        });
+                    })
+                    .catch(err => {
+                        console.error('Clipboard error:', err);
+                        fallbackCopy(narrativeText);
+                    });
+            } else {
+                fallbackCopy(narrativeText);
+            }
+        }
+
+        // Fallback copy method
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+
+            try {
+                document.execCommand('copy');
+                Notiflix.Notify.success('Narrative copied to clipboard!', {
+                    timeout: 2500
+                });
+            } catch (err) {
+                Notiflix.Notify.failure('Failed to copy. Please copy manually.', {
+                    timeout: 3000
+                });
+            }
+
+            document.body.removeChild(textarea);
+        }
+
+        // Print narrative only
+        function printNarrative() {
+            const narrativeElement = document.getElementById('narrativeContent');
+            const narrativeText = narrativeElement.innerText;
+
+            if (!narrativeText || narrativeText.includes('Narrative report will be generated')) {
+                Notiflix.Notify.warning('Please generate the narrative report first', {
+                    timeout: 3000
+                });
+                return;
+            }
+
+            // Create print window
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Narrative Report - EMS</title>
+                    <style>
+                        body {
+                            font-family: 'Courier New', monospace;
+                            font-size: 12pt;
+                            line-height: 1.6;
+                            margin: 2cm;
+                            white-space: pre-wrap;
+                        }
+                        @media print {
+                            body { margin: 1.5cm; }
+                        }
+                    </style>
+                </head>
+                <body>${narrativeText}</body>
+                </html>
+            `);
+            printWindow.document.close();
+
+            // Wait for content to load then print
+            setTimeout(() => {
+                printWindow.print();
+            }, 500);
+        }
+
+        // Export narrative as text file
+        function exportNarrativeAsText() {
+            const narrativeElement = document.getElementById('narrativeContent');
+            const narrativeText = narrativeElement.innerText;
+
+            if (!narrativeText || narrativeText.includes('Narrative report will be generated')) {
+                Notiflix.Notify.warning('Please generate the narrative report first', {
+                    timeout: 3000
+                });
+                return;
+            }
+
+            // Create blob and download
+            const blob = new Blob([narrativeText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+
+            // Generate filename with date
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            a.href = url;
+            a.download = `EMS_Narrative_Report_${dateStr}.txt`;
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            Notiflix.Notify.success('Narrative report downloaded!', {
+                timeout: 2500
+            });
+        }
+
+        // Auto-generate narrative when entering Section 7
+        document.getElementById('tab7').addEventListener('click', function() {
+            setTimeout(() => {
+                const narrativeContent = document.getElementById('narrativeContent');
+                if (narrativeContent.querySelector('.narrative-placeholder')) {
+                    generateNarrative();
+                }
+            }, 300);
+        });
     </script>
 </body>
 </html>

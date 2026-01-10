@@ -433,6 +433,11 @@ function submitFormData() {
 
     console.log('Form submitted:', data);
 
+    // Clear section memory before submitting
+    if (typeof clearSectionMemory === 'function') {
+        clearSectionMemory();
+    }
+
     // Submit the form
     document.getElementById('preHospitalForm').submit();
 }
@@ -455,6 +460,12 @@ function clearForm() {
             document.querySelectorAll('.nav-link').forEach(tab => {
                 tab.classList.remove('completed');
             });
+
+            // Clear section memory
+            if (typeof clearSectionMemory === 'function') {
+                clearSectionMemory();
+            }
+
             Notiflix.Notify.success('Form data cleared successfully');
         },
         function cancelCb() {

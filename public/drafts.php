@@ -44,87 +44,176 @@ $drafts = $stmt->fetchAll();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         :root {
-            --primary-blue: #1e40af;
-            --success-green: #059669;
-            --warning-orange: #d97706;
-            --neutral-100: #f3f4f6;
-            --neutral-200: #e5e7eb;
-            --neutral-700: #374151;
-            --neutral-900: #111827;
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success-color: #10b981;
+            --success-hover: #059669;
+            --danger-color: #ef4444;
+            --danger-hover: #dc2626;
+            --border-color: #e5e7eb;
+            --text-primary: #1f2937;
+            --text-secondary: #4b5563;
+            --text-muted: #6b7280;
+            --bg-page: #f9fafb;
+            --bg-card: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
-            background-color: var(--neutral-100);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+            background-color: var(--bg-page);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: var(--text-primary);
+            line-height: 1.5;
         }
 
         .page-header {
-            background: white;
-            border-bottom: 1px solid var(--neutral-200);
-            padding: 2rem 0;
-            margin-bottom: 2rem;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 2.5rem 0;
+            margin-bottom: 2.5rem;
         }
 
         .page-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--neutral-900);
-            margin: 0 0 0.5rem 0;
+            font-size: 1.875rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0 0 0.75rem 0;
+            letter-spacing: -0.025em;
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+
+        .page-title i {
+            color: var(--primary-color);
+            font-size: 1.75rem;
         }
 
         .page-subtitle {
-            font-size: 1rem;
-            color: #6b7280;
+            font-size: 0.9375rem;
+            color: #4b5563;
+            margin: 0;
+            padding-left: 2.375rem;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-box {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.75rem;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.8125rem;
+            color: #1f2937;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-label i {
+            color: var(--primary-color);
+            font-size: 0.875rem;
         }
 
         .draft-card {
-            background: white;
-            border: 1px solid var(--neutral-200);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
             transition: all 0.2s ease;
-            cursor: pointer;
+            box-shadow: var(--shadow-sm);
         }
 
         .draft-card:hover {
-            border-color: var(--primary-blue);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            transform: translateY(-2px);
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-hover);
         }
 
         .draft-header {
             display: flex;
             justify-content: space-between;
-            align-items: start;
-            margin-bottom: 1rem;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .draft-number {
             font-size: 0.875rem;
             font-weight: 600;
-            color: var(--primary-blue);
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .draft-number i {
+            font-size: 1rem;
         }
 
         .draft-time {
-            font-size: 0.75rem;
-            color: #6b7280;
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .draft-time i {
+            font-size: 0.875rem;
         }
 
         .draft-patient {
-            font-size: 1.125rem;
+            font-size: 1.25rem;
             font-weight: 600;
-            color: var(--neutral-900);
-            margin-bottom: 0.5rem;
+            color: #1f2937;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+
+        .draft-patient i {
+            color: var(--primary-color);
+            font-size: 1.125rem;
         }
 
         .draft-details {
             display: flex;
-            gap: 1.5rem;
+            gap: 2.5rem;
             flex-wrap: wrap;
-            margin-bottom: 1rem;
+            margin-bottom: 1.75rem;
             font-size: 0.875rem;
-            color: #6b7280;
         }
 
         .draft-detail-item {
@@ -133,121 +222,127 @@ $drafts = $stmt->fetchAll();
             gap: 0.5rem;
         }
 
+        .draft-detail-item i {
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+
+        .draft-detail-item span {
+            color: #1f2937;
+            font-weight: 500;
+        }
+
         .draft-actions {
             display: flex;
-            gap: 0.75rem;
+            gap: 0.875rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border-color);
         }
 
         .btn-resume {
-            background: var(--success-green);
+            background: var(--success-color);
             color: white;
             border: none;
-            padding: 0.625rem 1.5rem;
-            border-radius: 8px;
+            padding: 0.75rem 1.75rem;
+            border-radius: 6px;
             font-weight: 600;
             font-size: 0.875rem;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s ease;
+            gap: 0.625rem;
+            transition: all 0.15s ease;
             text-decoration: none;
+            cursor: pointer;
         }
 
         .btn-resume:hover {
-            background: #047857;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(5, 150, 105, 0.3);
+            background: var(--success-hover);
             color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-resume i {
+            font-size: 1rem;
         }
 
         .btn-delete {
-            background: #dc2626;
+            background: var(--danger-color);
             color: white;
             border: none;
-            padding: 0.625rem 1rem;
-            border-radius: 8px;
+            padding: 0.75rem 1.25rem;
+            border-radius: 6px;
             font-weight: 600;
             font-size: 0.875rem;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .btn-delete:hover {
-            background: #b91c1c;
-            transform: translateY(-1px);
+            background: var(--danger-hover);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-delete i {
+            font-size: 1rem;
+        }
+
+        .btn-new {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.875rem 2rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.625rem;
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+
+        .btn-new:hover {
+            background: var(--primary-hover);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-new i {
+            font-size: 1.125rem;
         }
 
         .empty-state {
             text-align: center;
-            padding: 4rem 2rem;
-            background: white;
-            border-radius: 12px;
-            border: 2px dashed var(--neutral-200);
+            padding: 5rem 2rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 2px dashed var(--border-color);
         }
 
         .empty-icon {
-            font-size: 4rem;
-            color: #9ca3af;
-            margin-bottom: 1rem;
-        }
-
-        .empty-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--neutral-900);
-            margin-bottom: 0.5rem;
-        }
-
-        .empty-text {
-            color: #6b7280;
-            margin-bottom: 1.5rem;
-        }
-
-        .btn-new {
-            background: var(--primary-blue);
-            color: white;
-            border: none;
-            padding: 0.75rem 2rem;
-            border-radius: 8px;
-            font-weight: 600;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s ease;
-        }
-
-        .btn-new:hover {
-            background: #1e3a8a;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
-        }
-
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
+            font-size: 5rem;
+            color: var(--text-muted);
             margin-bottom: 2rem;
         }
 
-        .stat-box {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            border: 1px solid var(--neutral-200);
+        .empty-title {
+            font-size: 1.625rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
         }
 
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary-blue);
-            margin-bottom: 0.25rem;
-        }
-
-        .stat-label {
-            font-size: 0.875rem;
-            color: #6b7280;
-            font-weight: 500;
+        .empty-text {
+            color: var(--text-secondary);
+            margin-bottom: 2.5rem;
+            font-size: 1rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
         }
     </style>
 </head>
@@ -259,12 +354,12 @@ $drafts = $stmt->fetchAll();
             <div class="page-header">
                 <div class="row align-items-center">
                     <div class="col-md-8">
-                        <h1 class="page-title"><i class="bi bi-file-earmark-text"></i> My Drafts</h1>
+                        <h1 class="page-title"><i class="bi bi-file-text-fill"></i> My Drafts</h1>
                         <p class="page-subtitle">Resume your in-progress forms and continue where you left off</p>
                     </div>
                     <div class="col-md-4 text-md-end">
                         <a href="prehospital_form.php" class="btn-new">
-                            <i class="bi bi-plus-circle"></i> New Form
+                            <i class="bi bi-plus-circle-fill"></i> New Form
                         </a>
                     </div>
                 </div>
@@ -275,7 +370,7 @@ $drafts = $stmt->fetchAll();
             <div class="stats-row">
                 <div class="stat-box">
                     <div class="stat-value"><?php echo count($drafts); ?></div>
-                    <div class="stat-label"><i class="bi bi-file-earmark"></i> Draft Forms</div>
+                    <div class="stat-label"><i class="bi bi-file-earmark-text-fill"></i> Draft Forms</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-value">
@@ -286,19 +381,19 @@ $drafts = $stmt->fetchAll();
                         echo count($today_drafts);
                         ?>
                     </div>
-                    <div class="stat-label"><i class="bi bi-calendar-day"></i> Updated Today</div>
+                    <div class="stat-label"><i class="bi bi-calendar-check-fill"></i> Updated Today</div>
                 </div>
             </div>
 
             <?php if (empty($drafts)): ?>
                 <div class="empty-state">
                     <div class="empty-icon">
-                        <i class="bi bi-inbox"></i>
+                        <i class="bi bi-file-earmark-text"></i>
                     </div>
                     <h2 class="empty-title">No Drafts Yet</h2>
                     <p class="empty-text">You don't have any saved drafts. Start a new form and it will be automatically saved as you work.</p>
                     <a href="prehospital_form.php" class="btn-new">
-                        <i class="bi bi-plus-circle"></i> Create Your First Form
+                        <i class="bi bi-plus-circle-fill"></i> Create Your First Form
                     </a>
                 </div>
             <?php else: ?>
@@ -307,30 +402,30 @@ $drafts = $stmt->fetchAll();
                         <div class="draft-header">
                             <div>
                                 <div class="draft-number">
-                                    <i class="bi bi-hash"></i> <?php echo e($draft['form_number']); ?>
+                                    <i class="bi bi-file-earmark-text-fill"></i><?php echo e($draft['form_number']); ?>
                                 </div>
                             </div>
                             <div class="draft-time">
-                                <i class="bi bi-clock"></i> Last saved: <?php echo date('M d, Y \a\t h:i A', strtotime($draft['updated_at'])); ?>
+                                <i class="bi bi-clock-fill"></i>Last saved: <?php echo date('M d, Y \a\t h:i A', strtotime($draft['updated_at'])); ?>
                             </div>
                         </div>
 
                         <div class="draft-patient">
-                            <i class="bi bi-person"></i>
+                            <i class="bi bi-person-fill"></i>
                             <?php echo e($draft['patient_name'] ?: 'Patient name not yet entered'); ?>
                         </div>
 
                         <div class="draft-details">
                             <?php if ($draft['form_date'] && $draft['form_date'] !== '0000-00-00'): ?>
                                 <div class="draft-detail-item">
-                                    <i class="bi bi-calendar"></i>
-                                    <span>Date: <?php echo date('M d, Y', strtotime($draft['form_date'])); ?></span>
+                                    <i class="bi bi-calendar-fill"></i>
+                                    <span><?php echo date('M d, Y', strtotime($draft['form_date'])); ?></span>
                                 </div>
                             <?php endif; ?>
 
                             <?php if ($draft['age'] || $draft['gender']): ?>
                                 <div class="draft-detail-item">
-                                    <i class="bi bi-person-badge"></i>
+                                    <i class="bi bi-person-vcard-fill"></i>
                                     <span>
                                         <?php if ($draft['age']): ?>
                                             <?php echo e($draft['age']); ?> yrs
@@ -344,14 +439,14 @@ $drafts = $stmt->fetchAll();
 
                             <?php if ($draft['place_of_incident']): ?>
                                 <div class="draft-detail-item">
-                                    <i class="bi bi-geo-alt"></i>
+                                    <i class="bi bi-geo-alt-fill"></i>
                                     <span><?php echo e($draft['place_of_incident']); ?></span>
                                 </div>
                             <?php endif; ?>
 
                             <?php if ($draft['arrival_hospital_name']): ?>
                                 <div class="draft-detail-item">
-                                    <i class="bi bi-hospital"></i>
+                                    <i class="bi bi-hospital-fill"></i>
                                     <span><?php echo e($draft['arrival_hospital_name']); ?></span>
                                 </div>
                             <?php endif; ?>
@@ -359,11 +454,11 @@ $drafts = $stmt->fetchAll();
 
                         <div class="draft-actions">
                             <a href="prehospital_form.php?draft_id=<?php echo $draft['id']; ?>" class="btn-resume">
-                                <i class="bi bi-play-circle"></i>
+                                <i class="bi bi-pencil-square"></i>
                                 Resume Editing
                             </a>
                             <button onclick="deleteDraft(<?php echo $draft['id']; ?>)" class="btn-delete">
-                                <i class="bi bi-trash"></i>
+                                <i class="bi bi-trash-fill"></i>
                             </button>
                         </div>
                     </div>
