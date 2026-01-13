@@ -359,10 +359,10 @@ $records = $stmt->fetchAll();
                                             <i class="fas fa-play"></i> Resume
                                         </a>
                                     <?php endif; ?>
-                                    <a href="view_record.php?id=<?php echo $record['id']; ?>"
+                                    <button onclick="viewRecord(<?php echo $record['id']; ?>)"
                                        class="btn btn-table btn-view" title="View">
                                         <i class="fas fa-eye"></i>
-                                    </a>
+                                    </button>
                                     <a href="edit_record.php?id=<?php echo $record['id']; ?>"
                                        class="btn btn-table btn-edit" title="Edit">
                                         <i class="fas fa-edit"></i>
@@ -416,6 +416,39 @@ $records = $stmt->fetchAll();
     <button class="back-to-top" id="backToTop" onclick="scrollToTop()" title="Back to top">
         <i class="fas fa-arrow-up"></i>
     </button>
+
+    <!-- View Record Modal -->
+    <div class="modal fade" id="viewRecordModal" tabindex="-1" aria-labelledby="viewRecordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewRecordModalLabel">
+                        <i class="fas fa-file-medical"></i> View Record
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalRecordContent">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Loading record details...</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="printModalContent()">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                    <button type="button" class="btn btn-warning" id="editRecordBtn">
+                        <i class="fas fa-edit"></i> Edit Record
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
@@ -531,6 +564,93 @@ $records = $stmt->fetchAll();
     // Export to CSV
     function exportToCSV() {
         window.location.href = '../api/export_records.php?search=<?php echo urlencode($search); ?>&status=<?php echo urlencode($status_filter); ?>&date_from=<?php echo urlencode($date_from); ?>&date_to=<?php echo urlencode($date_to); ?>';
+    }
+
+    // View record in modal
+    let currentRecordId = null;
+
+    function viewRecord(id) {
+        currentRecordId = id;
+        const modal = new bootstrap.Modal(document.getElementById('viewRecordModal'));
+        const modalContent = document.getElementById('modalRecordContent');
+        const editBtn = document.getElementById('editRecordBtn');
+
+        // Reset content to loading state
+        modalContent.innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3 text-muted">Loading record details...</p>
+            </div>
+        `;
+
+        // Set edit button URL
+        editBtn.onclick = function() {
+            window.location.href = 'edit_record.php?id=' + id;
+        };
+
+        // Show modal
+        modal.show();
+
+        // Fetch record content
+        fetch('../api/get_record.php?id=' + id)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    modalContent.innerHTML = data.html;
+                } else {
+                    modalContent.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Error loading record: ${data.message}
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                modalContent.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Failed to load record. Please try again.
+                    </div>
+                `;
+            });
+    }
+
+    // Print modal content
+    function printModalContent() {
+        const modalContent = document.getElementById('modalRecordContent').innerHTML;
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Print Record</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+                <style>
+                    body { padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+                    @media print {
+                        body { padding: 0; }
+                        .no-print { display: none !important; }
+                    }
+                </style>
+            </head>
+            <body>
+                ${modalContent}
+                <script>
+                    window.onload = function() {
+                        window.print();
+                        window.onafterprint = function() {
+                            window.close();
+                        };
+                    };
+                <\/script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
     }
     </script>
 </body>

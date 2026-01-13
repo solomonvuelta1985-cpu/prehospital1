@@ -60,10 +60,8 @@ function login_user($username, $password, $recaptcha_response = null) {
         return ['success' => false, 'message' => 'Too many login attempts from your IP. Please try again in 10 minutes.'];
     }
 
-    // Session-based rate limiting (backup)
-    if (!check_rate_limit('login', 5, 300)) {
-        return ['success' => false, 'message' => 'Too many login attempts. Please try again later.'];
-    }
+    // Note: Session-based rate limiting removed - we use per-user restriction instead
+    // to allow multiple users to try logging in from the same browser/session
 
     // Verify reCAPTCHA if provided
     if ($recaptcha_response && !verify_recaptcha($recaptcha_response)) {

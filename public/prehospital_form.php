@@ -355,8 +355,18 @@ $current_user = get_auth_user();
                                 </div>
                             </div>
                             <input type="hidden" name="vehicle_details" id="vehicleDetails">
+                            <!-- Selected Vehicle Display -->
+                            <div id="selectedVehicleDisplay" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #e7f3ff; border-left: 4px solid #0066cc; border-radius: 4px;">
+                                <strong style="color: #0066cc;">Selected Vehicle:</strong>
+                                <span id="selectedVehicleText" style="color: #333; margin-left: 0.5rem;"></span>
+                            </div>
                         </div>
-                        
+
+                        <div class="mb-section">
+                            <label for="driver" class="form-label">Driver</label>
+                            <input type="text" class="form-control" id="driver" name="driver" placeholder="Driver name">
+                        </div>
+
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="arrSceneLocation" class="form-label">Arrival at Scene - Location</label>
@@ -392,24 +402,14 @@ $current_user = get_auth_user();
 
                         <div class="grid-2 mb-section">
                             <div>
-                                <label for="depHospLocation" class="form-label">Departure from Hospital - Location</label>
-                                <input type="text" class="form-control" id="depHospLocation" name="departure_hospital_location" placeholder="Departure location">
-                            </div>
-                            <div>
                                 <label for="depHospTime" class="form-label">Departure from Hospital - Time</label>
                                 <input type="time" class="form-control" id="depHospTime" name="departure_hospital_time">
                             </div>
                         </div>
 
-                        <div class="grid-2 mb-section">
-                            <div>
-                                <label for="arrStation" class="form-label">Arrival at Station</label>
-                                <input type="time" class="form-control" id="arrStation" name="arrival_station_time">
-                            </div>
-                            <div>
-                                <label for="driver" class="form-label">Driver</label>
-                                <input type="text" class="form-control" id="driver" name="driver" placeholder="Driver name">
-                            </div>
+                        <div class="mb-section">
+                            <label for="arrStation" class="form-label">Arrival at Station</label>
+                            <input type="time" class="form-control" id="arrStation" name="arrival_station_time">
                         </div>
 
                         <div class="form-group-compact">
@@ -1139,10 +1139,6 @@ $current_user = get_auth_user();
                         </div>
 
                         <div class="grid-2 mb-section">
-                            <div>
-                                <label for="endorsement" class="form-label">Endorsement</label>
-                                <input type="text" class="form-control" id="endorsement" name="endorsement" placeholder="Facility">
-                            </div>
                             <div>
                                 <label for="hospital" class="form-label">Hospital Name</label>
                                 <input type="text" class="form-control" id="hospital" name="hospital_name" placeholder="Hospital name">
@@ -2691,9 +2687,155 @@ $current_user = get_auth_user();
             });
         }
 
-        // Auto-generate narrative when entering Section 7
+        // Generate form summary
+        function generateFormSummary() {
+            const summaryContainer = document.getElementById('formSummary');
+
+            // Helper function to get radio button value
+            function getRadioValue(name) {
+                const radio = document.querySelector(`input[name="${name}"]:checked`);
+                return radio ? radio.value : null;
+            }
+
+            // Collect form data
+            const patientName = document.getElementById('patientName')?.value || 'Not provided';
+            const age = document.getElementById('age')?.value || 'Not provided';
+            const genderValue = getRadioValue('gender') || 'Not provided';
+            const gender = genderValue === 'male' ? 'Male' : genderValue === 'female' ? 'Female' : 'Not provided';
+            const formDate = document.getElementById('formDate')?.value || 'Not provided';
+
+            // Get vehicle used (radio button)
+            const vehicleValue = getRadioValue('vehicle_used');
+            let vehicleUsed = 'Not provided';
+            if (vehicleValue === 'ambulance') vehicleUsed = 'Ambulance';
+            else if (vehicleValue === 'fireTruck') vehicleUsed = 'Fire Truck';
+            else if (vehicleValue === 'others') vehicleUsed = 'Others';
+
+            // Get vehicle details if available and parse JSON
+            const vehicleDetailsRaw = document.getElementById('vehicleDetails')?.value;
+            if (vehicleDetailsRaw && vehicleValue === 'ambulance') {
+                try {
+                    const vehicleData = JSON.parse(vehicleDetailsRaw);
+                    if (vehicleData.id && vehicleData.plate) {
+                        vehicleUsed = `Ambulance ${vehicleData.id} (${vehicleData.plate})`;
+                    } else {
+                        vehicleUsed = 'Ambulance';
+                    }
+                } catch (e) {
+                    // If not JSON or parsing fails, just use "Ambulance"
+                    vehicleUsed = 'Ambulance';
+                }
+            }
+
+            const driverName = document.getElementById('driver')?.value || 'Not provided';
+
+            // Vital signs
+            const initialBP = document.getElementById('initialBP')?.value || 'Not taken';
+            const initialTemp = document.getElementById('initialTemp')?.value || 'Not taken';
+            const initialPulse = document.getElementById('initialPulse')?.value || 'Not taken';
+            const initialSPO2 = document.getElementById('initialSPO2')?.value || 'Not taken';
+            const initialConsciousness = document.getElementById('initialConsciousness')?.value || 'Not assessed';
+
+            // Hospital info
+            const hospitalName = document.getElementById('hospital')?.value || 'Not provided';
+
+            // Build summary HTML
+            let summaryHTML = `
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="summary-card">
+                            <h6><i class="bi bi-person-fill"></i> Patient Information</h6>
+                            <table class="summary-table">
+                                <tr><td><strong>Name:</strong></td><td>${patientName}</td></tr>
+                                <tr><td><strong>Age:</strong></td><td>${age} years old</td></tr>
+                                <tr><td><strong>Gender:</strong></td><td>${gender}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="summary-card">
+                            <h6><i class="bi bi-calendar-check"></i> Response Information</h6>
+                            <table class="summary-table">
+                                <tr><td><strong>Date:</strong></td><td>${formDate}</td></tr>
+                                <tr><td><strong>Vehicle:</strong></td><td>${vehicleUsed}</td></tr>
+                                <tr><td><strong>Driver:</strong></td><td>${driverName}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="summary-card">
+                            <h6><i class="bi bi-heart-pulse-fill"></i> Initial Vital Signs</h6>
+                            <table class="summary-table">
+                                <tr><td><strong>Blood Pressure:</strong></td><td>${initialBP}</td></tr>
+                                <tr><td><strong>Temperature:</strong></td><td>${initialTemp !== 'Not taken' ? initialTemp + '°C' : 'Not taken'}</td></tr>
+                                <tr><td><strong>Pulse:</strong></td><td>${initialPulse !== 'Not taken' ? initialPulse + ' BPM' : 'Not taken'}</td></tr>
+                                <tr><td><strong>SPO2:</strong></td><td>${initialSPO2 !== 'Not taken' ? initialSPO2 + '%' : 'Not taken'}</td></tr>
+                                <tr><td><strong>Consciousness:</strong></td><td>${initialConsciousness.charAt(0).toUpperCase() + initialConsciousness.slice(1)}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="summary-card">
+                            <h6><i class="bi bi-hospital"></i> Hospital Information</h6>
+                            <table class="summary-table">
+                                <tr><td><strong>Hospital Name:</strong></td><td>${hospitalName}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <style>
+                    .summary-card {
+                        background: #f8f9fa;
+                        border: 1px solid #dee2e6;
+                        border-radius: 8px;
+                        padding: 1rem;
+                        height: 100%;
+                    }
+
+                    .summary-card h6 {
+                        color: #0066cc;
+                        font-weight: 600;
+                        margin-bottom: 0.75rem;
+                        padding-bottom: 0.5rem;
+                        border-bottom: 2px solid #0066cc;
+                    }
+
+                    .summary-table {
+                        width: 100%;
+                        font-size: 0.9rem;
+                    }
+
+                    .summary-table td {
+                        padding: 0.25rem 0;
+                        vertical-align: top;
+                    }
+
+                    .summary-table td:first-child {
+                        width: 40%;
+                        color: #6c757d;
+                    }
+
+                    .summary-table td:last-child {
+                        color: #212529;
+                        font-weight: 500;
+                    }
+                </style>
+            `;
+
+            summaryContainer.innerHTML = summaryHTML;
+        }
+
+        // Auto-generate narrative and summary when entering Section 7
         document.getElementById('tab7').addEventListener('click', function() {
             setTimeout(() => {
+                // Generate summary
+                generateFormSummary();
+
+                // Generate narrative
                 const narrativeContent = document.getElementById('narrativeContent');
                 if (narrativeContent.querySelector('.narrative-placeholder')) {
                     generateNarrative();

@@ -139,7 +139,15 @@ try {
     $arrival_time = $arrival_time ? sanitize($arrival_time) : null;
 
     $vehicle_used = sanitize($_POST['vehicle_used'] ?? null);
-    $vehicle_details = sanitize($_POST['vehicle_details'] ?? null);
+    // Don't sanitize vehicle_details as it contains JSON - validate and trim only
+    $vehicle_details = !empty($_POST['vehicle_details']) ? trim($_POST['vehicle_details']) : null;
+    // Validate that vehicle_details is valid JSON if provided
+    if ($vehicle_details !== null && $vehicle_details !== '') {
+        $test_json = json_decode($vehicle_details, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception('Invalid vehicle details format');
+        }
+    }
     $driver_name = sanitize($_POST['driver_name'] ?? null);
 
     // Validate times if provided
@@ -159,7 +167,6 @@ try {
     // Hospital Information
     $arrival_hospital_name = sanitize($_POST['arrival_hospital_name'] ?? null);
     $arrival_hospital_time = sanitize($_POST['arrival_hospital_time'] ?? null);
-    $departure_hospital_location = sanitize($_POST['departure_hospital_location'] ?? null);
     $departure_hospital_time = sanitize($_POST['departure_hospital_time'] ?? null);
     $arrival_station_time = sanitize($_POST['arrival_station_time'] ?? null);
     
@@ -297,7 +304,6 @@ try {
     $second_aider = sanitize($_POST['second_aider'] ?? null);
 
     // Hospital Endorsement
-    $endorsement = sanitize($_POST['endorsement'] ?? null);
     $hospital_name = sanitize($_POST['hospital_name'] ?? null);
     $endorsement_datetime = sanitize($_POST['endorsement_datetime'] ?? null);
 
@@ -401,7 +407,7 @@ try {
     $common_params = [
         $form_number, $form_date, $departure_time, $arrival_time, $vehicle_used, $vehicle_details, $driver_name,
         $arrival_scene_location, $arrival_scene_time, $departure_scene_location, $departure_scene_time,
-        $arrival_hospital_name, $arrival_hospital_time, $departure_hospital_location, $departure_hospital_time,
+        $arrival_hospital_name, $arrival_hospital_time, $departure_hospital_time,
         $arrival_station_time, $persons_present_json,
         $patient_name, $date_of_birth, $age, $gender, $civil_status, $address, $zone, $occupation,
         $place_of_incident, $zone_landmark, $incident_time,
@@ -418,7 +424,7 @@ try {
         $fast_face_drooping, $fast_arm_weakness, $fast_speech_difficulty, $fast_time_to_call, $fast_sample_details,
         $ob_baby_status, $ob_delivery_time, $ob_placenta, $ob_lmp, $ob_aog, $ob_edc,
         $team_leader_notes, $team_leader, $data_recorder, $logistic, $first_aider, $second_aider,
-        $endorsement, $hospital_name, $endorsement_attachment_path, $endorsement_datetime
+        $hospital_name, $endorsement_attachment_path, $endorsement_datetime
     ];
 
     if ($is_updating_draft) {
@@ -426,7 +432,7 @@ try {
         $sql = "UPDATE prehospital_forms SET
             form_number = ?, form_date = ?, departure_time = ?, arrival_time = ?, vehicle_used = ?, vehicle_details = ?, driver_name = ?,
             arrival_scene_location = ?, arrival_scene_time = ?, departure_scene_location = ?, departure_scene_time = ?,
-            arrival_hospital_name = ?, arrival_hospital_time = ?, departure_hospital_location = ?, departure_hospital_time = ?,
+            arrival_hospital_name = ?, arrival_hospital_time = ?, departure_hospital_time = ?,
             arrival_station_time = ?, persons_present = ?,
             patient_name = ?, date_of_birth = ?, age = ?, gender = ?, civil_status = ?, address = ?, zone = ?, occupation = ?,
             place_of_incident = ?, zone_landmark = ?, incident_time = ?,
@@ -443,7 +449,7 @@ try {
             fast_face_drooping = ?, fast_arm_weakness = ?, fast_speech_difficulty = ?, fast_time_to_call = ?, fast_sample_details = ?,
             ob_baby_status = ?, ob_delivery_time = ?, ob_placenta = ?, ob_lmp = ?, ob_aog = ?, ob_edc = ?,
             team_leader_notes = ?, team_leader = ?, data_recorder = ?, logistic = ?, first_aider = ?, second_aider = ?,
-            endorsement = ?, hospital_name = ?, endorsement_attachment = ?, endorsement_datetime = ?,
+            hospital_name = ?, endorsement_attachment = ?, endorsement_datetime = ?,
             status = 'completed',
             updated_at = NOW()
             WHERE id = ? AND created_by = ?";
@@ -461,7 +467,7 @@ try {
         $sql = "INSERT INTO prehospital_forms (
             form_number, form_date, departure_time, arrival_time, vehicle_used, vehicle_details, driver_name,
             arrival_scene_location, arrival_scene_time, departure_scene_location, departure_scene_time,
-            arrival_hospital_name, arrival_hospital_time, departure_hospital_location, departure_hospital_time,
+            arrival_hospital_name, arrival_hospital_time, departure_hospital_time,
             arrival_station_time, persons_present,
             patient_name, date_of_birth, age, gender, civil_status, address, zone, occupation,
             place_of_incident, zone_landmark, incident_time,
@@ -478,12 +484,12 @@ try {
             fast_face_drooping, fast_arm_weakness, fast_speech_difficulty, fast_time_to_call, fast_sample_details,
             ob_baby_status, ob_delivery_time, ob_placenta, ob_lmp, ob_aog, ob_edc,
             team_leader_notes, team_leader, data_recorder, logistic, first_aider, second_aider,
-            endorsement, hospital_name, endorsement_attachment, endorsement_datetime,
+            hospital_name, endorsement_attachment, endorsement_datetime,
             created_by, status
         ) VALUES (
             ?, ?, ?, ?, ?, ?, ?,
             ?, ?, ?, ?,
-            ?, ?, ?, ?,
+            ?, ?, ?,
             ?, ?,
             ?, ?, ?, ?, ?, ?, ?, ?,
             ?, ?, ?,
@@ -499,8 +505,7 @@ try {
             ?, ?,
             ?, ?, ?, ?, ?,
             ?, ?, ?, ?, ?, ?,
-            ?, ?, ?, ?, ?,
-            ?, ?, ?, ?,
+            ?, ?, ?,
             ?, 'completed'
         )";
 

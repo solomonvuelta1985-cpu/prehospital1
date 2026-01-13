@@ -50,8 +50,8 @@ define('MAX_FILE_SIZE', 5242880); // 5MB
 // PRODUCTION: Replace with your own reCAPTCHA keys from Google
 // Register your domain at: https://www.google.com/recaptcha/admin
 // IMPORTANT: Add 'localhost' to allowed domains in reCAPTCHA admin for local testing
-define('RECAPTCHA_SITE_KEY', '6LeJ5kUsAAAAAHJQkM9upH2rVKlFb15MikEPG1gw');
-define('RECAPTCHA_SECRET_KEY', '6LeJ5kUsAAAAACnDq8gUHRulFgD3To17FLUB2WO7');
+define('RECAPTCHA_SITE_KEY', '6LeJ5kUsAAAAAHJQkM9upH2rVKIFb15MikEPG1gw');
+define('RECAPTCHA_SECRET_KEY', '6LeJ5kUsAAAAACnDq8gUHRuIFgD3To17FLUB2WO7');
 
 // Force HTTPS redirect - ONLY ON PRODUCTION
 // Disabled for localhost development

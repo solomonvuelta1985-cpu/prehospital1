@@ -459,11 +459,6 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
 
                         <div class="grid-2 mb-section">
                             <div>
-                                <label for="depHospLocation" class="form-label">Departure from Hospital - Location</label>
-                                <input type="text" class="form-control" id="depHospLocation" name="departure_hospital_location"
-                                       value="<?php echo e($record['departure_hospital_location']); ?>" placeholder="Departure location">
-                            </div>
-                            <div>
                                 <label for="depHospTime" class="form-label">Departure from Hospital - Time</label>
                                 <input type="time" class="form-control" id="depHospTime" name="departure_hospital_time"
                                        value="<?php echo e($record['departure_hospital_time']); ?>">
@@ -1308,11 +1303,6 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                         </div>
 
                         <div class="grid-2 mb-section">
-                            <div>
-                                <label for="endorsement" class="form-label">Endorsement</label>
-                                <input type="text" class="form-control" id="endorsement" name="endorsement"
-                                       value="<?php echo e($record['endorsement']); ?>" placeholder="Facility">
-                            </div>
                             <div>
                                 <label for="hospital" class="form-label">Hospital Name</label>
                                 <input type="text" class="form-control" id="hospital" name="hospital_name"

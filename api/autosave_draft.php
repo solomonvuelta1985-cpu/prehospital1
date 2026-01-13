@@ -33,13 +33,28 @@ try {
     // Check if updating existing draft or creating new
     $draft_id = isset($data['draft_id']) && !empty($data['draft_id']) ? (int)$data['draft_id'] : null;
 
+    // Validate vehicle_details if provided (should be JSON or null)
+    $vehicle_details_value = $data['vehicle_details'] ?? null;
+    if ($vehicle_details_value !== null && $vehicle_details_value !== '') {
+        // If it's already an array, encode it
+        if (is_array($vehicle_details_value)) {
+            $vehicle_details_value = json_encode($vehicle_details_value);
+        } else {
+            // Validate it's valid JSON
+            $test_json = json_decode($vehicle_details_value, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $vehicle_details_value = null; // Invalid JSON, set to null
+            }
+        }
+    }
+
     // Prepare form data
     $form_data = [
         'form_date' => $data['form_date'] ?? null,
         'departure_time' => $data['departure_time'] ?? null,
         'arrival_time' => $data['arrival_time'] ?? null,
         'vehicle_used' => $data['vehicle_used'] ?? null,
-        'vehicle_details' => $data['vehicle_details'] ?? null,
+        'vehicle_details' => $vehicle_details_value,
         'driver_name' => $data['driver'] ?? null,
         'arrival_scene_location' => $data['arrival_scene_location'] ?? null,
         'arrival_scene_time' => $data['arrival_scene_time'] ?? null,
@@ -47,7 +62,6 @@ try {
         'departure_scene_time' => $data['departure_scene_time'] ?? null,
         'arrival_hospital_name' => $data['arrival_hospital_name'] ?? null,
         'arrival_hospital_time' => $data['arrival_hospital_time'] ?? null,
-        'departure_hospital_location' => $data['departure_hospital_location'] ?? null,
         'departure_hospital_time' => $data['departure_hospital_time'] ?? null,
         'arrival_station_time' => $data['arrival_station'] ?? null,
         'persons_present' => isset($data['persons_present']) ? json_encode($data['persons_present']) : null,
@@ -134,7 +148,6 @@ try {
         'second_aider' => $data['aider2'] ?? null,
 
         // Hospital Endorsement
-        'endorsement' => $data['endorsement'] ?? null,
         'hospital_name' => $data['hospital_name'] ?? null,
         'endorsement_datetime' => $data['endorsement_datetime'] ?? null,
 

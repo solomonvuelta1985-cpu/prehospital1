@@ -70,7 +70,15 @@ try {
     $arrival_time = $arrival_time ? sanitize($arrival_time) : null;
 
     $vehicle_used = !empty($_POST['vehicle_used']) ? sanitize($_POST['vehicle_used']) : null;
-    $vehicle_details = !empty($_POST['vehicle_details']) ? sanitize($_POST['vehicle_details']) : null;
+    // Don't sanitize vehicle_details as it contains JSON - validate and trim only
+    $vehicle_details = !empty($_POST['vehicle_details']) ? trim($_POST['vehicle_details']) : null;
+    // Validate that vehicle_details is valid JSON if provided
+    if ($vehicle_details !== null && $vehicle_details !== '') {
+        $test_json = json_decode($vehicle_details, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception('Invalid vehicle details format');
+        }
+    }
     $driver_name = !empty($_POST['driver_name']) ? sanitize($_POST['driver_name']) : null;
     $arrival_station = !empty($_POST['arrival_station']) ? sanitize($_POST['arrival_station']) : null;
 
@@ -83,7 +91,6 @@ try {
     // Hospital Information
     $arrival_hospital_name = !empty($_POST['arrival_hospital_name']) ? sanitize($_POST['arrival_hospital_name']) : null;
     $arrival_hospital_time = !empty($_POST['arrival_hospital_time']) ? sanitize($_POST['arrival_hospital_time']) : null;
-    $departure_hospital_location = !empty($_POST['departure_hospital_location']) ? sanitize($_POST['departure_hospital_location']) : null;
     $departure_hospital_time = !empty($_POST['departure_hospital_time']) ? sanitize($_POST['departure_hospital_time']) : null;
 
     // Persons Present
@@ -279,7 +286,6 @@ try {
     $second_aider = !empty($_POST['aider2']) ? sanitize($_POST['aider2']) : null;
 
     // Hospital Endorsement
-    $endorsement = !empty($_POST['endorsement']) ? sanitize($_POST['endorsement']) : null;
     $hospital_name = !empty($_POST['hospital_name']) ? sanitize($_POST['hospital_name']) : null;
     $endorsement_datetime = !empty($_POST['endorsement_datetime']) ? sanitize($_POST['endorsement_datetime']) : null;
 
@@ -368,7 +374,6 @@ try {
         departure_scene_time = ?,
         arrival_hospital_name = ?,
         arrival_hospital_time = ?,
-        departure_hospital_location = ?,
         departure_hospital_time = ?,
         persons_present = ?,
         patient_name = ?,
@@ -440,7 +445,6 @@ try {
         logistic = ?,
         first_aider = ?,
         second_aider = ?,
-        endorsement = ?,
         hospital_name = ?,
         endorsement_attachment = ?,
         endorsement_datetime = ?,
@@ -463,7 +467,6 @@ try {
         $departure_scene_time,
         $arrival_hospital_name,
         $arrival_hospital_time,
-        $departure_hospital_location,
         $departure_hospital_time,
         $persons_present_json,
         $patient_name,
@@ -535,7 +538,6 @@ try {
         $logistic,
         $first_aider,
         $second_aider,
-        $endorsement,
         $hospital_name,
         $endorsement_attachment_path,
         $endorsement_datetime,

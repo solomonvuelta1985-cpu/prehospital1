@@ -181,8 +181,13 @@ document.getElementById('dateOfBirth')?.addEventListener('change', function() {
 // ============================================
 
 function generateFormSummary() {
+    console.log('generateFormSummary() called');
     const summaryContainer = document.getElementById('formSummary');
-    if (!summaryContainer) return;
+    if (!summaryContainer) {
+        console.error('Summary container not found!');
+        return;
+    }
+    console.log('Summary container found, generating summary...');
 
     let summaryHTML = '<div class="summary-content">';
 
@@ -341,6 +346,15 @@ function generateFormSummary() {
 
     summaryHTML += '</div>';
     summaryContainer.innerHTML = summaryHTML;
+
+    // Ensure the container is visible
+    summaryContainer.style.display = 'block';
+    summaryContainer.style.visibility = 'visible';
+    summaryContainer.style.opacity = '1';
+
+    console.log('Summary generated successfully!');
+    console.log('Summary HTML length:', summaryHTML.length);
+    console.log('Summary container display:', window.getComputedStyle(summaryContainer).display);
 }
 
 // ============================================
@@ -1084,17 +1098,65 @@ function setupVehicleModals() {
     const ambulanceRadio = document.getElementById('ambulance');
     if (ambulanceRadio) {
         ambulanceRadio.addEventListener('click', function() {
+            // Hide previous selection display while choosing new vehicle
+            const displayDiv = document.getElementById('selectedVehicleDisplay');
+            displayDiv.style.display = 'none';
+
             const ambulanceModal = new bootstrap.Modal(document.getElementById('ambulanceModal'));
             ambulanceModal.show();
         });
     }
-    
+
     // Fire truck selection
     const fireTruckRadio = document.getElementById('fireTruck');
     if (fireTruckRadio) {
         fireTruckRadio.addEventListener('click', function() {
+            // Hide previous selection display while choosing new vehicle
+            const displayDiv = document.getElementById('selectedVehicleDisplay');
+            displayDiv.style.display = 'none';
+
             const fireTruckModal = new bootstrap.Modal(document.getElementById('fireTruckModal'));
             fireTruckModal.show();
+        });
+    }
+
+    // Others vehicle selection
+    const othersRadio = document.getElementById('othersVehicle');
+    if (othersRadio) {
+        othersRadio.addEventListener('click', function() {
+            // Prompt user to specify vehicle
+            Notiflix.Confirm.show(
+                'Specify Vehicle',
+                'Please enter the vehicle type/name:',
+                'Save',
+                'Cancel',
+                function() {
+                    // Show input prompt
+                    const vehicleName = prompt('Enter vehicle type/name:');
+                    if (vehicleName && vehicleName.trim() !== '') {
+                        // Store vehicle details
+                        document.getElementById('vehicleDetails').value = JSON.stringify({
+                            type: 'others',
+                            name: vehicleName.trim()
+                        });
+
+                        // Display selected vehicle
+                        const displayDiv = document.getElementById('selectedVehicleDisplay');
+                        const displayText = document.getElementById('selectedVehicleText');
+                        displayText.textContent = `Other Vehicle - ${vehicleName.trim()}`;
+                        displayDiv.style.display = 'block';
+
+                        Notiflix.Notify.success(`${vehicleName.trim()} selected`);
+                    } else {
+                        // Uncheck the radio if canceled
+                        othersRadio.checked = false;
+                    }
+                },
+                function() {
+                    // Uncheck the radio if canceled
+                    othersRadio.checked = false;
+                }
+            );
         });
     }
     
@@ -1116,18 +1178,24 @@ function setupVehicleModals() {
     if (confirmAmbulanceBtn) {
         confirmAmbulanceBtn.addEventListener('click', function() {
             const selectedAmbulance = document.querySelector('#ambulanceList .vehicle-option.selected');
-            
+
             if (selectedAmbulance) {
                 const ambulanceId = selectedAmbulance.dataset.id;
                 const plateNumber = selectedAmbulance.dataset.plate;
-                
+
                 // Store vehicle details in hidden field
                 document.getElementById('vehicleDetails').value = JSON.stringify({
                     type: 'ambulance',
                     id: ambulanceId,
                     plate: plateNumber
                 });
-                
+
+                // Display selected vehicle
+                const displayDiv = document.getElementById('selectedVehicleDisplay');
+                const displayText = document.getElementById('selectedVehicleText');
+                displayText.textContent = `Ambulance ${ambulanceId} (${plateNumber})`;
+                displayDiv.style.display = 'block';
+
                 Notiflix.Notify.success(`Ambulance ${ambulanceId} (${plateNumber}) selected`);
 
                 // Close modal
@@ -1144,18 +1212,24 @@ function setupVehicleModals() {
     if (confirmFireTruckBtn) {
         confirmFireTruckBtn.addEventListener('click', function() {
             const selectedFireTruck = document.querySelector('#fireTruckModal .vehicle-option.selected');
-            
+
             if (selectedFireTruck) {
                 const fireTruckType = selectedFireTruck.dataset.type;
                 const fireTruckName = selectedFireTruck.querySelector('.vehicle-name').textContent;
-                
+
                 // Store vehicle details in hidden field
                 document.getElementById('vehicleDetails').value = JSON.stringify({
                     type: 'firetruck',
                     subtype: fireTruckType,
                     name: fireTruckName
                 });
-                
+
+                // Display selected vehicle
+                const displayDiv = document.getElementById('selectedVehicleDisplay');
+                const displayText = document.getElementById('selectedVehicleText');
+                displayText.textContent = `Fire Truck - ${fireTruckName}`;
+                displayDiv.style.display = 'block';
+
                 Notiflix.Notify.success(`${fireTruckName} selected`);
 
                 // Close modal

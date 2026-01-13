@@ -533,6 +533,68 @@ a:active {
 }
 
 /* ========================================
+   Modal Styles
+   ======================================== */
+#viewRecordModal .modal-dialog {
+    max-width: 95vw;
+}
+
+#viewRecordModal .modal-content {
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+#viewRecordModal .modal-header {
+    background-color: #1a4d8f;
+    color: white;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    padding: 1rem 1.5rem;
+}
+
+#viewRecordModal .modal-title {
+    font-weight: 600;
+    font-size: 1.25rem;
+}
+
+#viewRecordModal .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+#viewRecordModal .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+#viewRecordModal .modal-footer {
+    background-color: #f8f9fa;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    padding: 1rem 1.5rem;
+}
+
+/* Scrollbar styling for modal */
+#viewRecordModal .modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+#viewRecordModal .modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+#viewRecordModal .modal-body::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+#viewRecordModal .modal-body::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* ========================================
    Responsive Design - Mobile
    ======================================== */
 @media (max-width: 576px) {
@@ -579,5 +641,15 @@ a:active {
     .custom-table th,
     .custom-table td {
         padding: clamp(8px, 2vw, 10px);
+    }
+
+    /* Modal adjustments for mobile */
+    #viewRecordModal .modal-dialog {
+        max-width: 100vw;
+        margin: 0;
+    }
+
+    #viewRecordModal .modal-body {
+        max-height: 60vh;
     }
 }
