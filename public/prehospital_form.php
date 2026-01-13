@@ -919,6 +919,17 @@ $current_user = get_auth_user();
                             <div class="body-diagram-header">
                                 <h6><i class="bi bi-person-bounding-box"></i> Interactive Injury Mapping</h6>
                                 <small class="text-muted">Click on body diagram to mark injuries</small>
+
+                                <!-- Marker Legend -->
+                                <div class="marker-legend">
+                                    <span class="legend-title">Marker Legend:</span>
+                                    <span class="legend-item"><span class="legend-marker" style="background: #dc3545;">LC</span> Laceration</span>
+                                    <span class="legend-item"><span class="legend-marker" style="background: #fd7e14;">FX</span> Fracture</span>
+                                    <span class="legend-item"><span class="legend-marker" style="background: #ffc107; color: #333;">BN</span> Burn</span>
+                                    <span class="legend-item"><span class="legend-marker" style="background: #6f42c1;">CT</span> Contusion</span>
+                                    <span class="legend-item"><span class="legend-marker" style="background: #20c997;">AB</span> Abrasion</span>
+                                    <span class="legend-item"><span class="legend-marker" style="background: #6c757d;">OT</span> Other</span>
+                                </div>
                             </div>
                             
                             <div class="body-diagram-content">
@@ -939,49 +950,94 @@ $current_user = get_auth_user();
                                 </div>
                                 
                                 <div class="injury-sidebar">
+                                    <!-- Injury Type Selector - Redesigned -->
                                     <div class="injury-type-selector">
-                                        <label>Select Injury Type:</label>
+                                        <div class="selector-header">
+                                            <i class="bi bi-palette-fill"></i>
+                                            <span>Injury Classification</span>
+                                        </div>
                                         <div class="injury-type-grid">
-                                            <button type="button" class="injury-type-btn active" data-type="laceration">
-                                                <span class="color-indicator" style="background: #dc3545;"></span>
-                                                Laceration
+                                            <button type="button" class="injury-type-btn active" data-type="laceration" title="Open wound with irregular edges">
+                                                <div class="btn-content">
+                                                    <span class="color-badge" style="background: #dc3545;">
+                                                        <i class="bi bi-bandaid-fill"></i>
+                                                    </span>
+                                                    <span class="btn-label">Laceration</span>
+                                                </div>
                                             </button>
-                                            <button type="button" class="injury-type-btn" data-type="fracture">
-                                                <span class="color-indicator" style="background: #fd7e14;"></span>
-                                                Fracture
+                                            <button type="button" class="injury-type-btn" data-type="fracture" title="Broken bone">
+                                                <div class="btn-content">
+                                                    <span class="color-badge" style="background: #fd7e14;">
+                                                        <i class="bi bi-activity"></i>
+                                                    </span>
+                                                    <span class="btn-label">Fracture</span>
+                                                </div>
                                             </button>
-                                            <button type="button" class="injury-type-btn" data-type="burn">
-                                                <span class="color-indicator" style="background: #ffc107;"></span>
-                                                Burn
+                                            <button type="button" class="injury-type-btn" data-type="burn" title="Thermal, chemical, or electrical burn">
+                                                <div class="btn-content">
+                                                    <span class="color-badge" style="background: #ffc107;">
+                                                        <i class="bi bi-fire"></i>
+                                                    </span>
+                                                    <span class="btn-label">Burn</span>
+                                                </div>
                                             </button>
-                                            <button type="button" class="injury-type-btn" data-type="contusion">
-                                                <span class="color-indicator" style="background: #6f42c1;"></span>
-                                                Contusion
+                                            <button type="button" class="injury-type-btn" data-type="contusion" title="Bruising from blunt trauma">
+                                                <div class="btn-content">
+                                                    <span class="color-badge" style="background: #6f42c1;">
+                                                        <i class="bi bi-circle-fill"></i>
+                                                    </span>
+                                                    <span class="btn-label">Contusion</span>
+                                                </div>
                                             </button>
-                                            <button type="button" class="injury-type-btn" data-type="abrasion">
-                                                <span class="color-indicator" style="background: #20c997;"></span>
-                                                Abrasion
+                                            <button type="button" class="injury-type-btn" data-type="abrasion" title="Scraped or worn away skin">
+                                                <div class="btn-content">
+                                                    <span class="color-badge" style="background: #20c997;">
+                                                        <i class="bi bi-slash-circle"></i>
+                                                    </span>
+                                                    <span class="btn-label">Abrasion</span>
+                                                </div>
                                             </button>
-                                            <button type="button" class="injury-type-btn" data-type="other">
-                                                <span class="color-indicator" style="background: #6c757d;"></span>
-                                                Other
+                                            <button type="button" class="injury-type-btn" data-type="other" title="Other type of injury">
+                                                <div class="btn-content">
+                                                    <span class="color-badge" style="background: #6c757d;">
+                                                        <i class="bi bi-three-dots"></i>
+                                                    </span>
+                                                    <span class="btn-label">Other</span>
+                                                </div>
                                             </button>
                                         </div>
                                     </div>
-                                    
+
+                                    <!-- Injury List Header - Redesigned -->
                                     <div class="injury-list-header">
-                                        Injuries Marked (<span id="injuryCount">0</span>)
+                                        <div class="header-content">
+                                            <i class="bi bi-list-check"></i>
+                                            <span>Marked Injuries</span>
+                                        </div>
+                                        <span class="injury-badge" id="injuryCount">0</span>
                                     </div>
+
+                                    <!-- Injury List Container -->
                                     <div id="injuryListContainer">
                                         <div class="empty-state">
-                                            <div class="empty-state-icon">📍</div>
-                                            <p>No injuries marked yet.<br>Click on body to add.</p>
+                                            <div class="empty-state-icon">
+                                                <i class="bi bi-pin-map"></i>
+                                            </div>
+                                            <p class="empty-state-title">No injuries marked</p>
+                                            <p class="empty-state-subtitle">Click on the body diagram to mark an injury location</p>
                                         </div>
                                     </div>
-                                    
+
+                                    <!-- Action Buttons - Redesigned -->
                                     <div class="diagram-actions">
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearAllInjuries()">Clear All</button>
-                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="exportInjuryData()">Export</button>
+                                        <button type="button" class="action-btn btn-clear" onclick="clearAllInjuries()" title="Remove all marked injuries">
+                                            <i class="bi bi-trash3"></i>
+                                            <span>Clear All</span>
+                                        </button>
+                                        <button type="button" class="action-btn btn-export" onclick="exportInjuryData()" title="Export injury data as JSON">
+                                            <i class="bi bi-download"></i>
+                                            <span>Export</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -1197,21 +1253,23 @@ $current_user = get_auth_user();
                         </div>
 
                         <div class="narrative-report-container">
-                            <div class="narrative-controls">
-                                <div class="narrative-format-toggle">
-                                    <button type="button" class="format-btn active" data-format="professional" onclick="switchNarrativeFormat('professional')">
+                            <!-- Compact Controls -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+                                <div style="display: inline-flex; gap: 0.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 0.25rem;">
+                                    <button type="button" style="padding: 0.375rem 0.75rem; border: none; background: white; color: #475569; border-radius: 3px; font-size: 0.8125rem; cursor: pointer; font-weight: 500; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" class="format-btn active" data-format="professional" onclick="switchNarrativeFormat('professional')">
                                         <i class="bi bi-journal-text"></i> Professional
                                     </button>
-                                    <button type="button" class="format-btn" data-format="concise" onclick="switchNarrativeFormat('concise')">
+                                    <button type="button" style="padding: 0.375rem 0.75rem; border: none; background: transparent; color: #64748b; border-radius: 3px; font-size: 0.8125rem; cursor: pointer; font-weight: 500; transition: all 0.2s;" class="format-btn" data-format="concise" onclick="switchNarrativeFormat('concise')">
                                         <i class="bi bi-list-ul"></i> Concise
                                     </button>
                                 </div>
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="generateNarrative()">
+                                <button type="button" style="padding: 0.375rem 0.875rem; border: 1px solid #cbd5e1; background: white; color: #475569; border-radius: 4px; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: all 0.2s;" onclick="generateNarrative()" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
                                     <i class="bi bi-arrow-clockwise"></i> Regenerate
                                 </button>
                             </div>
 
-                            <div class="narrative-content" id="narrativeContent">
+                            <!-- Narrative Content -->
+                            <div class="narrative-content" id="narrativeContent" style="margin-bottom: 1rem;">
                                 <div class="narrative-placeholder">
                                     <i class="bi bi-file-text" style="font-size: 3rem; color: #dee2e6;"></i>
                                     <p>Narrative report will be generated automatically when you complete the form.</p>
@@ -1221,29 +1279,35 @@ $current_user = get_auth_user();
                                 </div>
                             </div>
 
-                            <div class="narrative-actions">
-                                <button type="button" class="btn btn-primary" onclick="copyNarrativeToClipboard()">
-                                    <i class="bi bi-clipboard-check"></i> Copy to Clipboard
+                            <!-- Compact Actions -->
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+                                <button type="button" style="padding: 0.5rem 1rem; border: 1px solid #3b82f6; background: #3b82f6; color: white; border-radius: 4px; font-size: 0.875rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: all 0.2s; font-weight: 500;" onclick="copyNarrativeToClipboard()" onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+                                    <i class="bi bi-clipboard-check"></i> Copy
                                 </button>
-                                <button type="button" class="btn btn-outline-secondary" onclick="printNarrative()">
-                                    <i class="bi bi-printer"></i> Print Report
+                                <button type="button" style="padding: 0.5rem 1rem; border: 1px solid #cbd5e1; background: white; color: #475569; border-radius: 4px; font-size: 0.875rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: all 0.2s;" onclick="printNarrative()" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                                    <i class="bi bi-printer"></i> Print
                                 </button>
-                                <button type="button" class="btn btn-outline-success" onclick="exportNarrativeAsText()">
-                                    <i class="bi bi-download"></i> Download .txt
+                                <button type="button" style="padding: 0.5rem 1rem; border: 1px solid #cbd5e1; background: white; color: #475569; border-radius: 4px; font-size: 0.875rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: all 0.2s;" onclick="exportNarrativeAsText()" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                                    <i class="bi bi-download"></i> Download
                                 </button>
                             </div>
                         </div>
 
-                        <div class="alert alert-success" style="margin-top: 1.5rem;">
-                            <h5 class="alert-heading"><i class="bi bi-check-circle"></i> Ready to Submit</h5>
-                            <p class="mb-3">Review all information above before submitting. Navigate back using tabs to make changes.</p>
-                            <div class="d-flex gap-2 flex-wrap">
-                                <button type="button" class="btn btn-outline-primary" onclick="printForm()">
-                                    <i class="bi bi-printer"></i> Print Form
-                                </button>
-                                <button type="button" class="btn btn-outline-danger" onclick="clearForm()">
-                                    <i class="bi bi-arrow-clockwise"></i> Clear All
-                                </button>
+                        <div style="margin-top: 2rem; padding: 1rem 0; border-top: 1px solid #e2e8f0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem; color: #059669;">
+                                    <i class="bi bi-check-circle" style="font-size: 1.125rem;"></i>
+                                    <span style="font-weight: 600; font-size: 0.9375rem;">Ready to Submit</span>
+                                    <span style="color: #64748b; font-size: 0.875rem; margin-left: 0.5rem;">Review all information before submitting</span>
+                                </div>
+                                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                                    <button type="button" style="padding: 0.5rem 1rem; border: 1px solid #cbd5e1; background: white; color: #475569; border-radius: 4px; font-size: 0.875rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: all 0.2s;" onclick="printForm()" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                                        <i class="bi bi-printer"></i> Print Form
+                                    </button>
+                                    <button type="button" style="padding: 0.5rem 1rem; border: 1px solid #fca5a5; background: white; color: #dc2626; border-radius: 4px; font-size: 0.875rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: all 0.2s;" onclick="clearForm()" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='white'">
+                                        <i class="bi bi-arrow-clockwise"></i> Clear All
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1317,7 +1381,7 @@ $current_user = get_auth_user();
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
-    <script src="js/prehospital-form.js"></script>
+    <script src="js/prehospital-form.js?v=<?php echo time(); ?>"></script>
     <script>
         // Configure Notiflix
         Notiflix.Notify.init({
@@ -2522,7 +2586,7 @@ $current_user = get_auth_user();
                 const injuries = JSON.parse(injuriesJson);
                 return injuries.map(injury => ({
                     type: injury.type || 'injury',
-                    location: injury.location || injury.notes || 'unspecified area'
+                    location: injury.bodyPart || injury.location || (injury.view === 'front' ? 'Front' : 'Back') || 'unspecified area'
                 }));
             } catch (e) {
                 return [];

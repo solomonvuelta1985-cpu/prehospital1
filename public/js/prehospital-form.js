@@ -445,7 +445,14 @@ function submitFormData() {
     // Add injury data
     data.injuries = injuries;
 
+    // Serialize injuries to hidden field
+    const injuriesDataField = document.getElementById('injuriesData');
+    if (injuriesDataField) {
+        injuriesDataField.value = JSON.stringify(injuries);
+    }
+
     console.log('Form submitted:', data);
+    console.log('Injuries being submitted:', injuries);
 
     // Clear section memory before submitting
     if (typeof clearSectionMemory === 'function') {
@@ -505,6 +512,108 @@ document.addEventListener('keydown', function(e) {
 // BODY DIAGRAM FUNCTIONS
 // ============================================
 
+// Body Part Coordinate Mapping System
+// Maps percentage coordinates to specific anatomical regions
+const bodyPartMaps = {
+    front: [
+        // Head and Neck (0-15% height)
+        { name: "Head", xMin: 35, xMax: 65, yMin: 0, yMax: 10 },
+        { name: "Face", xMin: 35, xMax: 65, yMin: 10, yMax: 15 },
+        { name: "Neck", xMin: 40, xMax: 60, yMin: 15, yMax: 20 },
+
+        // Upper Torso (20-40% height)
+        { name: "Right Shoulder", xMin: 15, xMax: 35, yMin: 20, yMax: 28 },
+        { name: "Left Shoulder", xMin: 65, xMax: 85, yMin: 20, yMax: 28 },
+        { name: "Chest", xMin: 35, xMax: 65, yMin: 20, yMax: 35 },
+
+        // Arms
+        { name: "Right Upper Arm", xMin: 10, xMax: 25, yMin: 28, yMax: 42 },
+        { name: "Left Upper Arm", xMin: 75, xMax: 90, yMin: 28, yMax: 42 },
+        { name: "Right Elbow", xMin: 8, xMax: 22, yMin: 42, yMax: 48 },
+        { name: "Left Elbow", xMin: 78, xMax: 92, yMin: 42, yMax: 48 },
+        { name: "Right Forearm", xMin: 5, xMax: 20, yMin: 48, yMax: 62 },
+        { name: "Left Forearm", xMin: 80, xMax: 95, yMin: 48, yMax: 62 },
+        { name: "Right Wrist", xMin: 3, xMax: 18, yMin: 62, yMax: 66 },
+        { name: "Left Wrist", xMin: 82, xMax: 97, yMin: 62, yMax: 66 },
+        { name: "Right Hand", xMin: 0, xMax: 18, yMin: 66, yMax: 75 },
+        { name: "Left Hand", xMin: 82, xMax: 100, yMin: 66, yMax: 75 },
+
+        // Lower Torso (35-52% height)
+        { name: "Abdomen", xMin: 35, xMax: 65, yMin: 35, yMax: 45 },
+        { name: "Pelvis", xMin: 35, xMax: 65, yMin: 45, yMax: 52 },
+
+        // Legs
+        { name: "Right Groin", xMin: 40, xMax: 50, yMin: 52, yMax: 58 },
+        { name: "Left Groin", xMin: 50, xMax: 60, yMin: 52, yMax: 58 },
+        { name: "Right Thigh", xMin: 35, xMax: 50, yMin: 58, yMax: 72 },
+        { name: "Left Thigh", xMin: 50, xMax: 65, yMin: 58, yMax: 72 },
+        { name: "Right Knee", xMin: 35, xMax: 50, yMin: 72, yMax: 78 },
+        { name: "Left Knee", xMin: 50, xMax: 65, yMin: 72, yMax: 78 },
+        { name: "Right Lower Leg", xMin: 35, xMax: 50, yMin: 78, yMax: 92 },
+        { name: "Left Lower Leg", xMin: 50, xMax: 65, yMin: 78, yMax: 92 },
+        { name: "Right Ankle", xMin: 35, xMax: 50, yMin: 92, yMax: 95 },
+        { name: "Left Ankle", xMin: 50, xMax: 65, yMin: 92, yMax: 95 },
+        { name: "Right Foot", xMin: 32, xMax: 50, yMin: 95, yMax: 100 },
+        { name: "Left Foot", xMin: 50, xMax: 68, yMin: 95, yMax: 100 }
+    ],
+    back: [
+        // Head and Neck (0-15% height)
+        { name: "Back of Head", xMin: 35, xMax: 65, yMin: 0, yMax: 12 },
+        { name: "Back of Neck", xMin: 40, xMax: 60, yMin: 12, yMax: 20 },
+
+        // Upper Back (20-40% height)
+        { name: "Right Shoulder Blade", xMin: 20, xMax: 40, yMin: 20, yMax: 32 },
+        { name: "Left Shoulder Blade", xMin: 60, xMax: 80, yMin: 20, yMax: 32 },
+        { name: "Upper Back", xMin: 35, xMax: 65, yMin: 20, yMax: 32 },
+
+        // Arms (back view)
+        { name: "Right Upper Arm (Back)", xMin: 10, xMax: 25, yMin: 28, yMax: 42 },
+        { name: "Left Upper Arm (Back)", xMin: 75, xMax: 90, yMin: 28, yMax: 42 },
+        { name: "Right Elbow (Back)", xMin: 8, xMax: 22, yMin: 42, yMax: 48 },
+        { name: "Left Elbow (Back)", xMin: 78, xMax: 92, yMin: 42, yMax: 48 },
+        { name: "Right Forearm (Back)", xMin: 5, xMax: 20, yMin: 48, yMax: 62 },
+        { name: "Left Forearm (Back)", xMin: 80, xMax: 95, yMin: 48, yMax: 62 },
+        { name: "Right Wrist (Back)", xMin: 3, xMax: 18, yMin: 62, yMax: 66 },
+        { name: "Left Wrist (Back)", xMin: 82, xMax: 97, yMin: 62, yMax: 66 },
+        { name: "Right Hand (Back)", xMin: 0, xMax: 18, yMin: 66, yMax: 75 },
+        { name: "Left Hand (Back)", xMin: 82, xMax: 100, yMin: 66, yMax: 75 },
+
+        // Lower Back (32-52% height)
+        { name: "Middle Back", xMin: 35, xMax: 65, yMin: 32, yMax: 42 },
+        { name: "Lower Back", xMin: 35, xMax: 65, yMin: 42, yMax: 52 },
+
+        // Buttocks and Legs
+        { name: "Right Buttock", xMin: 40, xMax: 50, yMin: 52, yMax: 60 },
+        { name: "Left Buttock", xMin: 50, xMax: 60, yMin: 52, yMax: 60 },
+        { name: "Right Thigh (Back)", xMin: 35, xMax: 50, yMin: 60, yMax: 72 },
+        { name: "Left Thigh (Back)", xMin: 50, xMax: 65, yMin: 60, yMax: 72 },
+        { name: "Right Knee (Back)", xMin: 35, xMax: 50, yMin: 72, yMax: 78 },
+        { name: "Left Knee (Back)", xMin: 50, xMax: 65, yMin: 72, yMax: 78 },
+        { name: "Right Calf", xMin: 35, xMax: 50, yMin: 78, yMax: 92 },
+        { name: "Left Calf", xMin: 50, xMax: 65, yMin: 78, yMax: 92 },
+        { name: "Right Ankle (Back)", xMin: 35, xMax: 50, yMin: 92, yMax: 95 },
+        { name: "Left Ankle (Back)", xMin: 50, xMax: 65, yMin: 92, yMax: 95 },
+        { name: "Right Heel", xMin: 35, xMax: 50, yMin: 95, yMax: 100 },
+        { name: "Left Heel", xMin: 50, xMax: 65, yMin: 95, yMax: 100 }
+    ]
+};
+
+// Function to detect body part from coordinates
+function detectBodyPart(xPercent, yPercent, view) {
+    const regions = bodyPartMaps[view];
+
+    // Find the first matching region
+    for (let region of regions) {
+        if (xPercent >= region.xMin && xPercent <= region.xMax &&
+            yPercent >= region.yMin && yPercent <= region.yMax) {
+            return region.name;
+        }
+    }
+
+    // Default fallback if no specific region matched
+    return view === 'front' ? 'Front (Unspecified)' : 'Back (Unspecified)';
+}
+
 function setupInjuryTypeButtons() {
     const buttons = document.querySelectorAll('.injury-type-btn');
     buttons.forEach(btn => {
@@ -556,28 +665,46 @@ function handleBodyClick(e, view, container) {
 
 function addInjury(x, y, view, container, image_rect, container_rect) {
     injuryCounter++;
+
+    // Detect specific body part from coordinates
+    const bodyPart = detectBodyPart(x, y, view);
+    console.log('Detected body part:', bodyPart, 'at coordinates:', x, y, 'view:', view);
+
     const injury = {
         id: injuryCounter,
         type: selectedInjuryType,
         x: x,
         y: y,
         view: view,
+        bodyPart: bodyPart,
         notes: ''
     };
 
+    console.log('Created injury:', injury);
     injuries.push(injury);
 
     // Calculate marker position relative to container
     const containerX = image_rect.left - container_rect.left + (x / 100) * image_rect.width;
     const containerY = image_rect.top - container_rect.top + (y / 100) * image_rect.height;
 
+    // Get injury type abbreviation
+    const abbreviations = {
+        'laceration': 'LC',
+        'fracture': 'FX',
+        'burn': 'BN',
+        'contusion': 'CT',
+        'abrasion': 'AB',
+        'other': 'OT'
+    };
+    const abbreviation = abbreviations[selectedInjuryType] || 'OT';
+
     const marker = document.createElement('div');
     marker.className = `injury-marker ${selectedInjuryType}`;
     marker.style.left = containerX + 'px';
     marker.style.top = containerY + 'px';
-    marker.textContent = injuryCounter;
+    marker.textContent = abbreviation;
     marker.dataset.id = injuryCounter;
-    marker.title = `Injury #${injuryCounter} - ${selectedInjuryType}`;
+    marker.title = `Injury #${injuryCounter} - ${selectedInjuryType} - ${bodyPart}`;
 
     container.appendChild(marker);
     updateInjuryList();
@@ -594,8 +721,11 @@ function updateInjuryList() {
     if (injuries.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-state-icon">📍</div>
-                <p>No injuries marked yet.<br>Click on body to add.</p>
+                <div class="empty-state-icon">
+                    <i class="bi bi-pin-map"></i>
+                </div>
+                <p class="empty-state-title">No injuries marked</p>
+                <p class="empty-state-subtitle">Click on the body diagram to mark an injury location</p>
             </div>
         `;
         return;
@@ -608,10 +738,10 @@ function updateInjuryList() {
                 <span class="injury-number">Injury #${injury.id}</span>
                 <span class="injury-type-badge ${injury.type}">${injury.type.toUpperCase()}</span>
             </div>
-            <div style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem;">
-                <strong>Location:</strong> ${injury.view === 'front' ? 'Front' : 'Back'}
+            <div style="font-size: 0.85rem; color: #0066cc; margin-bottom: 0.5rem; font-weight: 600;">
+                <strong style="color: #666;">Location:</strong> ${injury.bodyPart ? injury.bodyPart : (injury.view === 'front' ? 'Front (Unspecified)' : 'Back (Unspecified)')}
             </div>
-            <textarea class="injury-notes" placeholder="Notes about this injury..." 
+            <textarea class="injury-notes" placeholder="Notes about this injury..."
                       onchange="updateInjuryNotes(${injury.id}, this.value)">${injury.notes}</textarea>
         </div>
     `).join('');
@@ -703,6 +833,7 @@ function exportInjuryData() {
         injuries: injuries.map(i => ({
             injuryNumber: i.id,
             type: i.type,
+            bodyPart: i.bodyPart || (i.view === 'front' ? 'Front (Unspecified)' : 'Back (Unspecified)'),
             view: i.view,
             coordinates: { x: Math.round(i.x), y: Math.round(i.y) },
             notes: i.notes || 'No notes provided'

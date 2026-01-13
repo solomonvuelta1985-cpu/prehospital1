@@ -363,9 +363,9 @@ try {
                         </div>
                     </div>
                     <div class="data-item">
-                        <label>Body View</label>
+                        <label>Body Location</label>
                         <div class="value">
-                            <span class="badge-status badge-info"><?php echo ucfirst($injury['body_view']); ?> View</span>
+                            <span class="badge-status badge-info"><?php echo e($injury['body_part'] ?? (ucfirst($injury['body_view']) . ' View')); ?></span>
                         </div>
                     </div>
                     <div class="data-item" style="grid-column: 1 / -1;">

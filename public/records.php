@@ -244,20 +244,32 @@ $records = $stmt->fetchAll();
             </form>
         </div>
 
+        <!-- Record Count Display -->
+        <div style="margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 6px; border: 1px solid #dee2e6;">
+            <strong style="color: #212529;">
+                <i class="fas fa-list"></i>
+                Showing <?php echo number_format($total_records); ?> record<?php echo $total_records != 1 ? 's' : ''; ?>
+                <?php if (!empty($search) || !empty($status_filter) || !empty($date_from) || !empty($date_to)): ?>
+                    (filtered)
+                <?php endif; ?>
+            </strong>
+        </div>
+
         <!-- Records Table -->
         <div class="table-container" id="tableContainer">
             <table class="custom-table" id="recordsTable">
                 <thead>
                     <tr>
-                        <th>Form #</th>
-                        <th>Date</th>
-                        <th>Patient Name</th>
-                        <th>Age/Gender</th>
-                        <th>Incident Location</th>
-                        <th>Hospital</th>
-                        <th>Vehicle</th>
-                        <th>Created By</th>
-                        <th>Status</th>
+                        <th style="border-right: 1px solid #dee2e6;">#</th>
+                        <th style="border-right: 1px solid #dee2e6;">Form #</th>
+                        <th style="border-right: 1px solid #dee2e6;">Date</th>
+                        <th style="border-right: 1px solid #dee2e6;">Patient Name</th>
+                        <th style="border-right: 1px solid #dee2e6;">Age/Gender</th>
+                        <th style="border-right: 1px solid #dee2e6;">Incident Location</th>
+                        <th style="border-right: 1px solid #dee2e6;">Hospital</th>
+                        <th style="border-right: 1px solid #dee2e6;">Vehicle</th>
+                        <th style="border-right: 1px solid #dee2e6;">Created By</th>
+                        <th style="border-right: 1px solid #dee2e6;">Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -266,6 +278,9 @@ $records = $stmt->fetchAll();
                 <tbody class="skeleton-loader" id="skeletonLoader">
                     <?php for ($i = 0; $i < 5; $i++): ?>
                     <tr class="skeleton-row">
+                        <td class="skeleton-cell">
+                            <div class="skeleton-bar short skeleton" style="width: 30px;"></div>
+                        </td>
                         <td class="skeleton-cell">
                             <div class="skeleton-bar short skeleton"></div>
                         </td>
@@ -306,7 +321,7 @@ $records = $stmt->fetchAll();
                 <tbody class="table-content" id="tableContent">
                     <?php if (empty($records)): ?>
                         <tr>
-                            <td colspan="10" style="text-align: center; padding: 30px;">
+                            <td colspan="11" style="text-align: center; padding: 30px;">
                                 <div class="empty-state">
                                     <i class="fas fa-inbox"></i>
                                     <p style="color: #6c757d; margin-top: 15px;">No records found.</p>
@@ -317,8 +332,10 @@ $records = $stmt->fetchAll();
                             </td>
                         </tr>
                     <?php else: ?>
-                        <?php foreach ($records as $record): ?>
+                        <?php foreach ($records as $index => $record): ?>
+                            <?php $row_number = $offset + $index + 1; ?>
                             <tr>
+                                <td style="font-weight: 600; color: #6c757d;"><?php echo $row_number; ?></td>
                                 <td><strong><?php echo e($record['form_number']); ?></strong></td>
                                 <td><?php echo ($record['form_date'] && $record['form_date'] !== '0000-00-00') ? date('M d, Y', strtotime($record['form_date'])) : 'N/A'; ?></td>
                                 <td><?php echo e($record['patient_name']); ?></td>
@@ -436,14 +453,14 @@ $records = $stmt->fetchAll();
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal" style="font-size: 0.875rem;">
                         <i class="fas fa-times"></i> Close
                     </button>
-                    <button type="button" class="btn btn-primary" onclick="printModalContent()">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="printModalContent()" style="font-size: 0.875rem;">
                         <i class="fas fa-print"></i> Print
                     </button>
-                    <button type="button" class="btn btn-warning" id="editRecordBtn">
-                        <i class="fas fa-edit"></i> Edit Record
+                    <button type="button" class="btn btn-sm btn-primary" id="editRecordBtn" style="font-size: 0.875rem;">
+                        <i class="fas fa-edit"></i> Edit
                     </button>
                 </div>
             </div>
