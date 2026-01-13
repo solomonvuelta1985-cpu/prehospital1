@@ -15,12 +15,18 @@ let injuryCounter = 0;
 let selectedInjuryType = 'laceration';
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Restore saved tab state from localStorage
+    restoreSavedTab();
+
     updateNavigation();
     updateProgress();
     setupInjuryTypeButtons();
     setupBodyDiagrams();
     initializeAmbulanceList();
     setupVehicleModals();
+
+    // Load existing injuries for edit form
+    loadExistingInjuries();
 
     // Initialize progress bar for edit form
     if (document.getElementById('editForm')) {
@@ -37,6 +43,45 @@ window.addEventListener('resize', repositionMarkers);
 // ============================================
 // TAB NAVIGATION FUNCTIONS
 // ============================================
+
+// Save current tab to localStorage
+function saveCurrentTab() {
+    localStorage.setItem('prehospitalFormCurrentTab', currentTab);
+}
+
+// Restore saved tab from localStorage
+function restoreSavedTab() {
+    const savedTab = localStorage.getItem('prehospitalFormCurrentTab');
+
+    if (savedTab !== null) {
+        const tabIndex = parseInt(savedTab, 10);
+
+        // Validate the saved tab index
+        if (tabIndex >= 0 && tabIndex < totalTabs) {
+            currentTab = tabIndex;
+
+            // Hide all tab-panes
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('show', 'active');
+            });
+
+            // Show the saved pane
+            const targetPane = document.querySelector(`#section${currentTab + 1}`);
+            if (targetPane) {
+                targetPane.classList.add('show', 'active');
+            }
+
+            // Update tab buttons
+            document.querySelectorAll('.nav-tabs .nav-link').forEach((tab, index) => {
+                if (index === currentTab) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+        }
+    }
+}
 
 function navigateTab(direction) {
     const tabs = document.querySelectorAll('.nav-tabs .nav-link');
@@ -69,6 +114,9 @@ function navigateTab(direction) {
             tab.classList.remove('active');
         }
     });
+
+    // Save the current tab to localStorage
+    saveCurrentTab();
 
     updateNavigation();
     updateProgress();
@@ -149,6 +197,9 @@ document.querySelectorAll('.nav-tabs .nav-link').forEach((tab, index) => {
                 t.classList.remove('active');
             }
         });
+
+        // Save the current tab to localStorage
+        saveCurrentTab();
 
         updateNavigation();
         updateProgress();
@@ -459,6 +510,9 @@ function submitFormData() {
         clearSectionMemory();
     }
 
+    // Clear saved tab state from localStorage
+    localStorage.removeItem('prehospitalFormCurrentTab');
+
     // Submit the form
     document.getElementById('preHospitalForm').submit();
 }
@@ -486,6 +540,9 @@ function clearForm() {
             if (typeof clearSectionMemory === 'function') {
                 clearSectionMemory();
             }
+
+            // Clear saved tab state from localStorage
+            localStorage.removeItem('prehospitalFormCurrentTab');
 
             Notiflix.Notify.success('Form data cleared successfully');
         },
@@ -713,9 +770,9 @@ function addInjury(x, y, view, container, image_rect, container_rect) {
 function updateInjuryList() {
     const container = document.getElementById('injuryListContainer');
     const countElement = document.getElementById('injuryCount');
-    
+
     if (!container || !countElement) return;
-    
+
     countElement.textContent = injuries.length;
 
     if (injuries.length === 0) {
@@ -728,29 +785,32 @@ function updateInjuryList() {
                 <p class="empty-state-subtitle">Click on the body diagram to mark an injury location</p>
             </div>
         `;
-        return;
+    } else {
+        container.innerHTML = injuries.map(injury => `
+            <div class="injury-item" data-injury-id="${injury.id}">
+                <button class="delete-btn" onclick="deleteInjury(${injury.id})" title="Delete injury">×</button>
+                <div class="injury-item-header">
+                    <span class="injury-number">Injury #${injury.id}</span>
+                    <span class="injury-type-badge ${injury.type}">${injury.type.toUpperCase()}</span>
+                </div>
+                <div style="font-size: 0.85rem; color: #0066cc; margin-bottom: 0.5rem; font-weight: 600;">
+                    <strong style="color: #666;">Location:</strong> ${injury.bodyPart ? injury.bodyPart : (injury.view === 'front' ? 'Front (Unspecified)' : 'Back (Unspecified)')}
+                </div>
+                <textarea class="injury-notes" placeholder="Notes about this injury..."
+                          onchange="updateInjuryNotes(${injury.id}, this.value)">${injury.notes}</textarea>
+            </div>
+        `).join('');
     }
 
-    container.innerHTML = injuries.map(injury => `
-        <div class="injury-item" data-injury-id="${injury.id}">
-            <button class="delete-btn" onclick="deleteInjury(${injury.id})" title="Delete injury">×</button>
-            <div class="injury-item-header">
-                <span class="injury-number">Injury #${injury.id}</span>
-                <span class="injury-type-badge ${injury.type}">${injury.type.toUpperCase()}</span>
-            </div>
-            <div style="font-size: 0.85rem; color: #0066cc; margin-bottom: 0.5rem; font-weight: 600;">
-                <strong style="color: #666;">Location:</strong> ${injury.bodyPart ? injury.bodyPart : (injury.view === 'front' ? 'Front (Unspecified)' : 'Back (Unspecified)')}
-            </div>
-            <textarea class="injury-notes" placeholder="Notes about this injury..."
-                      onchange="updateInjuryNotes(${injury.id}, this.value)">${injury.notes}</textarea>
-        </div>
-    `).join('');
+    // CRITICAL: Always serialize injuries to hidden field after any change
+    serializeInjuriesToField();
 }
 
 function updateInjuryNotes(id, notes) {
     const injury = injuries.find(i => i.id === id);
     if (injury) {
         injury.notes = notes;
+        serializeInjuriesToField();
     }
 }
 
@@ -1370,5 +1430,138 @@ function setupVehicleModals() {
                 Notiflix.Notify.warning('Please select a fire truck type');
             }
         });
+    }
+}
+
+// ============================================
+// LOAD EXISTING INJURIES (FOR EDIT MODE)
+// ============================================
+function loadExistingInjuries() {
+    const injuriesDataField = document.getElementById('injuriesData');
+
+    if (!injuriesDataField || !injuriesDataField.value) {
+        return; // No existing injuries to load
+    }
+
+    try {
+        const existingInjuries = JSON.parse(injuriesDataField.value);
+
+        if (!Array.isArray(existingInjuries) || existingInjuries.length === 0) {
+            return; // No injuries to load
+        }
+
+        console.log('Loading existing injuries:', existingInjuries);
+
+        const renderInjuries = () => {
+            // Clear current injuries array
+            injuries = [];
+            injuryCounter = 0;
+
+            // Convert database format to JavaScript format and render markers
+            existingInjuries.forEach((dbInjury) => {
+                // Map database fields to JavaScript object format
+                const injury = {
+                    id: dbInjury.injury_number || dbInjury.id || ++injuryCounter,
+                    type: dbInjury.injury_type || dbInjury.type || 'other',
+                    x: parseFloat(dbInjury.coordinate_x || dbInjury.x || 0),
+                    y: parseFloat(dbInjury.coordinate_y || dbInjury.y || 0),
+                    view: dbInjury.body_view || dbInjury.view || 'front',
+                    bodyPart: dbInjury.body_part || dbInjury.bodyPart || '',
+                    notes: dbInjury.notes || ''
+                };
+
+                // Update counter to highest ID
+                if (injury.id >= injuryCounter) {
+                    injuryCounter = injury.id + 1;
+                }
+
+                // Add to injuries array
+                injuries.push(injury);
+
+                // Render marker on body diagram
+                renderExistingMarker(injury);
+            });
+
+            // Update the injury list display
+            updateInjuryList();
+
+            // Serialize to hidden field
+            if (injuriesDataField) {
+                injuriesDataField.value = JSON.stringify(injuries);
+            }
+
+            console.log('Loaded injuries:', injuries);
+        };
+
+        // Wait for window load to ensure all images and layout are ready
+        if (document.readyState === 'complete') {
+            // Page already loaded, render immediately
+            setTimeout(renderInjuries, 100); // Small delay to ensure layout is settled
+        } else {
+            // Wait for full page load including images
+            window.addEventListener('load', () => {
+                setTimeout(renderInjuries, 100); // Small delay to ensure layout is settled
+            });
+        }
+
+    } catch (error) {
+        console.error('Error loading existing injuries:', error);
+    }
+}
+
+// Render an existing injury marker on the body diagram
+function renderExistingMarker(injury) {
+    const containerId = injury.view === 'front' ? 'frontContainer' : 'backContainer';
+    const container = document.getElementById(containerId);
+
+    if (!container) {
+        console.error('Container not found:', containerId);
+        return;
+    }
+
+    const img = container.querySelector('.body-image');
+    if (!img) {
+        console.error('Body image not found in container:', containerId);
+        return;
+    }
+
+    // Get container and image dimensions
+    const container_rect = container.getBoundingClientRect();
+    const image_rect = img.getBoundingClientRect();
+
+    // Calculate marker position relative to container (same logic as addInjury)
+    const containerX = image_rect.left - container_rect.left + (injury.x / 100) * image_rect.width;
+    const containerY = image_rect.top - container_rect.top + (injury.y / 100) * image_rect.height;
+
+    // Get abbreviation for injury type
+    const abbreviations = {
+        'laceration': 'LC',
+        'fracture': 'FX',
+        'burn': 'BN',
+        'contusion': 'CT',
+        'abrasion': 'AB',
+        'other': 'OT'
+    };
+    const abbreviation = abbreviations[injury.type] || 'OT';
+
+    // Create marker element
+    const marker = document.createElement('div');
+    marker.className = `injury-marker ${injury.type}`;
+    marker.style.left = containerX + 'px';
+    marker.style.top = containerY + 'px';
+    marker.textContent = abbreviation;
+    marker.dataset.id = injury.id;
+    marker.title = `Injury #${injury.id} - ${injury.type} - ${injury.bodyPart || injury.view}`;
+
+    container.appendChild(marker);
+}
+
+// ============================================
+// SERIALIZE INJURIES TO HIDDEN FIELD
+// ============================================
+function serializeInjuriesToField() {
+    const injuriesDataField = document.getElementById('injuriesData');
+    if (injuriesDataField) {
+        injuriesDataField.value = JSON.stringify(injuries);
     }
 }

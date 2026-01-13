@@ -1498,21 +1498,48 @@ $current_user = get_auth_user();
         // Function to collect all form data
         function collectFormData() {
             const form = document.getElementById('preHospitalForm');
-            const formData = new FormData(form);
             const data = {};
 
-            // Convert FormData to plain object
-            for (let [key, value] of formData.entries()) {
-                if (key.endsWith('[]')) {
-                    const cleanKey = key.slice(0, -2);
-                    if (!data[cleanKey]) {
-                        data[cleanKey] = [];
+            // Collect ALL inputs regardless of visibility (including hidden tabs)
+            const inputs = form.querySelectorAll('input, select, textarea');
+
+            inputs.forEach(input => {
+                const name = input.name;
+                if (!name) return; // Skip inputs without names
+
+                // Handle checkboxes and radio buttons
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    if (input.checked) {
+                        if (name.endsWith('[]')) {
+                            const cleanKey = name.slice(0, -2);
+                            if (!data[cleanKey]) {
+                                data[cleanKey] = [];
+                            }
+                            data[cleanKey].push(input.value);
+                        } else {
+                            data[name] = input.value;
+                        }
                     }
-                    data[cleanKey].push(value);
-                } else {
-                    data[key] = value;
                 }
-            }
+                // Handle file inputs
+                else if (input.type === 'file') {
+                    if (input.files && input.files.length > 0) {
+                        data[name] = input.files[0].name;
+                    }
+                }
+                // Handle all other inputs
+                else {
+                    if (name.endsWith('[]')) {
+                        const cleanKey = name.slice(0, -2);
+                        if (!data[cleanKey]) {
+                            data[cleanKey] = [];
+                        }
+                        data[cleanKey].push(input.value);
+                    } else {
+                        data[name] = input.value;
+                    }
+                }
+            });
 
             // Add draft_id if exists
             if (currentDraftId) {
@@ -1568,6 +1595,21 @@ $current_user = get_auth_user();
             console.log('Performing autosave...');
             const data = collectFormData();
             console.log('Form data collected:', data);
+
+            // Log which sections have data
+            const sections = ['section1', 'section2', 'section3', 'section4', 'section5', 'section6', 'section7'];
+            sections.forEach(sectionId => {
+                const sectionInputs = document.querySelectorAll(`#${sectionId} input, #${sectionId} select, #${sectionId} textarea`);
+                let sectionHasData = false;
+                sectionInputs.forEach(input => {
+                    if (input.name && data[input.name] && data[input.name] !== '') {
+                        sectionHasData = true;
+                    }
+                });
+                if (sectionHasData) {
+                    console.log(`✓ ${sectionId} has data`);
+                }
+            });
 
             // Show saving indicator
             Notiflix.Loading.circle('Saving draft...', {
@@ -1704,6 +1746,30 @@ $current_user = get_auth_user();
                 });
         }
 
+        // Function to map database column names to form field names
+        function mapDatabaseToFormField(dbColumn) {
+            const fieldMap = {
+                'driver_name': 'driver',
+                'departure_hospital_location': 'depHospLocation',
+                'initial_resp_rate': 'initial_resp',
+                'followup_resp_rate': 'followup_resp',
+                'fast_face_drooping': 'face_drooping',
+                'fast_arm_weakness': 'arm_weakness',
+                'fast_speech_difficulty': 'speech_difficulty',
+                'fast_time_to_call': 'time_to_call',
+                'fast_sample_details': 'fastDetails',
+                'ob_baby_status': 'babyDelivery',
+                'ob_placenta': 'placenta',
+                'ob_lmp': 'lmp',
+                'ob_aog': 'aog',
+                'ob_edc': 'edc',
+                'first_aider': 'aider1',
+                'second_aider': 'aider2'
+            };
+
+            return fieldMap[dbColumn] || dbColumn;
+        }
+
         // Function to populate form with draft data
         function populateForm(data) {
             console.log('Populating form with data:', data);
@@ -1752,17 +1818,27 @@ $current_user = get_auth_user();
                      'endorsement_attachment', 'patient_documentation', 'waiver_patient_signature',
                      'waiver_witness_signature', 'emergency_medical', 'emergency_medical_details',
                      'emergency_trauma', 'emergency_trauma_details', 'emergency_ob', 'emergency_ob_details',
-                     'emergency_general', 'emergency_general_details', 'received_by'].includes(key)) {
+                     'emergency_general', 'emergency_general_details', 'received_by', 'endorsement'].includes(key)) {
                     continue;
                 }
 
-                let fieldName = key;
+                // Map database column name to form field name
+                let fieldName = mapDatabaseToFormField(key);
                 let input = document.querySelector(`[name="${fieldName}"]`);
 
                 // If not found, try without underscore conversions or special cases
                 if (!input) {
                     // Try array notation for multi-select fields
                     input = document.querySelector(`[name="${fieldName}[]"]`);
+                }
+
+                // If still not found with mapped name, try original database column name
+                if (!input) {
+                    fieldName = key;
+                    input = document.querySelector(`[name="${fieldName}"]`);
+                    if (!input) {
+                        input = document.querySelector(`[name="${fieldName}[]"]`);
+                    }
                 }
 
                 if (input) {
@@ -1927,6 +2003,20 @@ $current_user = get_auth_user();
             const formInputs = document.querySelectorAll('#preHospitalForm input, #preHospitalForm select, #preHospitalForm textarea');
             console.log('Initializing autosave for', formInputs.length, 'form fields');
 
+            // Group inputs by tab for debugging
+            const inputsByTab = {};
+            formInputs.forEach(input => {
+                const section = input.closest('.tab-pane');
+                if (section) {
+                    const sectionId = section.id;
+                    if (!inputsByTab[sectionId]) {
+                        inputsByTab[sectionId] = 0;
+                    }
+                    inputsByTab[sectionId]++;
+                }
+            });
+            console.log('Inputs per section:', inputsByTab);
+
             formInputs.forEach(input => {
                 // Skip CSRF token and draft_id fields
                 if (input.name === 'csrf_token' || input.name === 'draft_id') {
@@ -1934,7 +2024,9 @@ $current_user = get_auth_user();
                 }
 
                 input.addEventListener('change', () => {
-                    console.log('Field changed:', input.name);
+                    const section = input.closest('.tab-pane');
+                    const sectionName = section ? section.id : 'unknown';
+                    console.log('Field changed:', input.name, 'in section:', sectionName);
 
                     // Enable autosave after first user interaction
                     if (!autosaveEnabled) {
@@ -1958,7 +2050,9 @@ $current_user = get_auth_user();
                 // Also trigger on input for text fields (more responsive)
                 if (input.type === 'text' || input.type === 'textarea' || input.tagName === 'TEXTAREA') {
                     input.addEventListener('input', () => {
-                        console.log('Field input:', input.name);
+                        const section = input.closest('.tab-pane');
+                        const sectionName = section ? section.id : 'unknown';
+                        console.log('Field input:', input.name, 'in section:', sectionName);
 
                         // Enable autosave after first user interaction
                         if (!autosaveEnabled) {

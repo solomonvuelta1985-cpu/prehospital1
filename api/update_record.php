@@ -358,7 +358,20 @@ try {
     // Waiver
     $waiver_patient_signature = !empty($_POST['patient_signature']) ? sanitize($_POST['patient_signature']) : null;
     $waiver_witness_signature = !empty($_POST['witness_signature']) ? sanitize($_POST['witness_signature']) : null;
-    
+
+    // Process injuries data
+    $injuries_data = isset($_POST['injuries_data']) ? json_decode($_POST['injuries_data'], true) : [];
+    if (empty($injuries_data) && isset($_POST['injuries'])) {
+        // Fallback for old format
+        $injuries_data = json_decode($_POST['injuries'], true);
+    }
+    if (!is_array($injuries_data)) {
+        $injuries_data = [];
+    }
+    if (count($injuries_data) > 100) {
+        throw new Exception('Too many injuries marked (max 100)');
+    }
+
     // Update main form
     $sql = "UPDATE prehospital_forms SET
         form_date = ?,
@@ -547,11 +560,48 @@ try {
     ];
 
     $stmt = db_query($sql, $params);
-    
+
     if (!$stmt) {
         throw new Exception('Failed to update record');
     }
-    
+
+    // Update injuries - delete old ones and insert new ones
+    // First, delete all existing injuries for this form
+    $delete_injuries_sql = "DELETE FROM injuries WHERE form_id = ?";
+    $delete_stmt = db_query($delete_injuries_sql, [$record_id]);
+
+    if (!$delete_stmt) {
+        throw new Exception('Failed to delete old injury data');
+    }
+
+    // Insert new injuries if any
+    if (!empty($injuries_data) && is_array($injuries_data)) {
+        $injury_sql = "INSERT INTO injuries (form_id, injury_number, injury_type, body_view, body_part, coordinate_x, coordinate_y, notes)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        foreach ($injuries_data as $injury) {
+            // Get body part, fallback to view-based default if not provided
+            $body_part = !empty($injury['bodyPart']) ? sanitize($injury['bodyPart']) :
+                        (($injury['view'] ?? 'front') === 'front' ? 'Front (Unspecified)' : 'Back (Unspecified)');
+
+            $injury_params = [
+                $record_id,
+                (int)($injury['id'] ?? 0),
+                sanitize($injury['type'] ?? 'other'),
+                sanitize($injury['view'] ?? 'front'),
+                $body_part,
+                (int)($injury['x'] ?? 0),
+                (int)($injury['y'] ?? 0),
+                sanitize($injury['notes'] ?? '')
+            ];
+
+            $injury_stmt = db_query($injury_sql, $injury_params);
+            if (!$injury_stmt) {
+                throw new Exception('Failed to save injury data');
+            }
+        }
+    }
+
     // Commit transaction
     $pdo->commit();
     

@@ -1066,6 +1066,17 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                             <div class="body-diagram-header">
                                 <h6><i class="bi bi-person-bounding-box"></i> Interactive Injury Mapping</h6>
                                 <small class="text-muted">Click on body diagram to mark injuries</small>
+
+                                <!-- Marker Legend -->
+                                <div class="marker-legend">
+                                    <span class="legend-title">Marker Legend:</span>
+                                    <span class="legend-item"><span class="legend-marker" style="background: #dc3545;">LC</span> Laceration</span>
+                                    <span class="legend-item"><span class="legend-marker" style="background: #fd7e14;">FX</span> Fracture</span>
+                                    <span class="legend-item"><span class="legend-marker" style="background: #ffc107; color: #333;">BN</span> Burn</span>
+                                    <span class="legend-item"><span class="legend-marker" style="background: #6f42c1;">CT</span> Contusion</span>
+                                    <span class="legend-item"><span class="legend-marker" style="background: #20c997;">AB</span> Abrasion</span>
+                                    <span class="legend-item"><span class="legend-marker" style="background: #6c757d;">OT</span> Other</span>
+                                </div>
                             </div>
 
                             <div class="body-diagram-content">
@@ -1086,54 +1097,98 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                                 </div>
 
                                 <div class="injury-sidebar">
+                                    <!-- Injury Type Selector - Redesigned -->
                                     <div class="injury-type-selector">
-                                        <label>Select Injury Type:</label>
+                                        <div class="selector-header">
+                                            <i class="bi bi-palette-fill"></i>
+                                            <span>Injury Classification</span>
+                                        </div>
                                         <div class="injury-type-grid">
-                                            <button type="button" class="injury-type-btn active" data-type="laceration">
-                                                <span class="color-indicator" style="background: #dc3545;"></span>
-                                                Laceration
+                                            <button type="button" class="injury-type-btn active" data-type="laceration" title="Open wound with irregular edges">
+                                                <div class="btn-content">
+                                                    <span class="color-badge" style="background: #dc3545;">
+                                                        <i class="bi bi-bandaid-fill"></i>
+                                                    </span>
+                                                    <span class="btn-label">Laceration</span>
+                                                </div>
                                             </button>
-                                            <button type="button" class="injury-type-btn" data-type="fracture">
-                                                <span class="color-indicator" style="background: #fd7e14;"></span>
-                                                Fracture
+                                            <button type="button" class="injury-type-btn" data-type="fracture" title="Broken bone">
+                                                <div class="btn-content">
+                                                    <span class="color-badge" style="background: #fd7e14;">
+                                                        <i class="bi bi-activity"></i>
+                                                    </span>
+                                                    <span class="btn-label">Fracture</span>
+                                                </div>
                                             </button>
-                                            <button type="button" class="injury-type-btn" data-type="burn">
-                                                <span class="color-indicator" style="background: #ffc107;"></span>
-                                                Burn
+                                            <button type="button" class="injury-type-btn" data-type="burn" title="Thermal, chemical, or electrical burn">
+                                                <div class="btn-content">
+                                                    <span class="color-badge" style="background: #ffc107;">
+                                                        <i class="bi bi-fire"></i>
+                                                    </span>
+                                                    <span class="btn-label">Burn</span>
+                                                </div>
                                             </button>
-                                            <button type="button" class="injury-type-btn" data-type="contusion">
-                                                <span class="color-indicator" style="background: #6f42c1;"></span>
-                                                Contusion
+                                            <button type="button" class="injury-type-btn" data-type="contusion" title="Bruising from blunt trauma">
+                                                <div class="btn-content">
+                                                    <span class="color-badge" style="background: #6f42c1;">
+                                                        <i class="bi bi-circle-fill"></i>
+                                                    </span>
+                                                    <span class="btn-label">Contusion</span>
+                                                </div>
                                             </button>
-                                            <button type="button" class="injury-type-btn" data-type="abrasion">
-                                                <span class="color-indicator" style="background: #20c997;"></span>
-                                                Abrasion
+                                            <button type="button" class="injury-type-btn" data-type="abrasion" title="Scraped or worn away skin">
+                                                <div class="btn-content">
+                                                    <span class="color-badge" style="background: #20c997;">
+                                                        <i class="bi bi-slash-circle"></i>
+                                                    </span>
+                                                    <span class="btn-label">Abrasion</span>
+                                                </div>
                                             </button>
-                                            <button type="button" class="injury-type-btn" data-type="other">
-                                                <span class="color-indicator" style="background: #6c757d;"></span>
-                                                Other
+                                            <button type="button" class="injury-type-btn" data-type="other" title="Other type of injury">
+                                                <div class="btn-content">
+                                                    <span class="color-badge" style="background: #6c757d;">
+                                                        <i class="bi bi-three-dots"></i>
+                                                    </span>
+                                                    <span class="btn-label">Other</span>
+                                                </div>
                                             </button>
                                         </div>
                                     </div>
 
+                                    <!-- Injury List Header - Redesigned -->
                                     <div class="injury-list-header">
-                                        Injuries Marked (<span id="injuryCount">0</span>)
+                                        <div class="header-content">
+                                            <i class="bi bi-list-check"></i>
+                                            <span>Marked Injuries</span>
+                                        </div>
+                                        <span class="injury-badge" id="injuryCount">0</span>
                                     </div>
+
+                                    <!-- Injury List Container -->
                                     <div id="injuryListContainer">
                                         <div class="empty-state">
-                                            <div class="empty-state-icon">📍</div>
-                                            <p>No injuries marked yet.<br>Click on body to add.</p>
+                                            <div class="empty-state-icon">
+                                                <i class="bi bi-pin-map"></i>
+                                            </div>
+                                            <p class="empty-state-title">No injuries marked</p>
+                                            <p class="empty-state-subtitle">Click on the body diagram to mark an injury location</p>
                                         </div>
                                     </div>
 
+                                    <!-- Action Buttons - Redesigned -->
                                     <div class="diagram-actions">
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearAllInjuries()">Clear All</button>
-                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="exportInjuryData()">Export</button>
+                                        <button type="button" class="action-btn btn-clear" onclick="clearAllInjuries()" title="Remove all marked injuries">
+                                            <i class="bi bi-trash3"></i>
+                                            <span>Clear All</span>
+                                        </button>
+                                        <button type="button" class="action-btn btn-export" onclick="exportInjuryData()" title="Export injury data as JSON">
+                                            <i class="bi bi-download"></i>
+                                            <span>Export</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <input type="hidden" name="injuries_data" id="injuriesData" value='<?php echo json_encode($injuries); ?>'>
 
                         <div class="fast-assessment">
                             <h6><i class="bi bi-exclamation-triangle-fill"></i> FOR Stroke Victim - F.A.S.T. Assessment</h6>
