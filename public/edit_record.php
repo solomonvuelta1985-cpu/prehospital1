@@ -488,6 +488,22 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                 font-size: 14px !important;
             }
         }
+
+        /* UPPERCASE ALL TEXT INPUTS */
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="url"],
+        textarea,
+        select {
+            text-transform: uppercase !important;
+        }
+
+        /* Keep placeholders in normal case for readability */
+        input::placeholder,
+        textarea::placeholder {
+            text-transform: none !important;
+        }
     </style>
 </head>
 <body class="loading">
@@ -1713,6 +1729,31 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                 <?php endif; ?>
             <?php endif; ?>
 
+            // ============================================
+            // UPPERCASE ALL TEXT INPUTS
+            // ============================================
+            const textInputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="url"], textarea');
+
+            textInputs.forEach(function(input) {
+                // Convert to uppercase on input
+                input.addEventListener('input', function(e) {
+                    const start = this.selectionStart;
+                    const end = this.selectionEnd;
+                    this.value = this.value.toUpperCase();
+                    this.setSelectionRange(start, end);
+                });
+
+                // Also convert existing values to uppercase on page load
+                if (input.value) {
+                    input.value = input.value.toUpperCase();
+                }
+            });
+
+            console.log('Uppercase conversion initialized on ' + textInputs.length + ' text inputs');
+
+            // ============================================
+            // FLATPICKR TIME PICKER INITIALIZATION
+            // ============================================
             // Initialize Flatpickr for time inputs
             const timeInputs = document.querySelectorAll('input[type="time"]');
 

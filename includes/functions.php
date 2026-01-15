@@ -9,7 +9,7 @@ if (!defined('APP_ACCESS')) {
 }
 
 /**
- * Sanitize input data
+ * Sanitize input data and convert to uppercase
  */
 function sanitize($data) {
     if (is_array($data)) {
@@ -18,7 +18,9 @@ function sanitize($data) {
     if ($data === null || $data === '') {
         return null;
     }
-    return htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
+    $sanitized = htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
+    // Convert to uppercase for consistent data storage
+    return mb_strtoupper($sanitized, 'UTF-8');
 }
 
 /**
