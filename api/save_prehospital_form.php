@@ -113,7 +113,7 @@ try {
     $pdo->beginTransaction();
     
     // Sanitize and validate inputs
-    $form_date = sanitize($_POST['form_date'] ?? '');
+    $form_date = sanitize($_POST['form_date'] ?? '', false); // Don't uppercase date
     if (!validate_date($form_date)) {
         throw new Exception('Invalid form date');
     }
@@ -134,9 +134,9 @@ try {
         $arrival_time = substr(trim($arrival_time), 0, 5); // Convert HH:MM:SS to HH:MM
     }
 
-    // Now sanitize after format conversion
-    $departure_time = $departure_time ? sanitize($departure_time) : null;
-    $arrival_time = $arrival_time ? sanitize($arrival_time) : null;
+    // Now sanitize after format conversion (don't uppercase time values)
+    $departure_time = $departure_time ? sanitize($departure_time, false) : null;
+    $arrival_time = $arrival_time ? sanitize($arrival_time, false) : null;
 
     $vehicle_used = sanitize($_POST['vehicle_used'] ?? null);
     // Don't sanitize vehicle_details as it contains JSON - validate and trim only
@@ -160,15 +160,15 @@ try {
     
     // Scene Information
     $arrival_scene_location = sanitize($_POST['arrival_scene_location'] ?? null);
-    $arrival_scene_time = sanitize($_POST['arrival_scene_time'] ?? null);
+    $arrival_scene_time = sanitize($_POST['arrival_scene_time'] ?? null, false); // Don't uppercase time
     $departure_scene_location = sanitize($_POST['departure_scene_location'] ?? null);
-    $departure_scene_time = sanitize($_POST['departure_scene_time'] ?? null);
-    
+    $departure_scene_time = sanitize($_POST['departure_scene_time'] ?? null, false); // Don't uppercase time
+
     // Hospital Information
     $arrival_hospital_name = sanitize($_POST['arrival_hospital_name'] ?? null);
-    $arrival_hospital_time = sanitize($_POST['arrival_hospital_time'] ?? null);
-    $departure_hospital_time = sanitize($_POST['departure_hospital_time'] ?? null);
-    $arrival_station_time = sanitize($_POST['arrival_station_time'] ?? null);
+    $arrival_hospital_time = sanitize($_POST['arrival_hospital_time'] ?? null, false); // Don't uppercase time
+    $departure_hospital_time = sanitize($_POST['departure_hospital_time'] ?? null, false); // Don't uppercase time
+    $arrival_station_time = sanitize($_POST['arrival_station_time'] ?? null, false); // Don't uppercase time
     
     // Persons Present (collect checkboxes)
     $persons_present = [];
@@ -182,9 +182,9 @@ try {
     
     // Patient Information (REQUIRED)
     $patient_name = sanitize($_POST['patient_name'] ?? '');
-    $date_of_birth = sanitize($_POST['date_of_birth'] ?? '');
+    $date_of_birth = sanitize($_POST['date_of_birth'] ?? '', false); // Don't uppercase date
     $age = (int)($_POST['age'] ?? 0);
-    $gender = sanitize($_POST['gender'] ?? '');
+    $gender = sanitize($_POST['gender'] ?? '', false); // Don't uppercase gender
 
     // Debug logging
     error_log("Patient validation - Name: '$patient_name', DOB: '$date_of_birth', Age: $age, Gender: '$gender'");
@@ -221,19 +221,19 @@ try {
         throw new Exception('Invalid gender value');
     }
     
-    $civil_status = sanitize($_POST['civil_status'] ?? null);
+    $civil_status = sanitize($_POST['civil_status'] ?? null, false); // Don't uppercase civil status
     $address = sanitize($_POST['address'] ?? null);
     $zone = sanitize($_POST['zone'] ?? null);
     $occupation = sanitize($_POST['occupation'] ?? null);
     $place_of_incident = sanitize($_POST['place_of_incident'] ?? null);
     $zone_landmark = sanitize($_POST['zone_landmark'] ?? null);
-    $incident_time = sanitize($_POST['incident_time'] ?? null);
-    
+    $incident_time = sanitize($_POST['incident_time'] ?? null, false); // Don't uppercase time
+
     // Informant Details
     $informant_name = sanitize($_POST['informant_name'] ?? null);
     $informant_address = sanitize($_POST['informant_address'] ?? null);
-    $arrival_type = sanitize($_POST['arrival_type'] ?? null);
-    $call_arrival_time = sanitize($_POST['call_arrival_time'] ?? null);
+    $arrival_type = sanitize($_POST['arrival_type'] ?? null, false); // Don't uppercase arrival type (enum value)
+    $call_arrival_time = sanitize($_POST['call_arrival_time'] ?? null, false); // Don't uppercase time
     $contact_number = sanitize($_POST['contact_number'] ?? null);
     $relationship_victim = sanitize($_POST['relationship_victim'] ?? null);
     
@@ -270,28 +270,28 @@ try {
     $other_care = sanitize($_POST['other_care'] ?? null);
     
     // Initial Vitals - Handle empty values properly
-    $initial_time = !empty($_POST['initial_time']) ? sanitize($_POST['initial_time']) : null;
+    $initial_time = !empty($_POST['initial_time']) ? sanitize($_POST['initial_time'], false) : null; // Don't uppercase time
     $initial_bp = !empty($_POST['initial_bp']) ? sanitize($_POST['initial_bp']) : null;
     $initial_temp = (!empty($_POST['initial_temp']) && $_POST['initial_temp'] !== '') ? (float)$_POST['initial_temp'] : null;
     $initial_pulse = (!empty($_POST['initial_pulse']) && $_POST['initial_pulse'] !== '') ? (int)$_POST['initial_pulse'] : null;
     $initial_resp_rate = (!empty($_POST['initial_resp_rate']) && $_POST['initial_resp_rate'] !== '') ? (int)$_POST['initial_resp_rate'] : null;
     $initial_pain_score = (isset($_POST['initial_pain_score']) && $_POST['initial_pain_score'] !== '') ? (int)$_POST['initial_pain_score'] : null;
     $initial_spo2 = (!empty($_POST['initial_spo2']) && $_POST['initial_spo2'] !== '') ? (int)$_POST['initial_spo2'] : null;
-    $initial_spinal_injury = !empty($_POST['initial_spinal_injury']) ? sanitize($_POST['initial_spinal_injury']) : null;
-    $initial_consciousness = !empty($_POST['initial_consciousness']) ? sanitize($_POST['initial_consciousness']) : null;
-    $initial_helmet = !empty($_POST['initial_helmet']) ? sanitize($_POST['initial_helmet']) : null;
-    
+    $initial_spinal_injury = !empty($_POST['initial_spinal_injury']) ? sanitize($_POST['initial_spinal_injury'], false) : null; // Don't uppercase enum
+    $initial_consciousness = !empty($_POST['initial_consciousness']) ? sanitize($_POST['initial_consciousness'], false) : null; // Don't uppercase enum
+    $initial_helmet = !empty($_POST['initial_helmet']) ? sanitize($_POST['initial_helmet'], false) : null; // Don't uppercase enum
+
     // Follow-up Vitals - Handle empty values properly
-    $followup_time = !empty($_POST['followup_time']) ? sanitize($_POST['followup_time']) : null;
+    $followup_time = !empty($_POST['followup_time']) ? sanitize($_POST['followup_time'], false) : null; // Don't uppercase time
     $followup_bp = !empty($_POST['followup_bp']) ? sanitize($_POST['followup_bp']) : null;
     $followup_temp = (!empty($_POST['followup_temp']) && $_POST['followup_temp'] !== '') ? (float)$_POST['followup_temp'] : null;
     $followup_pulse = (!empty($_POST['followup_pulse']) && $_POST['followup_pulse'] !== '') ? (int)$_POST['followup_pulse'] : null;
     $followup_resp_rate = (!empty($_POST['followup_resp_rate']) && $_POST['followup_resp_rate'] !== '') ? (int)$_POST['followup_resp_rate'] : null;
     $followup_pain_score = (isset($_POST['followup_pain_score']) && $_POST['followup_pain_score'] !== '') ? (int)$_POST['followup_pain_score'] : null;
     $followup_spo2 = (!empty($_POST['followup_spo2']) && $_POST['followup_spo2'] !== '') ? (int)$_POST['followup_spo2'] : null;
-    $followup_spinal_injury = !empty($_POST['followup_spinal_injury']) ? sanitize($_POST['followup_spinal_injury']) : null;
-    $followup_consciousness = !empty($_POST['followup_consciousness']) ? sanitize($_POST['followup_consciousness']) : null;
-    
+    $followup_spinal_injury = !empty($_POST['followup_spinal_injury']) ? sanitize($_POST['followup_spinal_injury'], false) : null; // Don't uppercase enum
+    $followup_consciousness = !empty($_POST['followup_consciousness']) ? sanitize($_POST['followup_consciousness'], false) : null; // Don't uppercase enum
+
     // Chief Complaints
     $chief_complaints = [];
     $complaint_fields = ['chestPain', 'headache', 'blurredVision', 'difficultyBreathing', 'dizziness', 'bodyMalaise'];
@@ -302,21 +302,21 @@ try {
     }
     $chief_complaints_json = json_encode($chief_complaints);
     $other_complaints = sanitize($_POST['other_complaints'] ?? null);
-    
+
     // FAST Assessment
-    $fast_face_drooping = sanitize($_POST['fast_face_drooping'] ?? null);
-    $fast_arm_weakness = sanitize($_POST['fast_arm_weakness'] ?? null);
-    $fast_speech_difficulty = sanitize($_POST['fast_speech_difficulty'] ?? null);
-    $fast_time_to_call = sanitize($_POST['fast_time_to_call'] ?? null);
+    $fast_face_drooping = sanitize($_POST['fast_face_drooping'] ?? null, false); // Don't uppercase enum
+    $fast_arm_weakness = sanitize($_POST['fast_arm_weakness'] ?? null, false); // Don't uppercase enum
+    $fast_speech_difficulty = sanitize($_POST['fast_speech_difficulty'] ?? null, false); // Don't uppercase enum
+    $fast_time_to_call = sanitize($_POST['fast_time_to_call'] ?? null, false); // Don't uppercase time
     $fast_sample_details = sanitize($_POST['fast_sample_details'] ?? null);
-    
+
     // OB Information
-    $ob_baby_status = sanitize($_POST['ob_baby_status'] ?? null);
-    $ob_delivery_time = sanitize($_POST['ob_delivery_time'] ?? null);
-    $ob_placenta = sanitize($_POST['ob_placenta'] ?? null);
-    $ob_lmp = sanitize($_POST['ob_lmp'] ?? null);
+    $ob_baby_status = sanitize($_POST['ob_baby_status'] ?? null, false); // Don't uppercase enum
+    $ob_delivery_time = sanitize($_POST['ob_delivery_time'] ?? null, false); // Don't uppercase time
+    $ob_placenta = sanitize($_POST['ob_placenta'] ?? null, false); // Don't uppercase enum
+    $ob_lmp = sanitize($_POST['ob_lmp'] ?? null, false); // Don't uppercase date
     $ob_aog = sanitize($_POST['ob_aog'] ?? null);
-    $ob_edc = sanitize($_POST['ob_edc'] ?? null);
+    $ob_edc = sanitize($_POST['ob_edc'] ?? null, false); // Don't uppercase date
     
     // Team Information
     $team_leader_notes = sanitize($_POST['team_leader_notes'] ?? null);
@@ -339,7 +339,7 @@ try {
         }
     }
 
-    $endorsement_datetime = $endorsement_datetime_raw ? sanitize($endorsement_datetime_raw) : null;
+    $endorsement_datetime = $endorsement_datetime_raw ? sanitize($endorsement_datetime_raw, false) : null; // Don't uppercase datetime
 
     // Handle file upload security - Endorsement Attachment
     $endorsement_attachment_path = null;

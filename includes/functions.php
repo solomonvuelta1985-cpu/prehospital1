@@ -10,17 +10,26 @@ if (!defined('APP_ACCESS')) {
 
 /**
  * Sanitize input data and convert to uppercase
+ * @param mixed $data - Data to sanitize
+ * @param bool $uppercase - Whether to convert to uppercase (default: true)
  */
-function sanitize($data) {
+function sanitize($data, $uppercase = true) {
     if (is_array($data)) {
-        return array_map('sanitize', $data);
+        return array_map(function($item) use ($uppercase) {
+            return sanitize($item, $uppercase);
+        }, $data);
     }
     if ($data === null || $data === '') {
         return null;
     }
     $sanitized = htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
-    // Convert to uppercase for consistent data storage
-    return mb_strtoupper($sanitized, 'UTF-8');
+
+    // Convert to uppercase for consistent data storage (unless disabled)
+    if ($uppercase) {
+        return mb_strtoupper($sanitized, 'UTF-8');
+    }
+
+    return $sanitized;
 }
 
 /**

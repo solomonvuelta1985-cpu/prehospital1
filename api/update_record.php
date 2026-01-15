@@ -47,7 +47,7 @@ try {
     $pdo->beginTransaction();
     
     // Sanitize and validate inputs
-    $form_date = sanitize($_POST['form_date'] ?? '');
+    $form_date = sanitize($_POST['form_date'] ?? '', false); // Don't uppercase date
     if (!validate_date($form_date)) {
         throw new Exception('Invalid form date');
     }
@@ -65,9 +65,9 @@ try {
         $arrival_time = substr(trim($arrival_time), 0, 5); // Convert HH:MM:SS to HH:MM
     }
 
-    // Now sanitize after format conversion
-    $departure_time = $departure_time ? sanitize($departure_time) : null;
-    $arrival_time = $arrival_time ? sanitize($arrival_time) : null;
+    // Now sanitize after format conversion (don't uppercase time values)
+    $departure_time = $departure_time ? sanitize($departure_time, false) : null;
+    $arrival_time = $arrival_time ? sanitize($arrival_time, false) : null;
 
     $vehicle_used = !empty($_POST['vehicle_used']) ? sanitize($_POST['vehicle_used']) : null;
     // Don't sanitize vehicle_details as it contains JSON - validate and trim only
@@ -84,14 +84,14 @@ try {
 
     // Scene Information
     $arrival_scene_location = !empty($_POST['arrival_scene_location']) ? sanitize($_POST['arrival_scene_location']) : null;
-    $arrival_scene_time = !empty($_POST['arrival_scene_time']) ? sanitize($_POST['arrival_scene_time']) : null;
+    $arrival_scene_time = !empty($_POST['arrival_scene_time']) ? sanitize($_POST['arrival_scene_time'], false) : null; // Don't uppercase time
     $departure_scene_location = !empty($_POST['departure_scene_location']) ? sanitize($_POST['departure_scene_location']) : null;
-    $departure_scene_time = !empty($_POST['departure_scene_time']) ? sanitize($_POST['departure_scene_time']) : null;
+    $departure_scene_time = !empty($_POST['departure_scene_time']) ? sanitize($_POST['departure_scene_time'], false) : null; // Don't uppercase time
 
     // Hospital Information
     $arrival_hospital_name = !empty($_POST['arrival_hospital_name']) ? sanitize($_POST['arrival_hospital_name']) : null;
-    $arrival_hospital_time = !empty($_POST['arrival_hospital_time']) ? sanitize($_POST['arrival_hospital_time']) : null;
-    $departure_hospital_time = !empty($_POST['departure_hospital_time']) ? sanitize($_POST['departure_hospital_time']) : null;
+    $arrival_hospital_time = !empty($_POST['arrival_hospital_time']) ? sanitize($_POST['arrival_hospital_time'], false) : null; // Don't uppercase time
+    $departure_hospital_time = !empty($_POST['departure_hospital_time']) ? sanitize($_POST['departure_hospital_time'], false) : null; // Don't uppercase time
 
     // Persons Present
     $persons_present = isset($_POST['persons_present']) ? $_POST['persons_present'] : [];
@@ -103,10 +103,10 @@ try {
 
     // Patient Information (REQUIRED)
     $patient_name = sanitize($_POST['patient_name'] ?? '');
-    $date_of_birth = sanitize($_POST['date_of_birth'] ?? '');
+    $date_of_birth = sanitize($_POST['date_of_birth'] ?? '', false); // Don't uppercase date
     $age = (int)($_POST['age'] ?? 0);
-    $gender = sanitize($_POST['gender'] ?? '');
-    $civil_status = !empty($_POST['civil_status']) ? sanitize($_POST['civil_status']) : null;
+    $gender = sanitize($_POST['gender'] ?? '', false); // Don't uppercase gender
+    $civil_status = !empty($_POST['civil_status']) ? sanitize($_POST['civil_status'], false) : null; // Don't uppercase civil status
 
     // Validate required fields (DOB is now optional)
     if (empty($patient_name) || $age <= 0 || empty($gender)) {
@@ -132,13 +132,13 @@ try {
     $occupation = !empty($_POST['occupation']) ? sanitize($_POST['occupation']) : null;
     $place_of_incident = !empty($_POST['place_of_incident']) ? sanitize($_POST['place_of_incident']) : null;
     $zone_landmark = !empty($_POST['zone_landmark']) ? sanitize($_POST['zone_landmark']) : null;
-    $incident_time = !empty($_POST['incident_time']) ? sanitize($_POST['incident_time']) : null;
+    $incident_time = !empty($_POST['incident_time']) ? sanitize($_POST['incident_time'], false) : null; // Don't uppercase time
 
     // Informant Details
     $informant_name = !empty($_POST['informant_name']) ? sanitize($_POST['informant_name']) : null;
     $informant_address = !empty($_POST['informant_address']) ? sanitize($_POST['informant_address']) : null;
-    $arrival_type = !empty($_POST['arrival_type']) ? sanitize($_POST['arrival_type']) : null;
-    $call_arrival_time = !empty($_POST['call_arrival_time']) ? sanitize($_POST['call_arrival_time']) : null;
+    $arrival_type = !empty($_POST['arrival_type']) ? sanitize($_POST['arrival_type'], false) : null; // Don't uppercase enum
+    $call_arrival_time = !empty($_POST['call_arrival_time']) ? sanitize($_POST['call_arrival_time'], false) : null; // Don't uppercase time
     $contact_number = !empty($_POST['contact_number']) ? sanitize($_POST['contact_number']) : null;
     $relationship_victim = !empty($_POST['relationship_victim']) ? sanitize($_POST['relationship_victim']) : null;
 
