@@ -185,13 +185,36 @@ try {
     $date_of_birth = sanitize($_POST['date_of_birth'] ?? '');
     $age = (int)($_POST['age'] ?? 0);
     $gender = sanitize($_POST['gender'] ?? '');
-    
-    if (empty($patient_name) || empty($date_of_birth) || $age <= 0 || empty($gender)) {
-        throw new Exception('Patient information is required');
+
+    // Debug logging
+    error_log("Patient validation - Name: '$patient_name', DOB: '$date_of_birth', Age: $age, Gender: '$gender'");
+
+    // Detailed validation with specific error messages
+    $missing_fields = [];
+    if (empty($patient_name)) {
+        $missing_fields[] = 'Patient Name';
     }
-    
-    if (!validate_date($date_of_birth)) {
+    // Date of Birth is now optional
+    if ($age <= 0) {
+        $missing_fields[] = 'Age (must be greater than 0)';
+    }
+    if (empty($gender)) {
+        $missing_fields[] = 'Gender';
+    }
+
+    if (!empty($missing_fields)) {
+        $missing_list = implode(', ', $missing_fields);
+        throw new Exception('Required patient information missing: ' . $missing_list);
+    }
+
+    // Validate date of birth only if provided
+    if (!empty($date_of_birth) && !validate_date($date_of_birth)) {
         throw new Exception('Invalid date of birth');
+    }
+
+    // Convert empty DOB to null for database
+    if (empty($date_of_birth)) {
+        $date_of_birth = null;
     }
     
     if (!in_array($gender, ['male', 'female'])) {
@@ -305,7 +328,18 @@ try {
 
     // Hospital Endorsement
     $hospital_name = sanitize($_POST['hospital_name'] ?? null);
-    $endorsement_datetime = sanitize($_POST['endorsement_datetime'] ?? null);
+    $endorsement_datetime_raw = $_POST['endorsement_datetime'] ?? null;
+
+    // Handle datetime-local format (YYYY-MM-DDTHH:MM) - convert to MySQL datetime format
+    if ($endorsement_datetime_raw && strpos($endorsement_datetime_raw, 'T') !== false) {
+        $endorsement_datetime_raw = str_replace('T', ' ', $endorsement_datetime_raw);
+        // Add seconds if not present
+        if (substr_count($endorsement_datetime_raw, ':') === 1) {
+            $endorsement_datetime_raw .= ':00';
+        }
+    }
+
+    $endorsement_datetime = $endorsement_datetime_raw ? sanitize($endorsement_datetime_raw) : null;
 
     // Handle file upload security - Endorsement Attachment
     $endorsement_attachment_path = null;
@@ -556,22 +590,34 @@ try {
     
     // Log activity
     log_activity('form_created', "Created form: $form_number for patient: $patient_name");
-    
-    // Success response - redirect to records page
+
+    // Set flash message for when user is redirected
     set_flash('Form saved successfully! Form Number: ' . $form_number, 'success');
-    redirect('../public/records.php');
-    
+
+    // Return JSON response for AJAX handling
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => true,
+        'message' => 'Form saved successfully! Form Number: ' . $form_number,
+        'form_number' => $form_number,
+        'redirect_url' => '../public/records.php'
+    ]);
+    exit;
+
 } catch (Exception $e) {
     // Rollback on error
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
-    
+
     error_log("Form Save Error: " . $e->getMessage());
-    
+
     set_flash('Error saving form: ' . $e->getMessage(), 'error');
-    json_response([
+    header('Content-Type: application/json');
+    http_response_code(400);
+    echo json_encode([
         'success' => false,
         'message' => $e->getMessage()
-    ], 400);
+    ]);
+    exit;
 }

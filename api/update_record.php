@@ -108,12 +108,19 @@ try {
     $gender = sanitize($_POST['gender'] ?? '');
     $civil_status = !empty($_POST['civil_status']) ? sanitize($_POST['civil_status']) : null;
 
-    if (empty($patient_name) || empty($date_of_birth) || $age <= 0 || empty($gender)) {
-        throw new Exception('Patient information is required');
+    // Validate required fields (DOB is now optional)
+    if (empty($patient_name) || $age <= 0 || empty($gender)) {
+        throw new Exception('Patient information is required (Name, Age, Gender)');
     }
 
-    if (!validate_date($date_of_birth)) {
+    // Validate date of birth only if provided
+    if (!empty($date_of_birth) && !validate_date($date_of_birth)) {
         throw new Exception('Invalid date of birth');
+    }
+
+    // Convert empty DOB to null for database
+    if (empty($date_of_birth)) {
+        $date_of_birth = null;
     }
 
     if (!in_array($gender, ['male', 'female'])) {
@@ -287,7 +294,18 @@ try {
 
     // Hospital Endorsement
     $hospital_name = !empty($_POST['hospital_name']) ? sanitize($_POST['hospital_name']) : null;
-    $endorsement_datetime = !empty($_POST['endorsement_datetime']) ? sanitize($_POST['endorsement_datetime']) : null;
+    $endorsement_datetime_raw = !empty($_POST['endorsement_datetime']) ? $_POST['endorsement_datetime'] : null;
+
+    // Handle datetime-local format (YYYY-MM-DDTHH:MM) - convert to MySQL datetime format
+    if ($endorsement_datetime_raw && strpos($endorsement_datetime_raw, 'T') !== false) {
+        $endorsement_datetime_raw = str_replace('T', ' ', $endorsement_datetime_raw);
+        // Add seconds if not present
+        if (substr_count($endorsement_datetime_raw, ':') === 1) {
+            $endorsement_datetime_raw .= ':00';
+        }
+    }
+
+    $endorsement_datetime = $endorsement_datetime_raw ? sanitize($endorsement_datetime_raw) : null;
 
     // Handle file upload security - Endorsement Attachment
     // Get existing endorsement attachment from database first

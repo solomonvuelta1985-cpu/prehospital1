@@ -38,6 +38,17 @@ try {
         if ($value === '' || $value === null || $value === '00:00:00') {
             return null;
         }
+
+        // Handle datetime-local format (YYYY-MM-DDTHH:MM) - convert to MySQL datetime format
+        if (strpos($value, 'T') !== false) {
+            // Convert ISO 8601 format to MySQL datetime format
+            $value = str_replace('T', ' ', $value);
+            // Add seconds if not present
+            if (substr_count($value, ':') === 1) {
+                $value .= ':00';
+            }
+        }
+
         return $value;
     }
 

@@ -90,6 +90,7 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link href="css/prehospital-form.css" rel="stylesheet">
     <style>
         /* Sidebar Layout Compatibility Fixes */
@@ -296,6 +297,195 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
 
             .nav-item:not(:last-child) .nav-link::after {
                 display: none; /* Hide arrows on very small screens */
+            }
+        }
+
+        /* Flatpickr Mobile Optimization */
+        .flatpickr-mobile .flatpickr-time {
+            max-height: none !important;
+        }
+
+        .flatpickr-mobile .flatpickr-time input {
+            font-size: 18px !important;
+            padding: 12px !important;
+        }
+
+        .flatpickr-mobile .numInputWrapper {
+            width: 70px !important;
+        }
+
+        .flatpickr-calendar {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+            border-radius: 8px !important;
+            margin: 0 auto !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+        }
+
+        /* Prevent calendar from being cut off */
+        .flatpickr-calendar.open {
+            z-index: 9999 !important;
+        }
+
+        /* Dark backdrop for mobile calendar */
+        @media (max-width: 768px) {
+            /* Add backdrop when calendar is open */
+            body.flatpickr-mobile-open::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 9998;
+            }
+
+            .flatpickr-calendar {
+                position: fixed !important;
+                left: 50% !important;
+                top: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                margin: 0 !important;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+            }
+        }
+
+        .flatpickr-time input.flatpickr-hour,
+        .flatpickr-time input.flatpickr-minute {
+            font-weight: 600 !important;
+            font-size: 16px !important;
+        }
+
+        .flatpickr-time .flatpickr-time-separator {
+            font-weight: 600 !important;
+            font-size: 16px !important;
+        }
+
+        /* Mobile-specific improvements */
+        @media (max-width: 768px) {
+            /* Make native datetime/time inputs more touch-friendly when flatpickr is not active */
+            input[type="time"],
+            input[type="datetime-local"],
+            input[type="date"] {
+                font-size: 16px !important; /* Prevents zoom on iOS */
+                min-height: 48px !important; /* Better touch target */
+                padding: 12px !important;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+            }
+
+            /* Flatpickr calendar mobile optimization */
+            .flatpickr-calendar {
+                width: 320px !important;
+                max-width: calc(100vw - 20px) !important;
+                font-size: 16px !important;
+                position: fixed !important;
+                left: 50% !important;
+                top: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                margin: 0 !important;
+                max-height: 90vh !important;
+                overflow-y: auto !important;
+            }
+
+            /* Flatpickr wrapper positioning */
+            .flatpickr-calendar.inline {
+                position: relative !important;
+                transform: none !important;
+                left: auto !important;
+                top: auto !important;
+            }
+
+            /* Larger day cells for easier tapping */
+            .flatpickr-calendar .flatpickr-day {
+                height: 42px !important;
+                line-height: 42px !important;
+                max-width: 42px !important;
+                font-size: 16px !important;
+            }
+
+            /* Month navigation buttons */
+            .flatpickr-calendar .flatpickr-prev-month,
+            .flatpickr-calendar .flatpickr-next-month {
+                padding: 12px !important;
+            }
+
+            /* Time input improvements */
+            .flatpickr-time input {
+                font-size: 20px !important;
+                padding: 14px 8px !important;
+                min-height: 50px !important;
+            }
+
+            .flatpickr-time .arrowUp,
+            .flatpickr-time .arrowDown {
+                padding: 8px !important;
+                height: 36px !important;
+                width: 36px !important;
+            }
+
+            .flatpickr-time .arrowUp:after,
+            .flatpickr-time .arrowDown:after {
+                border-width: 6px !important;
+            }
+
+            .numInputWrapper {
+                width: 80px !important;
+            }
+
+            /* AM/PM toggle styling for mobile */
+            .flatpickr-am-pm {
+                font-size: 18px !important;
+                font-weight: 700 !important;
+                padding: 14px 12px !important;
+                min-width: 60px !important;
+                cursor: pointer !important;
+                background: #0066cc !important;
+                color: white !important;
+                border-radius: 6px !important;
+                margin-left: 8px !important;
+            }
+
+            .flatpickr-am-pm:hover {
+                background: #0052a3 !important;
+            }
+
+            /* Month dropdown for better mobile selection */
+            .flatpickr-monthDropdown-months {
+                font-size: 16px !important;
+                padding: 8px !important;
+            }
+
+            /* Year input */
+            .flatpickr-current-month input.cur-year {
+                font-size: 16px !important;
+                padding: 4px !important;
+            }
+        }
+
+        /* Extra small devices */
+        @media (max-width: 576px) {
+            .flatpickr-calendar {
+                width: calc(100vw - 30px) !important;
+                max-width: 340px !important;
+                padding: 8px !important;
+            }
+
+            input[type="time"],
+            input[type="datetime-local"],
+            input[type="date"] {
+                font-size: 16px !important;
+                min-height: 50px !important;
+            }
+
+            /* Smaller day cells for very small screens */
+            .flatpickr-calendar .flatpickr-day {
+                height: 38px !important;
+                line-height: 38px !important;
+                max-width: 38px !important;
+                font-size: 14px !important;
             }
         }
     </style>
@@ -1493,6 +1683,7 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="js/prehospital-form.js"></script>
     <script>
         // Remove loading class after page loads
@@ -1521,6 +1712,134 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                     Notiflix.Notify.info('<?php echo $message; ?>', { timeout: 3000 });
                 <?php endif; ?>
             <?php endif; ?>
+
+            // Initialize Flatpickr for time inputs
+            const timeInputs = document.querySelectorAll('input[type="time"]');
+
+            timeInputs.forEach(function(input) {
+                flatpickr(input, {
+                    enableTime: true,
+                    noCalendar: true,
+                    dateFormat: "h:i K", // 12-hour format with AM/PM
+                    time_24hr: false, // Use 12-hour format
+                    minuteIncrement: 1,
+                    // Mobile-friendly configuration
+                    disableMobile: false,
+                    // Allow manual input
+                    allowInput: true,
+                    // Default time
+                    defaultHour: 12,
+                    defaultMinute: 0,
+                    // Better mobile touch experience
+                    clickOpens: true,
+                    // Position the picker
+                    position: "auto",
+                    // Custom styling for mobile
+                    onReady: function(selectedDates, dateStr, instance) {
+                        // Add mobile-friendly class
+                        instance.calendarContainer.classList.add('flatpickr-mobile');
+                    },
+                    // Convert to 24-hour format for backend storage
+                    onChange: function(selectedDates, dateStr, instance) {
+                        if (selectedDates.length > 0) {
+                            const date = selectedDates[0];
+                            const hours = String(date.getHours()).padStart(2, '0');
+                            const minutes = String(date.getMinutes()).padStart(2, '0');
+                            const time24 = hours + ':' + minutes;
+
+                            // Store the 24-hour format in a hidden attribute for backend
+                            input.setAttribute('data-time-24hr', time24);
+                            // Keep the value as 24-hour format for backend compatibility
+                            input.value = time24;
+                        }
+                    },
+                    // Parse existing 24-hour values and display as 12-hour, add backdrop
+                    onOpen: function(selectedDates, dateStr, instance) {
+                        // Add backdrop on mobile
+                        if (window.innerWidth <= 768) {
+                            document.body.classList.add('flatpickr-mobile-open');
+                        }
+
+                        // Parse existing time
+                        if (input.value && input.value.match(/^\d{2}:\d{2}$/)) {
+                            // Parse 24-hour format
+                            const [hours, minutes] = input.value.split(':');
+                            const hour24 = parseInt(hours);
+                            const hour12 = hour24 === 0 ? 12 : (hour24 > 12 ? hour24 - 12 : hour24);
+                            const ampm = hour24 >= 12 ? 'PM' : 'AM';
+
+                            // Update the display
+                            instance.input.value = `${String(hour12).padStart(2, '0')}:${minutes} ${ampm}`;
+                        }
+                    },
+                    // Remove backdrop when calendar closes
+                    onClose: function(selectedDates, dateStr, instance) {
+                        document.body.classList.remove('flatpickr-mobile-open');
+                    }
+                });
+            });
+
+            console.log('Flatpickr initialized on ' + timeInputs.length + ' time inputs with 12-hour AM/PM format');
+
+            // Initialize Flatpickr for datetime-local inputs (Date & Time pickers)
+            const datetimeInputs = document.querySelectorAll('input[type="datetime-local"]');
+
+            datetimeInputs.forEach(function(input) {
+                flatpickr(input, {
+                    enableTime: true,
+                    dateFormat: "Y-m-d H:i", // Format for datetime-local compatibility
+                    time_24hr: false, // Use 12-hour format with AM/PM
+                    minuteIncrement: 1,
+                    // Mobile-friendly configuration
+                    disableMobile: false,
+                    // Allow manual input
+                    allowInput: true,
+                    // Better mobile touch experience
+                    clickOpens: true,
+                    // Position the picker
+                    position: "auto",
+                    // Set default to current date and time
+                    defaultDate: input.value || null,
+                    // Custom styling for mobile
+                    onReady: function(selectedDates, dateStr, instance) {
+                        // Add mobile-friendly class
+                        instance.calendarContainer.classList.add('flatpickr-mobile');
+
+                        // Make the calendar touch-friendly on mobile
+                        if (window.innerWidth <= 768) {
+                            instance.calendarContainer.style.fontSize = '16px';
+                        }
+                    },
+                    // Format value for backend
+                    onChange: function(selectedDates, dateStr, instance) {
+                        if (selectedDates.length > 0) {
+                            const date = selectedDates[0];
+
+                            // Format as YYYY-MM-DDTHH:MM for datetime-local input
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+                            const hours = String(date.getHours()).padStart(2, '0');
+                            const minutes = String(date.getMinutes()).padStart(2, '0');
+
+                            const datetimeValue = `${year}-${month}-${day}T${hours}:${minutes}`;
+                            input.value = datetimeValue;
+                        }
+                    },
+                    // Add backdrop on mobile when calendar opens
+                    onOpen: function(selectedDates, dateStr, instance) {
+                        if (window.innerWidth <= 768) {
+                            document.body.classList.add('flatpickr-mobile-open');
+                        }
+                    },
+                    // Remove backdrop when calendar closes
+                    onClose: function(selectedDates, dateStr, instance) {
+                        document.body.classList.remove('flatpickr-mobile-open');
+                    }
+                });
+            });
+
+            console.log('Flatpickr initialized on ' + datetimeInputs.length + ' datetime inputs with mobile optimization');
         });
 
         // Configure Notiflix

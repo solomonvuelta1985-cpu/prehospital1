@@ -429,6 +429,12 @@ function submitForm() {
         }
     }
 
+    // Check age is greater than 0
+    const ageElement = document.getElementById('age');
+    if (ageElement && parseInt(ageElement.value) <= 0) {
+        missingFields.push('Age (must be greater than 0)');
+    }
+
     // Check gender radio buttons
     const genderSelected = document.querySelector('input[name="gender"]:checked');
     if (!genderSelected) {
@@ -462,47 +468,22 @@ function submitForm() {
 }
 
 function submitFormData() {
-
-    const formData = new FormData(document.getElementById('preHospitalForm'));
-    const data = {};
-    formData.forEach((value, key) => {
-        data[key] = value;
+    // Show loading indicator
+    Notiflix.Loading.standard('Saving form...', {
+        backgroundColor: 'rgba(0,0,0,0.8)',
     });
 
-    // Add structured time/location data
-    data.arrivalScene = {
-        location: document.getElementById('arrSceneLocation').value,
-        time: document.getElementById('arrSceneTime').value
-    };
-    data.departureScene = {
-        location: document.getElementById('depSceneLocation').value,
-        time: document.getElementById('depSceneTime').value
-    };
-    data.arrivalHospital = {
-        name: document.getElementById('arrHospName').value,
-        time: document.getElementById('arrHospTime').value
-    };
-    data.departureHospital = {
-        location: document.getElementById('depHospLocation').value,
-        time: document.getElementById('depHospTime').value
-    };
-
-    // Get selected personal belongings
-    const belongingsSelect = document.getElementById('personalBelongings');
-    const selectedBelongings = Array.from(belongingsSelect.selectedOptions).map(option => option.value);
-    data.personalBelongings = selectedBelongings;
-    data.otherBelongingsSpecify = document.getElementById('otherBelongings').value;
-
-    // Add injury data
-    data.injuries = injuries;
-
-    // Serialize injuries to hidden field
+    // Serialize injuries to hidden field before submission
     const injuriesDataField = document.getElementById('injuriesData');
     if (injuriesDataField) {
         injuriesDataField.value = JSON.stringify(injuries);
     }
 
-    console.log('Form submitted:', data);
+    // Get the form element
+    const form = document.getElementById('preHospitalForm');
+    const formData = new FormData(form);
+
+    console.log('Submitting form to:', form.action);
     console.log('Injuries being submitted:', injuries);
 
     // Clear section memory before submitting
@@ -513,8 +494,47 @@ function submitFormData() {
     // Clear saved tab state from localStorage
     localStorage.removeItem('prehospitalFormCurrentTab');
 
-    // Submit the form
-    document.getElementById('preHospitalForm').submit();
+    // Submit using Fetch API
+    fetch(form.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        return response.json().then(data => {
+            return {
+                ok: response.ok,
+                status: response.status,
+                data: data
+            };
+        });
+    })
+    .then(result => {
+        Notiflix.Loading.remove();
+
+        if (result.ok && result.data.success) {
+            // Success - show message and redirect
+            Notiflix.Report.success(
+                'Form Saved Successfully',
+                result.data.message || 'Your form has been saved successfully.',
+                'OK',
+                function() {
+                    window.location.href = result.data.redirect_url || '../public/records.php';
+                }
+            );
+        } else {
+            // Error from API
+            throw new Error(result.data.message || 'Form submission failed');
+        }
+    })
+    .catch(error => {
+        Notiflix.Loading.remove();
+        console.error('Form submission error:', error);
+        Notiflix.Report.failure(
+            'Submission Failed',
+            error.message || 'An error occurred while saving the form. Please try again.',
+            'OK'
+        );
+    });
 }
 
 function printForm() {

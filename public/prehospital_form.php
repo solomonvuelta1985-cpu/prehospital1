@@ -259,6 +259,38 @@ $current_user = get_auth_user();
         .flatpickr-calendar {
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
             border-radius: 8px !important;
+            margin: 0 auto !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+        }
+
+        /* Prevent calendar from being cut off */
+        .flatpickr-calendar.open {
+            z-index: 9999 !important;
+        }
+
+        /* Dark backdrop for mobile calendar */
+        @media (max-width: 768px) {
+            /* Add backdrop when calendar is open */
+            body.flatpickr-mobile-open::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 9998;
+            }
+
+            .flatpickr-calendar {
+                position: fixed !important;
+                left: 50% !important;
+                top: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                margin: 0 !important;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+            }
         }
 
         .flatpickr-time input.flatpickr-hour,
@@ -288,9 +320,24 @@ $current_user = get_auth_user();
 
             /* Flatpickr calendar mobile optimization */
             .flatpickr-calendar {
-                width: 300px !important;
-                max-width: 90vw !important;
+                width: 320px !important;
+                max-width: calc(100vw - 20px) !important;
                 font-size: 16px !important;
+                position: fixed !important;
+                left: 50% !important;
+                top: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                margin: 0 !important;
+                max-height: 90vh !important;
+                overflow-y: auto !important;
+            }
+
+            /* Flatpickr wrapper positioning */
+            .flatpickr-calendar.inline {
+                position: relative !important;
+                transform: none !important;
+                left: auto !important;
+                top: auto !important;
             }
 
             /* Larger day cells for easier tapping */
@@ -363,7 +410,9 @@ $current_user = get_auth_user();
         /* Extra small devices */
         @media (max-width: 576px) {
             .flatpickr-calendar {
-                width: 280px !important;
+                width: calc(100vw - 30px) !important;
+                max-width: 340px !important;
+                padding: 8px !important;
             }
 
             input[type="time"],
@@ -371,6 +420,14 @@ $current_user = get_auth_user();
             input[type="date"] {
                 font-size: 16px !important;
                 min-height: 50px !important;
+            }
+
+            /* Smaller day cells for very small screens */
+            .flatpickr-calendar .flatpickr-day {
+                height: 38px !important;
+                line-height: 38px !important;
+                max-width: 38px !important;
+                font-size: 14px !important;
             }
         }
     </style>
@@ -1669,8 +1726,14 @@ $current_user = get_auth_user();
                         const event = new Event('change', { bubbles: true });
                         input.dispatchEvent(event);
                     },
-                    // Parse existing 24-hour values and display as 12-hour
+                    // Parse existing 24-hour values and display as 12-hour, add backdrop
                     onOpen: function(selectedDates, dateStr, instance) {
+                        // Add backdrop on mobile
+                        if (window.innerWidth <= 768) {
+                            document.body.classList.add('flatpickr-mobile-open');
+                        }
+
+                        // Parse existing time
                         if (input.value && input.value.match(/^\d{2}:\d{2}$/)) {
                             // Parse 24-hour format
                             const [hours, minutes] = input.value.split(':');
@@ -1681,6 +1744,10 @@ $current_user = get_auth_user();
                             // Update the display
                             instance.input.value = `${String(hour12).padStart(2, '0')}:${minutes} ${ampm}`;
                         }
+                    },
+                    // Remove backdrop when calendar closes
+                    onClose: function(selectedDates, dateStr, instance) {
+                        document.body.classList.remove('flatpickr-mobile-open');
                     }
                 });
             });
@@ -1735,6 +1802,16 @@ $current_user = get_auth_user();
                         // Trigger change event for autosave
                         const event = new Event('change', { bubbles: true });
                         input.dispatchEvent(event);
+                    },
+                    // Add backdrop on mobile when calendar opens
+                    onOpen: function(selectedDates, dateStr, instance) {
+                        if (window.innerWidth <= 768) {
+                            document.body.classList.add('flatpickr-mobile-open');
+                        }
+                    },
+                    // Remove backdrop when calendar closes
+                    onClose: function(selectedDates, dateStr, instance) {
+                        document.body.classList.remove('flatpickr-mobile-open');
                     }
                 });
             });
