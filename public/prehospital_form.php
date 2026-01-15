@@ -430,6 +430,22 @@ $current_user = get_auth_user();
                 font-size: 14px !important;
             }
         }
+
+        /* UPPERCASE ALL TEXT INPUTS */
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="url"],
+        textarea,
+        select {
+            text-transform: uppercase !important;
+        }
+
+        /* Keep placeholders in normal case for readability */
+        input::placeholder,
+        textarea::placeholder {
+            text-transform: none !important;
+        }
     </style>
 </head>
 <body class="loading">
@@ -1681,6 +1697,39 @@ $current_user = get_auth_user();
         // FLATPICKR TIME PICKER INITIALIZATION
         // ============================================
         document.addEventListener('DOMContentLoaded', function() {
+            // ============================================
+            // UPPERCASE ALL TEXT INPUTS
+            // ============================================
+            const textInputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="url"], textarea');
+
+            textInputs.forEach(function(input) {
+                // Convert to uppercase on input
+                input.addEventListener('input', function(e) {
+                    const start = this.selectionStart;
+                    const end = this.selectionEnd;
+                    this.value = this.value.toUpperCase();
+                    this.setSelectionRange(start, end);
+                });
+
+                // Also convert existing values to uppercase on page load
+                if (input.value) {
+                    input.value = input.value.toUpperCase();
+                }
+            });
+
+            // Handle select dropdowns - convert selected values to uppercase display
+            const selects = document.querySelectorAll('select');
+            selects.forEach(function(select) {
+                select.addEventListener('change', function() {
+                    // The visual display is handled by CSS
+                });
+            });
+
+            console.log('Uppercase conversion initialized on ' + textInputs.length + ' text inputs');
+
+            // ============================================
+            // FLATPICKR TIME PICKER INITIALIZATION
+            // ============================================
             // Select all time input fields
             const timeInputs = document.querySelectorAll('input[type="time"]');
 
