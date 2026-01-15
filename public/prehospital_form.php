@@ -33,6 +33,7 @@ $current_user = get_auth_user();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link href="css/prehospital-form.css" rel="stylesheet">
     <style>
         /* Sidebar Layout Compatibility Fixes */
@@ -240,6 +241,138 @@ $current_user = get_auth_user();
                 display: none; /* Hide arrows on very small screens */
             }
         }
+
+        /* Flatpickr Mobile Optimization */
+        .flatpickr-mobile .flatpickr-time {
+            max-height: none !important;
+        }
+
+        .flatpickr-mobile .flatpickr-time input {
+            font-size: 18px !important;
+            padding: 12px !important;
+        }
+
+        .flatpickr-mobile .numInputWrapper {
+            width: 70px !important;
+        }
+
+        .flatpickr-calendar {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+            border-radius: 8px !important;
+        }
+
+        .flatpickr-time input.flatpickr-hour,
+        .flatpickr-time input.flatpickr-minute {
+            font-weight: 600 !important;
+            font-size: 16px !important;
+        }
+
+        .flatpickr-time .flatpickr-time-separator {
+            font-weight: 600 !important;
+            font-size: 16px !important;
+        }
+
+        /* Mobile-specific improvements */
+        @media (max-width: 768px) {
+            /* Make native datetime/time inputs more touch-friendly when flatpickr is not active */
+            input[type="time"],
+            input[type="datetime-local"],
+            input[type="date"] {
+                font-size: 16px !important; /* Prevents zoom on iOS */
+                min-height: 48px !important; /* Better touch target */
+                padding: 12px !important;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+            }
+
+            /* Flatpickr calendar mobile optimization */
+            .flatpickr-calendar {
+                width: 300px !important;
+                max-width: 90vw !important;
+                font-size: 16px !important;
+            }
+
+            /* Larger day cells for easier tapping */
+            .flatpickr-calendar .flatpickr-day {
+                height: 42px !important;
+                line-height: 42px !important;
+                max-width: 42px !important;
+                font-size: 16px !important;
+            }
+
+            /* Month navigation buttons */
+            .flatpickr-calendar .flatpickr-prev-month,
+            .flatpickr-calendar .flatpickr-next-month {
+                padding: 12px !important;
+            }
+
+            /* Time input improvements */
+            .flatpickr-time input {
+                font-size: 20px !important;
+                padding: 14px 8px !important;
+                min-height: 50px !important;
+            }
+
+            .flatpickr-time .arrowUp,
+            .flatpickr-time .arrowDown {
+                padding: 8px !important;
+                height: 36px !important;
+                width: 36px !important;
+            }
+
+            .flatpickr-time .arrowUp:after,
+            .flatpickr-time .arrowDown:after {
+                border-width: 6px !important;
+            }
+
+            .numInputWrapper {
+                width: 80px !important;
+            }
+
+            /* AM/PM toggle styling for mobile */
+            .flatpickr-am-pm {
+                font-size: 18px !important;
+                font-weight: 700 !important;
+                padding: 14px 12px !important;
+                min-width: 60px !important;
+                cursor: pointer !important;
+                background: #0066cc !important;
+                color: white !important;
+                border-radius: 6px !important;
+                margin-left: 8px !important;
+            }
+
+            .flatpickr-am-pm:hover {
+                background: #0052a3 !important;
+            }
+
+            /* Month dropdown for better mobile selection */
+            .flatpickr-monthDropdown-months {
+                font-size: 16px !important;
+                padding: 8px !important;
+            }
+
+            /* Year input */
+            .flatpickr-current-month input.cur-year {
+                font-size: 16px !important;
+                padding: 4px !important;
+            }
+        }
+
+        /* Extra small devices */
+        @media (max-width: 576px) {
+            .flatpickr-calendar {
+                width: 280px !important;
+            }
+
+            input[type="time"],
+            input[type="datetime-local"],
+            input[type="date"] {
+                font-size: 16px !important;
+                min-height: 50px !important;
+            }
+        }
     </style>
 </head>
 <body class="loading">
@@ -408,7 +541,7 @@ $current_user = get_auth_user();
                         </div>
 
                         <div class="mb-section">
-                            <label for="arrStation" class="form-label">Arrival at Station</label>
+                            <label for="arrStation" class="form-label">Arrival at Station (Walk-in)</label>
                             <input type="time" class="form-control" id="arrStation" name="arrival_station_time">
                         </div>
 
@@ -458,7 +591,7 @@ $current_user = get_auth_user();
                             </div>
                             <div>
                                 <label for="age" class="form-label required-field">Age</label>
-                                <input type="number" class="form-control" id="age" name="age" min="0" max="150" required>
+                                <input type="number" class="form-control" id="age" name="age" min="0" max="150" placeholder="Enter age" required>
                             </div>
                         </div>
 
@@ -487,6 +620,18 @@ $current_user = get_auth_user();
                                         <input class="form-check-input" type="radio" name="civil_status" id="married" value="married">
                                         <label class="form-check-label" for="married">Married</label>
                                     </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="civil_status" id="widowed" value="widowed">
+                                        <label class="form-check-label" for="widowed">Widowed</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="civil_status" id="divorced" value="divorced">
+                                        <label class="form-check-label" for="divorced">Divorced</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="civil_status" id="separated" value="separated">
+                                        <label class="form-check-label" for="separated">Separated</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -498,25 +643,25 @@ $current_user = get_auth_user();
                             </div>
                             <div>
                                 <label for="zone" class="form-label">Zone</label>
-                                <input type="text" class="form-control" id="zone" name="zone">
+                                <input type="text" class="form-control" id="zone" name="zone" placeholder="Zone/Purok">
                             </div>
                         </div>
 
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="occupation" class="form-label">Occupation</label>
-                                <input type="text" class="form-control" id="occupation" name="occupation">
+                                <input type="text" class="form-control" id="occupation" name="occupation" placeholder="Patient's occupation">
                             </div>
                             <div>
                                 <label for="placeOfIncident" class="form-label">Place of Incident</label>
-                                <input type="text" class="form-control" id="placeOfIncident" name="place_of_incident">
+                                <input type="text" class="form-control" id="placeOfIncident" name="place_of_incident" placeholder="Location where incident occurred">
                             </div>
                         </div>
 
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="zoneLandmark" class="form-label">Zone/Landmark</label>
-                                <input type="text" class="form-control" id="zoneLandmark" name="zone_landmark">
+                                <input type="text" class="form-control" id="zoneLandmark" name="zone_landmark" placeholder="Nearest landmark">
                             </div>
                             <div>
                                 <label for="incidentTime" class="form-label">Time of Incident</label>
@@ -535,7 +680,7 @@ $current_user = get_auth_user();
                             </div>
                             <div>
                                 <label for="informantAddress" class="form-label">Informant Address</label>
-                                <input type="text" class="form-control" id="informantAddress" name="informant_address">
+                                <input type="text" class="form-control" id="informantAddress" name="informant_address" placeholder="Informant's address">
                             </div>
                         </div>
 
@@ -566,7 +711,7 @@ $current_user = get_auth_user();
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="relationshipVictim" class="form-label">Relationship to Victim</label>
-                                <input type="text" class="form-control" id="relationshipVictim" name="relationship_victim">
+                                <input type="text" class="form-control" id="relationshipVictim" name="relationship_victim" placeholder="e.g., Spouse, Parent, Sibling">
                             </div>
                             <div>
                                 <label for="personalBelongings" class="form-label">Personal Belongings</label>
@@ -740,11 +885,11 @@ $current_user = get_auth_user();
                             </div>
                             <div>
                                 <label for="initialPainScore" class="form-label">Pain Score (0-10)</label>
-                                <input type="number" class="form-control" id="initialPainScore" name="initial_pain_score" min="0" max="10">
+                                <input type="number" class="form-control" id="initialPainScore" name="initial_pain_score" min="0" max="10" placeholder="0-10">
                             </div>
                             <div>
                                 <label for="initialSPO2" class="form-label">SPO2 %</label>
-                                <input type="number" class="form-control" id="initialSPO2" name="initial_spo2" min="0" max="100">
+                                <input type="number" class="form-control" id="initialSPO2" name="initial_spo2" min="0" max="100" placeholder="95-100">
                             </div>
                             <div>
                                 <label class="form-label">Spinal Injury</label>
@@ -828,11 +973,11 @@ $current_user = get_auth_user();
                             </div>
                             <div>
                                 <label for="followupPainScore" class="form-label">Pain Score (0-10)</label>
-                                <input type="number" class="form-control" id="followupPainScore" name="followup_pain_score" min="0" max="10">
+                                <input type="number" class="form-control" id="followupPainScore" name="followup_pain_score" min="0" max="10" placeholder="0-10">
                             </div>
                             <div>
                                 <label for="followupSPO2" class="form-label">SPO2 %</label>
-                                <input type="number" class="form-control" id="followupSPO2" name="followup_spo2" min="0" max="100">
+                                <input type="number" class="form-control" id="followupSPO2" name="followup_spo2" min="0" max="100" placeholder="95-100">
                             </div>
                             <div>
                                 <label class="form-label">Spinal Injury</label>
@@ -1113,7 +1258,7 @@ $current_user = get_auth_user();
                             <div class="grid-3" style="gap: 1rem;">
                                 <div>
                                     <label for="babyDelivery" class="form-label">Baby Status</label>
-                                    <input type="text" class="form-control" id="babyDelivery" name="baby_status">
+                                    <input type="text" class="form-control" id="babyDelivery" name="baby_status" placeholder="e.g., Alive, Healthy">
                                 </div>
                                 <div>
                                     <label for="timeOfDelivery" class="form-label">Delivery Time</label>
@@ -1381,6 +1526,7 @@ $current_user = get_auth_user();
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="js/prehospital-form.js?v=<?php echo time(); ?>"></script>
     <script>
         // Configure Notiflix
@@ -1472,6 +1618,128 @@ $current_user = get_auth_user();
                 document.body.classList.remove('loading');
                 console.log('Loading class removed. Skeleton hidden.');
             }, 3000); // Extended delay to see skeleton effect
+        });
+
+        // ============================================
+        // FLATPICKR TIME PICKER INITIALIZATION
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Select all time input fields
+            const timeInputs = document.querySelectorAll('input[type="time"]');
+
+            // Initialize Flatpickr on each time input
+            timeInputs.forEach(function(input) {
+                flatpickr(input, {
+                    enableTime: true,
+                    noCalendar: true,
+                    dateFormat: "h:i K", // 12-hour format with AM/PM
+                    time_24hr: false, // Use 12-hour format
+                    minuteIncrement: 1,
+                    // Mobile-friendly configuration
+                    disableMobile: false,
+                    // Allow manual input
+                    allowInput: true,
+                    // Default time
+                    defaultHour: 12,
+                    defaultMinute: 0,
+                    // Better mobile touch experience
+                    clickOpens: true,
+                    // Position the picker
+                    position: "auto",
+                    // Custom styling for mobile
+                    onReady: function(selectedDates, dateStr, instance) {
+                        // Add mobile-friendly class
+                        instance.calendarContainer.classList.add('flatpickr-mobile');
+                    },
+                    // Convert to 24-hour format for backend storage
+                    onChange: function(selectedDates, dateStr, instance) {
+                        if (selectedDates.length > 0) {
+                            const date = selectedDates[0];
+                            const hours = String(date.getHours()).padStart(2, '0');
+                            const minutes = String(date.getMinutes()).padStart(2, '0');
+                            const time24 = hours + ':' + minutes;
+
+                            // Store the 24-hour format in a hidden attribute for backend
+                            input.setAttribute('data-time-24hr', time24);
+                            // Keep the value as 24-hour format for backend compatibility
+                            input.value = time24;
+                        }
+
+                        // Trigger change event on the input for autosave
+                        const event = new Event('change', { bubbles: true });
+                        input.dispatchEvent(event);
+                    },
+                    // Parse existing 24-hour values and display as 12-hour
+                    onOpen: function(selectedDates, dateStr, instance) {
+                        if (input.value && input.value.match(/^\d{2}:\d{2}$/)) {
+                            // Parse 24-hour format
+                            const [hours, minutes] = input.value.split(':');
+                            const hour24 = parseInt(hours);
+                            const hour12 = hour24 === 0 ? 12 : (hour24 > 12 ? hour24 - 12 : hour24);
+                            const ampm = hour24 >= 12 ? 'PM' : 'AM';
+
+                            // Update the display
+                            instance.input.value = `${String(hour12).padStart(2, '0')}:${minutes} ${ampm}`;
+                        }
+                    }
+                });
+            });
+
+            console.log('Flatpickr initialized on ' + timeInputs.length + ' time inputs with 12-hour AM/PM format');
+
+            // Initialize Flatpickr for datetime-local inputs (Date & Time pickers)
+            const datetimeInputs = document.querySelectorAll('input[type="datetime-local"]');
+
+            datetimeInputs.forEach(function(input) {
+                flatpickr(input, {
+                    enableTime: true,
+                    dateFormat: "Y-m-d H:i", // Format for datetime-local compatibility
+                    time_24hr: false, // Use 12-hour format with AM/PM
+                    minuteIncrement: 1,
+                    // Mobile-friendly configuration
+                    disableMobile: false,
+                    // Allow manual input
+                    allowInput: true,
+                    // Better mobile touch experience
+                    clickOpens: true,
+                    // Position the picker
+                    position: "auto",
+                    // Set default to current date and time
+                    defaultDate: input.value || null,
+                    // Custom styling for mobile
+                    onReady: function(selectedDates, dateStr, instance) {
+                        // Add mobile-friendly class
+                        instance.calendarContainer.classList.add('flatpickr-mobile');
+
+                        // Make the calendar touch-friendly on mobile
+                        if (window.innerWidth <= 768) {
+                            instance.calendarContainer.style.fontSize = '16px';
+                        }
+                    },
+                    // Format value for backend
+                    onChange: function(selectedDates, dateStr, instance) {
+                        if (selectedDates.length > 0) {
+                            const date = selectedDates[0];
+
+                            // Format as YYYY-MM-DDTHH:MM for datetime-local input
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+                            const hours = String(date.getHours()).padStart(2, '0');
+                            const minutes = String(date.getMinutes()).padStart(2, '0');
+
+                            const datetimeValue = `${year}-${month}-${day}T${hours}:${minutes}`;
+                            input.value = datetimeValue;
+                        }
+
+                        // Trigger change event for autosave
+                        const event = new Event('change', { bubbles: true });
+                        input.dispatchEvent(event);
+                    }
+                });
+            });
+
+            console.log('Flatpickr initialized on ' + datetimeInputs.length + ' datetime inputs with mobile optimization');
         });
 
         // ============================================

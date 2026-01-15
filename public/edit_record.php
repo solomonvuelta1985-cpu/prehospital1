@@ -526,8 +526,8 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                             </div>
                             <div>
                                 <label for="age" class="form-label required-field">Age</label>
-                                <input type="number" class="form-control" id="age" name="age" 
-                                       value="<?php echo e($record['age']); ?>" required>
+                                <input type="number" class="form-control" id="age" name="age"
+                                       value="<?php echo e($record['age']); ?>" placeholder="Enter age" required>
                             </div>
                         </div>
 
@@ -560,6 +560,21 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                                                <?php echo $record['civil_status'] === 'married' ? 'checked' : ''; ?>>
                                         <label class="form-check-label" for="married">Married</label>
                                     </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="civil_status" id="widowed" value="widowed"
+                                               <?php echo $record['civil_status'] === 'widowed' ? 'checked' : ''; ?>>
+                                        <label class="form-check-label" for="widowed">Widowed</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="civil_status" id="divorced" value="divorced"
+                                               <?php echo $record['civil_status'] === 'divorced' ? 'checked' : ''; ?>>
+                                        <label class="form-check-label" for="divorced">Divorced</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="civil_status" id="separated" value="separated"
+                                               <?php echo $record['civil_status'] === 'separated' ? 'checked' : ''; ?>>
+                                        <label class="form-check-label" for="separated">Separated</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -573,7 +588,7 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                             <div>
                                 <label for="zone" class="form-label">Zone</label>
                                 <input type="text" class="form-control" id="zone" name="zone"
-                                       value="<?php echo e($record['zone']); ?>">
+                                       value="<?php echo e($record['zone']); ?>" placeholder="Zone/Purok">
                             </div>
                         </div>
 
@@ -581,12 +596,12 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                             <div>
                                 <label for="occupation" class="form-label">Occupation</label>
                                 <input type="text" class="form-control" id="occupation" name="occupation"
-                                       value="<?php echo e($record['occupation']); ?>">
+                                       value="<?php echo e($record['occupation']); ?>" placeholder="Patient's occupation">
                             </div>
                             <div>
                                 <label for="placeOfIncident" class="form-label">Place of Incident</label>
                                 <input type="text" class="form-control" id="place_of_incident" name="place_of_incident"
-                                       value="<?php echo e($record['place_of_incident']); ?>">
+                                       value="<?php echo e($record['place_of_incident']); ?>" placeholder="Location where incident occurred">
                             </div>
                         </div>
 
@@ -594,7 +609,7 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                             <div>
                                 <label for="zoneLandmark" class="form-label">Zone/Landmark</label>
                                 <input type="text" class="form-control" id="zoneLandmark" name="zone_landmark"
-                                       value="<?php echo e($record['zone_landmark']); ?>">
+                                       value="<?php echo e($record['zone_landmark']); ?>" placeholder="Nearest landmark">
                             </div>
                             <div>
                                 <label for="incidentTime" class="form-label">Time of Incident</label>
@@ -616,7 +631,7 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                             <div>
                                 <label for="informantAddress" class="form-label">Informant Address</label>
                                 <input type="text" class="form-control" id="informantAddress" name="informant_address"
-                                       value="<?php echo e($record['informant_address']); ?>">
+                                       value="<?php echo e($record['informant_address']); ?>" placeholder="Informant's address">
                             </div>
                         </div>
 
@@ -652,7 +667,7 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                             <div>
                                 <label for="relationshipVictim" class="form-label">Relationship to Victim</label>
                                 <input type="text" class="form-control" id="relationshipVictim" name="relationship_victim"
-                                       value="<?php echo e($record['relationship_victim']); ?>">
+                                       value="<?php echo e($record['relationship_victim']); ?>" placeholder="e.g., Spouse, Parent, Sibling">
                             </div>
                             <div>
                                 <label for="personalBelongings" class="form-label">Personal Belongings</label>
@@ -864,12 +879,12 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                             <div>
                                 <label for="initialPainScore" class="form-label">Pain Score (0-10)</label>
                                 <input type="number" class="form-control" id="initialPainScore" name="initial_pain_score"
-                                       value="<?php echo e($record['initial_pain_score']); ?>" min="0" max="10">
+                                       value="<?php echo e($record['initial_pain_score']); ?>" min="0" max="10" placeholder="0-10">
                             </div>
                             <div>
                                 <label for="initialSPO2" class="form-label">SPO2 %</label>
                                 <input type="number" class="form-control" id="initialSPO2" name="initial_spo2"
-                                       value="<?php echo e($record['initial_spo2']); ?>" min="0" max="100">
+                                       value="<?php echo e($record['initial_spo2']); ?>" min="0" max="100" placeholder="95-100">
                             </div>
                             <div>
                                 <label class="form-label">Spinal Injury</label>
@@ -967,12 +982,12 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                             <div>
                                 <label for="followupPainScore" class="form-label">Pain Score (0-10)</label>
                                 <input type="number" class="form-control" id="followupPainScore" name="followup_pain_score"
-                                       value="<?php echo e($record['followup_pain_score']); ?>" min="0" max="10">
+                                       value="<?php echo e($record['followup_pain_score']); ?>" min="0" max="10" placeholder="0-10">
                             </div>
                             <div>
                                 <label for="followupSPO2" class="form-label">SPO2 %</label>
                                 <input type="number" class="form-control" id="followupSPO2" name="followup_spo2"
-                                       value="<?php echo e($record['followup_spo2']); ?>" min="0" max="100">
+                                       value="<?php echo e($record['followup_spo2']); ?>" min="0" max="100" placeholder="95-100">
                             </div>
                             <div>
                                 <label class="form-label">Spinal Injury</label>
@@ -1268,7 +1283,7 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                                 <div>
                                     <label for="babyDelivery" class="form-label">Baby Status</label>
                                     <input type="text" class="form-control" id="babyDelivery" name="baby_status"
-                                           value="<?php echo e($record['ob_baby_status']); ?>">
+                                           value="<?php echo e($record['ob_baby_status']); ?>" placeholder="e.g., Alive, Healthy">
                                 </div>
                                 <div>
                                     <label for="timeOfDelivery" class="form-label">Delivery Time</label>

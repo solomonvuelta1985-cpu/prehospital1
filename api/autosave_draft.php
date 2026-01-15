@@ -33,6 +33,14 @@ try {
     // Check if updating existing draft or creating new
     $draft_id = isset($data['draft_id']) && !empty($data['draft_id']) ? (int)$data['draft_id'] : null;
 
+    // Helper function to clean time values - convert empty strings to null
+    function clean_time_value($value) {
+        if ($value === '' || $value === null || $value === '00:00:00') {
+            return null;
+        }
+        return $value;
+    }
+
     // Validate vehicle_details if provided (should be JSON or null)
     $vehicle_details_value = $data['vehicle_details'] ?? null;
     if ($vehicle_details_value !== null && $vehicle_details_value !== '') {
@@ -51,19 +59,19 @@ try {
     // Prepare form data
     $form_data = [
         'form_date' => $data['form_date'] ?? null,
-        'departure_time' => $data['departure_time'] ?? null,
-        'arrival_time' => $data['arrival_time'] ?? null,
+        'departure_time' => clean_time_value($data['departure_time'] ?? null),
+        'arrival_time' => clean_time_value($data['arrival_time'] ?? null),
         'vehicle_used' => $data['vehicle_used'] ?? null,
         'vehicle_details' => $vehicle_details_value,
         'driver_name' => $data['driver'] ?? null,
         'arrival_scene_location' => $data['arrival_scene_location'] ?? null,
-        'arrival_scene_time' => $data['arrival_scene_time'] ?? null,
+        'arrival_scene_time' => clean_time_value($data['arrival_scene_time'] ?? null),
         'departure_scene_location' => $data['departure_scene_location'] ?? null,
-        'departure_scene_time' => $data['departure_scene_time'] ?? null,
+        'departure_scene_time' => clean_time_value($data['departure_scene_time'] ?? null),
         'arrival_hospital_name' => $data['arrival_hospital_name'] ?? null,
-        'arrival_hospital_time' => $data['arrival_hospital_time'] ?? null,
-        'departure_hospital_time' => $data['departure_hospital_time'] ?? null,
-        'arrival_station_time' => $data['arrival_station'] ?? null,
+        'arrival_hospital_time' => clean_time_value($data['arrival_hospital_time'] ?? null),
+        'departure_hospital_time' => clean_time_value($data['departure_hospital_time'] ?? null),
+        'arrival_station_time' => clean_time_value($data['arrival_station'] ?? null),
         'persons_present' => isset($data['persons_present']) ? json_encode($data['persons_present']) : null,
 
         // Patient Information
@@ -77,11 +85,11 @@ try {
         'occupation' => $data['occupation'] ?? null,
         'place_of_incident' => $data['place_of_incident'] ?? null,
         'zone_landmark' => $data['zone_landmark'] ?? null,
-        'incident_time' => $data['incident_time'] ?? null,
+        'incident_time' => clean_time_value($data['incident_time'] ?? null),
         'informant_name' => $data['informant_name'] ?? null,
         'informant_address' => $data['informant_address'] ?? null,
         'arrival_type' => $data['arrival_type'] ?? null,
-        'call_arrival_time' => $data['call_arrival_time'] ?? null,
+        'call_arrival_time' => clean_time_value($data['call_arrival_time'] ?? null),
         'contact_number' => $data['contact_number'] ?? null,
         'relationship_victim' => $data['relationship_victim'] ?? null,
         'personal_belongings' => isset($data['personal_belongings']) ? json_encode($data['personal_belongings']) : null,
@@ -101,7 +109,7 @@ try {
         'other_care' => $data['other_care'] ?? null,
 
         // Vitals
-        'initial_time' => $data['initial_time'] ?? null,
+        'initial_time' => clean_time_value($data['initial_time'] ?? null),
         'initial_bp' => $data['initial_bp'] ?? null,
         'initial_temp' => isset($data['initial_temp']) && $data['initial_temp'] !== '' ? (float)$data['initial_temp'] : null,
         'initial_pulse' => isset($data['initial_pulse']) && $data['initial_pulse'] !== '' ? (int)$data['initial_pulse'] : null,
@@ -112,7 +120,7 @@ try {
         'initial_consciousness' => $data['initial_consciousness'] ?? null,
         'initial_helmet' => $data['initial_helmet'] ?? null,
 
-        'followup_time' => $data['followup_time'] ?? null,
+        'followup_time' => clean_time_value($data['followup_time'] ?? null),
         'followup_bp' => $data['followup_bp'] ?? null,
         'followup_temp' => isset($data['followup_temp']) && $data['followup_temp'] !== '' ? (float)$data['followup_temp'] : null,
         'followup_pulse' => isset($data['followup_pulse']) && $data['followup_pulse'] !== '' ? (int)$data['followup_pulse'] : null,
@@ -133,7 +141,7 @@ try {
 
         // OB Information
         'ob_baby_status' => $data['baby_status'] ?? null,
-        'ob_delivery_time' => $data['delivery_time'] ?? null,
+        'ob_delivery_time' => clean_time_value($data['delivery_time'] ?? null),
         'ob_placenta' => $data['placenta'] ?? null,
         'ob_lmp' => $data['lmp'] ?? null,
         'ob_aog' => $data['aog'] ?? null,
@@ -149,7 +157,7 @@ try {
 
         // Hospital Endorsement
         'hospital_name' => $data['hospital_name'] ?? null,
-        'endorsement_datetime' => $data['endorsement_datetime'] ?? null,
+        'endorsement_datetime' => clean_time_value($data['endorsement_datetime'] ?? null),
 
         'status' => 'draft',
         'created_by' => $user_id

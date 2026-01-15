@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS prehospital_forms (
     date_of_birth DATE NOT NULL,
     age INT UNSIGNED NOT NULL,
     gender ENUM('male', 'female') NOT NULL,
-    civil_status ENUM('single', 'married') NULL,
+    civil_status ENUM('single', 'married', 'widowed', 'divorced', 'separated') NULL,
     address TEXT NULL,
     zone VARCHAR(50) NULL,
     occupation VARCHAR(100) NULL,
