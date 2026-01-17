@@ -80,6 +80,14 @@ foreach ($dateFields as $field) {
 }
 $care_management = json_decode($record['care_management'] ?? '[]', true);
 $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
+$initial_consciousness = json_decode($record['initial_consciousness'] ?? '[]', true);
+if (!is_array($initial_consciousness)) {
+    $initial_consciousness = !empty($record['initial_consciousness']) ? [$record['initial_consciousness']] : [];
+}
+$followup_consciousness = json_decode($record['followup_consciousness'] ?? '[]', true);
+if (!is_array($followup_consciousness)) {
+    $followup_consciousness = !empty($record['followup_consciousness']) ? [$record['followup_consciousness']] : [];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -462,6 +470,32 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
             .flatpickr-current-month input.cur-year {
                 font-size: 16px !important;
                 padding: 4px !important;
+            }
+
+            /* Flatpickr input field styling */
+            .flatpickr-input {
+                font-size: 16px !important;
+                min-height: 48px !important;
+                padding: 12px !important;
+            }
+
+            /* Flatpickr weekday labels */
+            .flatpickr-weekdays {
+                padding: 8px 0 !important;
+            }
+
+            .flatpickr-weekday {
+                font-size: 14px !important;
+                font-weight: 600 !important;
+            }
+
+            /* Current month/year dropdown styling */
+            .flatpickr-current-month {
+                padding: 12px 0 !important;
+            }
+
+            .flatpickr-current-month .flatpickr-monthDropdown-months {
+                min-height: 40px !important;
             }
         }
 
@@ -1114,23 +1148,23 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                                 <label class="form-label">Level of Consciousness</label>
                                 <div class="inline-group">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="initial_consciousness" id="initialAlert" value="alert"
-                                               <?php echo $record['initial_consciousness'] === 'alert' ? 'checked' : ''; ?>>
+                                        <input class="form-check-input" type="checkbox" name="initial_consciousness[]" id="initialAlert" value="alert"
+                                               <?php echo in_array('alert', $initial_consciousness) ? 'checked' : ''; ?>>
                                         <label class="form-check-label" for="initialAlert">Alert</label>
                                     </div>
                                     <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="initial_consciousness" id="initialVerbal" value="verbal"
-                                               <?php echo $record['initial_consciousness'] === 'verbal' ? 'checked' : ''; ?>>
+                                        <input class="form-check-input" type="checkbox" name="initial_consciousness[]" id="initialVerbal" value="verbal"
+                                               <?php echo in_array('verbal', $initial_consciousness) ? 'checked' : ''; ?>>
                                         <label class="form-check-label" for="initialVerbal">Verbal</label>
                                     </div>
                                     <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="initial_consciousness" id="initialPain" value="pain"
-                                               <?php echo $record['initial_consciousness'] === 'pain' ? 'checked' : ''; ?>>
+                                        <input class="form-check-input" type="checkbox" name="initial_consciousness[]" id="initialPain" value="pain"
+                                               <?php echo in_array('pain', $initial_consciousness) ? 'checked' : ''; ?>>
                                         <label class="form-check-label" for="initialPain">Pain</label>
                                     </div>
                                     <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="initial_consciousness" id="initialUnconscious" value="unconscious"
-                                               <?php echo $record['initial_consciousness'] === 'unconscious' ? 'checked' : ''; ?>>
+                                        <input class="form-check-input" type="checkbox" name="initial_consciousness[]" id="initialUnconscious" value="unconscious"
+                                               <?php echo in_array('unconscious', $initial_consciousness) ? 'checked' : ''; ?>>
                                         <label class="form-check-label" for="initialUnconscious">Unconscious</label>
                                     </div>
                                 </div>
@@ -1216,23 +1250,23 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
                             <label class="form-label">Level of Consciousness</label>
                             <div class="inline-group">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="followup_consciousness" id="followupAlert" value="alert"
-                                           <?php echo $record['followup_consciousness'] === 'alert' ? 'checked' : ''; ?>>
+                                    <input class="form-check-input" type="checkbox" name="followup_consciousness[]" id="followupAlert" value="alert"
+                                           <?php echo in_array('alert', $followup_consciousness) ? 'checked' : ''; ?>>
                                     <label class="form-check-label" for="followupAlert">Alert</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="followup_consciousness" id="followupVerbal" value="verbal"
-                                           <?php echo $record['followup_consciousness'] === 'verbal' ? 'checked' : ''; ?>>
+                                    <input class="form-check-input" type="checkbox" name="followup_consciousness[]" id="followupVerbal" value="verbal"
+                                           <?php echo in_array('verbal', $followup_consciousness) ? 'checked' : ''; ?>>
                                     <label class="form-check-label" for="followupVerbal">Verbal</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="followup_consciousness" id="followupPain" value="pain"
-                                           <?php echo $record['followup_consciousness'] === 'pain' ? 'checked' : ''; ?>>
+                                    <input class="form-check-input" type="checkbox" name="followup_consciousness[]" id="followupPain" value="pain"
+                                           <?php echo in_array('pain', $followup_consciousness) ? 'checked' : ''; ?>>
                                     <label class="form-check-label" for="followupPain">Pain</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="followup_consciousness" id="followupUnconscious" value="unconscious"
-                                           <?php echo $record['followup_consciousness'] === 'unconscious' ? 'checked' : ''; ?>>
+                                    <input class="form-check-input" type="checkbox" name="followup_consciousness[]" id="followupUnconscious" value="unconscious"
+                                           <?php echo in_array('unconscious', $followup_consciousness) ? 'checked' : ''; ?>>
                                     <label class="form-check-label" for="followupUnconscious">Unconscious</label>
                                 </div>
                             </div>
@@ -1881,6 +1915,69 @@ $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
             });
 
             console.log('Flatpickr initialized on ' + datetimeInputs.length + ' datetime inputs with mobile optimization');
+
+            // ============================================
+            // FLATPICKR DATE PICKER INITIALIZATION
+            // ============================================
+            // Select all date input fields
+            const dateInputs = document.querySelectorAll('input[type="date"]');
+
+            // Initialize Flatpickr on each date input
+            dateInputs.forEach(function(input) {
+                flatpickr(input, {
+                    dateFormat: "Y-m-d", // Format for date input compatibility
+                    // Mobile-friendly configuration
+                    disableMobile: false,
+                    // Allow manual input
+                    allowInput: true,
+                    // Better mobile touch experience
+                    clickOpens: true,
+                    // Position the picker
+                    position: "auto",
+                    // Set default to current value if exists
+                    defaultDate: input.value || null,
+                    // Custom styling for mobile
+                    onReady: function(selectedDates, dateStr, instance) {
+                        // Add mobile-friendly class
+                        instance.calendarContainer.classList.add('flatpickr-mobile');
+
+                        // Make the calendar touch-friendly on mobile
+                        if (window.innerWidth <= 768) {
+                            instance.calendarContainer.style.fontSize = '16px';
+                        }
+                    },
+                    // Format value for backend
+                    onChange: function(selectedDates, dateStr, instance) {
+                        if (selectedDates.length > 0) {
+                            const date = selectedDates[0];
+
+                            // Format as YYYY-MM-DD for date input
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+
+                            const dateValue = `${year}-${month}-${day}`;
+                            input.value = dateValue;
+                        }
+
+                        // Trigger change event
+                        const event = new Event('change', { bubbles: true });
+                        input.dispatchEvent(event);
+                    },
+                    // Add backdrop on mobile when calendar opens
+                    onOpen: function(selectedDates, dateStr, instance) {
+                        if (window.innerWidth <= 768) {
+                            document.body.classList.add('flatpickr-mobile-open');
+                        }
+                    },
+                    // Remove backdrop when calendar closes
+                    onClose: function(selectedDates, dateStr, instance) {
+                        document.body.classList.remove('flatpickr-mobile-open');
+                    }
+                });
+            });
+
+            console.log('Flatpickr initialized on ' + dateInputs.length + ' date inputs with mobile optimization');
         });
 
         // Configure Notiflix

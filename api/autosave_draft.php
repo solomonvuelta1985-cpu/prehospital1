@@ -128,7 +128,7 @@ try {
         'initial_pain_score' => isset($data['initial_pain_score']) && $data['initial_pain_score'] !== '' ? (int)$data['initial_pain_score'] : null,
         'initial_spo2' => isset($data['initial_spo2']) && $data['initial_spo2'] !== '' ? (int)$data['initial_spo2'] : null,
         'initial_spinal_injury' => $data['initial_spinal_injury'] ?? null,
-        'initial_consciousness' => $data['initial_consciousness'] ?? null,
+        'initial_consciousness' => isset($data['initial_consciousness']) && is_array($data['initial_consciousness']) ? json_encode($data['initial_consciousness']) : ($data['initial_consciousness'] ?? null),
         'initial_helmet' => $data['initial_helmet'] ?? null,
 
         'followup_time' => clean_time_value($data['followup_time'] ?? null),
@@ -139,7 +139,7 @@ try {
         'followup_pain_score' => isset($data['followup_pain_score']) && $data['followup_pain_score'] !== '' ? (int)$data['followup_pain_score'] : null,
         'followup_spo2' => isset($data['followup_spo2']) && $data['followup_spo2'] !== '' ? (int)$data['followup_spo2'] : null,
         'followup_spinal_injury' => $data['followup_spinal_injury'] ?? null,
-        'followup_consciousness' => $data['followup_consciousness'] ?? null,
+        'followup_consciousness' => isset($data['followup_consciousness']) && is_array($data['followup_consciousness']) ? json_encode($data['followup_consciousness']) : ($data['followup_consciousness'] ?? null),
 
         // Assessment
         'chief_complaints' => isset($data['chief_complaints']) ? json_encode($data['chief_complaints']) : null,

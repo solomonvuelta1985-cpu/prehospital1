@@ -806,7 +806,20 @@ $current_user = get_auth_user();
                                 </div>
                                 <div class="data-field">
                                     <label>Consciousness</label>
-                                    <div class="value<?php echo empty($record['initial_consciousness']) ? ' empty' : ''; ?>"><?php echo ucfirst($record['initial_consciousness'] ?: 'Not recorded'); ?></div>
+                                    <div class="value<?php echo empty($record['initial_consciousness']) ? ' empty' : ''; ?>">
+                                        <?php
+                                        if (!empty($record['initial_consciousness'])) {
+                                            $consciousness = json_decode($record['initial_consciousness'], true);
+                                            if (is_array($consciousness)) {
+                                                echo implode(', ', array_map('ucfirst', $consciousness));
+                                            } else {
+                                                echo ucfirst($record['initial_consciousness']);
+                                            }
+                                        } else {
+                                            echo 'Not recorded';
+                                        }
+                                        ?>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -834,7 +847,20 @@ $current_user = get_auth_user();
                                 </div>
                                 <div class="data-field">
                                     <label>Consciousness</label>
-                                    <div class="value<?php echo empty($record['followup_consciousness']) ? ' empty' : ''; ?>"><?php echo ucfirst($record['followup_consciousness'] ?: 'Not recorded'); ?></div>
+                                    <div class="value<?php echo empty($record['followup_consciousness']) ? ' empty' : ''; ?>">
+                                        <?php
+                                        if (!empty($record['followup_consciousness'])) {
+                                            $consciousness = json_decode($record['followup_consciousness'], true);
+                                            if (is_array($consciousness)) {
+                                                echo implode(', ', array_map('ucfirst', $consciousness));
+                                            } else {
+                                                echo ucfirst($record['followup_consciousness']);
+                                            }
+                                        } else {
+                                            echo 'Not recorded';
+                                        }
+                                        ?>
+                                    </div>
                                 </div>
                             </div>
                         </div>

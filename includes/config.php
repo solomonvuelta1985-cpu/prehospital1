@@ -63,10 +63,21 @@ if (!IS_LOCALHOST) {
     }
 }
 
-// Session configuration
+// Session configuration - Detect mobile webview for conditional settings
+$is_mobile_webview_request = (
+    (isset($_SERVER['HTTP_USER_AGENT']) && (
+        stripos($_SERVER['HTTP_USER_AGENT'], 'wv') !== false ||
+        stripos($_SERVER['HTTP_USER_AGENT'], 'WebView') !== false ||
+        stripos($_SERVER['HTTP_USER_AGENT'], 'Replit') !== false
+    )) ||
+    isset($_GET['mobile_app']) ||
+    (isset($_SERVER['HTTP_X_MOBILE_APP']) && $_SERVER['HTTP_X_MOBILE_APP'] === 'true')
+);
+
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_only_cookies', 1);
-ini_set('session.cookie_samesite', 'Strict');
+// Desktop: Strict (more secure) | Mobile: Lax (more compatible)
+ini_set('session.cookie_samesite', $is_mobile_webview_request ? 'Lax' : 'Strict');
 
 // Add secure flag ONLY if HTTPS is actually enabled
 if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
@@ -75,6 +86,22 @@ if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
+}
+
+// Set security headers conditionally based on mobile webview detection
+// Desktop users get full protection, mobile webviews get compatibility mode
+if (!$is_mobile_webview_request) {
+    // Full security for desktop browsers
+    header('X-Frame-Options: SAMEORIGIN');
+    header('X-Content-Type-Options: nosniff');
+    header('X-XSS-Protection: 1; mode=block');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+} else {
+    // Mobile webview - allow framing but keep other protections
+    header('X-Content-Type-Options: nosniff');
+    header('X-XSS-Protection: 1; mode=block');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    // X-Frame-Options intentionally omitted for mobile webview compatibility
 }
 
 // PDO Database Connection

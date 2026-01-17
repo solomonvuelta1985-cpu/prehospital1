@@ -18,8 +18,12 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . index.php [L]
 
 # Security headers
+# Note: X-Frame-Options is set conditionally in PHP (config.php) based on user agent:
+# - Desktop browsers: SAMEORIGIN (prevents clickjacking attacks)
+# - Mobile app webviews: Not set (allows embedding in mobile apps)
+# The .htaccess SAMEORIGIN below applies as fallback for static files
 <IfModule mod_headers.c>
-    Header always set X-Frame-Options DENY
+    Header always set X-Frame-Options SAMEORIGIN
     Header always set X-Content-Type-Options nosniff
     Header always set X-XSS-Protection "1; mode=block"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"

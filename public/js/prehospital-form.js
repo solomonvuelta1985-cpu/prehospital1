@@ -313,8 +313,8 @@ function generateFormSummary() {
     summaryHTML += `<tr><td><strong>Pain Score:</strong></td><td>${document.getElementById('initialPainScore').value || 'Not specified'}</td></tr>`;
     summaryHTML += `<tr><td><strong>SPO2:</strong></td><td>${document.getElementById('initialSPO2').value || 'Not specified'}%</td></tr>`;
 
-    const initialConsciousness = document.querySelector('input[name="initial_consciousness"]:checked');
-    summaryHTML += `<tr><td><strong>Level of Consciousness:</strong></td><td>${initialConsciousness ? initialConsciousness.value : 'Not specified'}</td></tr>`;
+    const initialConsciousness = Array.from(document.querySelectorAll('input[name="initial_consciousness[]"]:checked')).map(cb => cb.value);
+    summaryHTML += `<tr><td><strong>Level of Consciousness:</strong></td><td>${initialConsciousness.length > 0 ? initialConsciousness.join(', ') : 'Not specified'}</td></tr>`;
     summaryHTML += '</tbody></table>';
 
     summaryHTML += '<h7>Follow-up:</h7>';
@@ -328,8 +328,8 @@ function generateFormSummary() {
     summaryHTML += `<tr><td><strong>Pain Score:</strong></td><td>${document.getElementById('followupPainScore').value || 'Not specified'}</td></tr>`;
     summaryHTML += `<tr><td><strong>SPO2:</strong></td><td>${document.getElementById('followupSPO2').value || 'Not specified'}%</td></tr>`;
 
-    const followupConsciousness = document.querySelector('input[name="followup_consciousness"]:checked');
-    summaryHTML += `<tr><td><strong>Level of Consciousness:</strong></td><td>${followupConsciousness ? followupConsciousness.value : 'Not specified'}</td></tr>`;
+    const followupConsciousness = Array.from(document.querySelectorAll('input[name="followup_consciousness[]"]:checked')).map(cb => cb.value);
+    summaryHTML += `<tr><td><strong>Level of Consciousness:</strong></td><td>${followupConsciousness.length > 0 ? followupConsciousness.join(', ') : 'Not specified'}</td></tr>`;
     summaryHTML += '</tbody></table>';
     summaryHTML += '</div>';
 
