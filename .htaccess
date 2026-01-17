@@ -58,3 +58,68 @@ AddDefaultCharset UTF-8
 
 # Hide directory listing
 Options -Indexes
+
+# ============================================
+# Browser Caching & Performance Optimization
+# ============================================
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    # Images - Cache for 1 year
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/x-icon "access plus 1 year"
+    ExpiresByType image/vnd.microsoft.icon "access plus 1 year"
+
+    # CSS and JavaScript - Cache for 1 week (versioned via query string)
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType application/x-javascript "access plus 1 week"
+    ExpiresByType text/javascript "access plus 1 week"
+
+    # Fonts - Cache for 1 year
+    ExpiresByType font/ttf "access plus 1 year"
+    ExpiresByType font/otf "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType application/font-woff "access plus 1 year"
+    ExpiresByType application/font-woff2 "access plus 1 year"
+
+    # Documents - Cache for 1 month
+    ExpiresByType application/pdf "access plus 1 month"
+
+    # HTML - No cache (dynamic content)
+    ExpiresByType text/html "access plus 0 seconds"
+
+    # Default - Cache for 1 day
+    ExpiresDefault "access plus 1 day"
+</IfModule>
+
+# Cache-Control headers for better performance
+<IfModule mod_headers.c>
+    # Static assets with versioning - cache for 1 week
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "public, max-age=604800, must-revalidate"
+    </FilesMatch>
+
+    # Images - cache for 1 year
+    <FilesMatch "\.(jpg|jpeg|png|gif|svg|webp|ico)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+
+    # Fonts - cache for 1 year
+    <FilesMatch "\.(ttf|otf|woff|woff2|eot)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+
+    # PHP files - no cache
+    <FilesMatch "\.php$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+</IfModule>

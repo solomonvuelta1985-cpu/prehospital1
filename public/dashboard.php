@@ -17,32 +17,36 @@ $current_user = get_auth_user();
 
 // Get user statistics
 $user_id = $current_user['id'];
-
-$total_forms_stmt = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ?", [$user_id]);
-$total_forms = $total_forms_stmt->fetch()['count'];
-
-$today_forms_stmt = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND DATE(created_at) = CURDATE()", [$user_id]);
-$today_forms = $today_forms_stmt->fetch()['count'];
-
-$draft_forms_stmt = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND status = 'draft'", [$user_id]);
-$draft_forms = $draft_forms_stmt->fetch()['count'];
-
-$completed_forms_stmt = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND status = 'completed'", [$user_id]);
-$completed_forms = $completed_forms_stmt->fetch()['count'];
-
-// Get weekly statistics
 $week_start = date('Y-m-d', strtotime('monday this week'));
-$week_forms_stmt = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND form_date >= ?", [$user_id, $week_start]);
-$week_forms = $week_forms_stmt->fetch()['count'];
-
-// Get monthly statistics
 $month_start = date('Y-m-01');
-$month_forms_stmt = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND form_date >= ?", [$user_id, $month_start]);
-$month_forms = $month_forms_stmt->fetch()['count'];
 
-// Get recent activity (last 5 forms)
+// Optimized: Batch all statistics in a single query
+$stats_stmt = db_query("
+    SELECT
+        COUNT(*) as total_forms,
+        SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as today_forms,
+        SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft_forms,
+        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_forms,
+        SUM(CASE WHEN status = 'archived' THEN 1 ELSE 0 END) as archived_count,
+        SUM(CASE WHEN form_date >= ? THEN 1 ELSE 0 END) as week_forms,
+        SUM(CASE WHEN form_date >= ? THEN 1 ELSE 0 END) as month_forms
+    FROM prehospital_forms
+    WHERE created_by = ?
+", [$week_start, $month_start, $user_id]);
+
+$stats = $stats_stmt->fetch();
+$total_forms = (int)$stats['total_forms'];
+$today_forms = (int)$stats['today_forms'];
+$draft_forms = (int)$stats['draft_forms'];
+$completed_forms = (int)$stats['completed_forms'];
+$archived_count = (int)$stats['archived_count'];
+$week_forms = (int)$stats['week_forms'];
+$month_forms = (int)$stats['month_forms'];
+
+// Get recent activity (last 5 forms) - optimized to only fetch needed columns
 $recent_activity_stmt = db_query("
-    SELECT pf.*, u.full_name as created_by_name
+    SELECT pf.id, pf.form_number, pf.patient_name, pf.arrival_hospital_name,
+           pf.status, pf.created_at, u.full_name as created_by_name
     FROM prehospital_forms pf
     LEFT JOIN users u ON pf.created_by = u.id
     WHERE pf.created_by = ?
@@ -51,33 +55,55 @@ $recent_activity_stmt = db_query("
 ", [$user_id]);
 $recent_activity = $recent_activity_stmt->fetchAll();
 
-// Get data for charts - Last 7 days
+// Optimized: Get data for charts - Last 7 days in a single query
+$seven_days_ago = date('Y-m-d', strtotime('-6 days'));
+$daily_stats_stmt = db_query("
+    SELECT DATE(form_date) as date, COUNT(*) as count
+    FROM prehospital_forms
+    WHERE created_by = ? AND form_date >= ? AND form_date <= CURDATE()
+    GROUP BY DATE(form_date)
+    ORDER BY DATE(form_date) ASC
+", [$user_id, $seven_days_ago]);
+
+$daily_counts = [];
+while ($row = $daily_stats_stmt->fetch()) {
+    $daily_counts[$row['date']] = (int)$row['count'];
+}
+
+// Build 7-day chart data
 $last_7_days = [];
 $last_7_days_data = [];
 for ($i = 6; $i >= 0; $i--) {
     $date = date('Y-m-d', strtotime("-$i days"));
     $label = date('M d', strtotime("-$i days"));
     $last_7_days[] = $label;
-
-    $count_stmt = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND DATE(form_date) = ?", [$user_id, $date]);
-    $last_7_days_data[] = (int)$count_stmt->fetch()['count'];
+    $last_7_days_data[] = isset($daily_counts[$date]) ? $daily_counts[$date] : 0;
 }
 
-// Get monthly data for the year
+// Optimized: Get monthly data for the year in a single query
+$twelve_months_ago = date('Y-m-01', strtotime('-11 months'));
+$monthly_stats_stmt = db_query("
+    SELECT DATE_FORMAT(form_date, '%Y-%m') as month, COUNT(*) as count
+    FROM prehospital_forms
+    WHERE created_by = ? AND form_date >= ?
+    GROUP BY DATE_FORMAT(form_date, '%Y-%m')
+    ORDER BY month ASC
+", [$user_id, $twelve_months_ago]);
+
+$monthly_counts = [];
+while ($row = $monthly_stats_stmt->fetch()) {
+    $monthly_counts[$row['month']] = (int)$row['count'];
+}
+
+// Build 12-month chart data
 $monthly_data = [];
 $monthly_labels = [];
 for ($i = 11; $i >= 0; $i--) {
     $month = date('Y-m', strtotime("-$i months"));
     $label = date('M Y', strtotime("-$i months"));
     $monthly_labels[] = $label;
-
-    $count_stmt = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND DATE_FORMAT(form_date, '%Y-%m') = ?", [$user_id, $month]);
-    $monthly_data[] = (int)$count_stmt->fetch()['count'];
+    $monthly_data[] = isset($monthly_counts[$month]) ? $monthly_counts[$month] : 0;
 }
-
-// Get status distribution (archived count)
-$archived_count_stmt = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND status = 'archived'", [$user_id]);
-$archived_count = (int)$archived_count_stmt->fetch()['count'];
 ?>
 <!DOCTYPE html>
 <html lang="en">

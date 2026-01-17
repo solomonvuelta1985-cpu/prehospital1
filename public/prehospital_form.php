@@ -8,6 +8,7 @@ define('APP_ACCESS', true);
 require_once '../includes/config.php';
 require_once '../includes/functions.php';
 require_once '../includes/auth.php';
+require_once '../includes/version.php';
 
 // Security headers
 header("X-Frame-Options: DENY");
@@ -34,7 +35,7 @@ $current_user = get_auth_user();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link href="css/prehospital-form.css" rel="stylesheet">
+    <link href="css/prehospital-form.css?v=<?php echo asset_version(); ?>" rel="stylesheet">
     <style>
         /* Sidebar Layout Compatibility Fixes */
         body {
@@ -1626,7 +1627,7 @@ $current_user = get_auth_user();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="js/prehospital-form.js?v=<?php echo time(); ?>"></script>
+    <script src="js/prehospital-form.js?v=<?php echo asset_version(); ?>"></script>
     <script>
         // Configure Notiflix
         Notiflix.Notify.init({
@@ -1707,16 +1708,9 @@ $current_user = get_auth_user();
             },
         });
 
-        // Log initial loading state
-        console.log('Page loading started. Body has loading class:', document.body.classList.contains('loading'));
-
-        // Remove skeleton loading once page is fully loaded
+        // Remove skeleton loading once page is fully loaded (OPTIMIZED: No artificial delay)
         window.addEventListener('load', function() {
-            console.log('Page loaded. Skeleton will hide in 3 seconds...');
-            setTimeout(function() {
-                document.body.classList.remove('loading');
-                console.log('Loading class removed. Skeleton hidden.');
-            }, 3000); // Extended delay to see skeleton effect
+            document.body.classList.remove('loading');
         });
 
         // ============================================
@@ -2524,10 +2518,10 @@ $current_user = get_auth_user();
                         clearTimeout(autosaveTimer);
                     }
 
-                    // Set new timer (autosave after 3 seconds of inactivity)
+                    // Set new timer (OPTIMIZED: autosave after 15 seconds of inactivity to reduce server load)
                     autosaveTimer = setTimeout(() => {
                         performAutosave();
-                    }, 3000);
+                    }, 15000);
                 });
 
                 // Also trigger on input for text fields (more responsive)
@@ -2551,7 +2545,7 @@ $current_user = get_auth_user();
 
                         autosaveTimer = setTimeout(() => {
                             performAutosave();
-                        }, 5000); // Longer delay for typing
+                        }, 20000); // OPTIMIZED: 20 seconds for continuous typing to reduce overhead
                     });
                 }
             });
