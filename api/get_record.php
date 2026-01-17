@@ -50,7 +50,7 @@ try {
         'departure_time', 'arrival_time', 'arrival_scene_time', 'departure_scene_time',
         'arrival_hospital_time', 'departure_hospital_time', 'arrival_station_time',
         'incident_time', 'call_arrival_time', 'initial_time', 'followup_time',
-        'delivery_time', 'endorsement_datetime'
+        'ob_delivery_time', 'endorsement_datetime'
     ];
 
     foreach ($dateTimeFields as $field) {
@@ -63,7 +63,7 @@ try {
     }
 
     // Clean up date-only fields
-    $dateFields = ['date_of_birth', 'lmp', 'edc'];
+    $dateFields = ['form_date', 'date_of_birth', 'ob_lmp', 'ob_edc'];
     foreach ($dateFields as $field) {
         if (isset($record[$field])) {
             if ($record[$field] === '0000-00-00' || $record[$field] === null || $record[$field] === '' ||

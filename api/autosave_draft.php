@@ -52,6 +52,14 @@ try {
         return $value;
     }
 
+    // Helper function to clean date values - convert empty/invalid dates to null
+    function clean_date_value($value) {
+        if ($value === '' || $value === null || $value === '0000-00-00' || $value === '0000-00-00 00:00:00') {
+            return null;
+        }
+        return $value;
+    }
+
     // Validate vehicle_details if provided (should be JSON or null)
     $vehicle_details_value = $data['vehicle_details'] ?? null;
     if ($vehicle_details_value !== null && $vehicle_details_value !== '') {
@@ -69,7 +77,7 @@ try {
 
     // Prepare form data
     $form_data = [
-        'form_date' => $data['form_date'] ?? null,
+        'form_date' => clean_date_value($data['form_date'] ?? null), // Now allows NULL in database
         'departure_time' => clean_time_value($data['departure_time'] ?? null),
         'arrival_time' => clean_time_value($data['arrival_time'] ?? null),
         'vehicle_used' => $data['vehicle_used'] ?? null,
@@ -87,7 +95,7 @@ try {
 
         // Patient Information
         'patient_name' => $data['patient_name'] ?? null,
-        'date_of_birth' => $data['date_of_birth'] ?? null,
+        'date_of_birth' => clean_date_value($data['date_of_birth'] ?? null),
         'age' => isset($data['age']) && $data['age'] !== '' ? (int)$data['age'] : null,
         'gender' => $data['gender'] ?? null,
         'civil_status' => $data['civil_status'] ?? null,
@@ -154,9 +162,9 @@ try {
         'ob_baby_status' => $data['baby_status'] ?? null,
         'ob_delivery_time' => clean_time_value($data['delivery_time'] ?? null),
         'ob_placenta' => $data['placenta'] ?? null,
-        'ob_lmp' => $data['lmp'] ?? null,
+        'ob_lmp' => clean_date_value($data['lmp'] ?? null),
         'ob_aog' => $data['aog'] ?? null,
-        'ob_edc' => $data['edc'] ?? null,
+        'ob_edc' => clean_date_value($data['edc'] ?? null),
 
         // Team Information
         'team_leader_notes' => $data['team_leader_notes'] ?? null,

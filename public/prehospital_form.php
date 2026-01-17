@@ -34,7 +34,6 @@ $current_user = get_auth_user();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link href="css/prehospital-form.css?v=<?php echo asset_version(); ?>" rel="stylesheet">
     <style>
         /* Sidebar Layout Compatibility Fixes */
@@ -1626,8 +1625,9 @@ $current_user = get_auth_user();
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="js/prehospital-form.js?v=<?php echo asset_version(); ?>"></script>
+    <!-- Custom Date/Time Components - Load AFTER main form script -->
+    <script src="js/custom-datetime.js?v=<?php echo asset_version(); ?>"></script>
     <script>
         // Configure Notiflix
         Notiflix.Notify.init({
@@ -1748,6 +1748,9 @@ $current_user = get_auth_user();
             console.log('Uppercase conversion initialized on ' + textInputs.length + ' text inputs');
 
             // ============================================
+            // FLATPICKR DISABLED - Using custom dropdowns instead
+            // ============================================
+            /*
             // FLATPICKR TIME PICKER INITIALIZATION
             // ============================================
             // Select all time input fields
@@ -1758,11 +1761,11 @@ $current_user = get_auth_user();
                 flatpickr(input, {
                     enableTime: true,
                     noCalendar: true,
-                    dateFormat: "h:i K", // 12-hour format with AM/PM
-                    time_24hr: false, // Use 12-hour format
+                    dateFormat: "h:i K", // 12-hour format with AM/PM for users
+                    time_24hr: false, // Use 12-hour format with AM/PM
                     minuteIncrement: 1,
-                    // Mobile-friendly configuration
-                    disableMobile: false,
+                    // Allow native mobile time picker - easier scrolling interface
+                    disableMobile: true, // Let mobile devices use their native time picker
                     // Allow manual input
                     allowInput: true,
                     // Default time
@@ -1785,9 +1788,9 @@ $current_user = get_auth_user();
                             const minutes = String(date.getMinutes()).padStart(2, '0');
                             const time24 = hours + ':' + minutes;
 
-                            // Store the 24-hour format in a hidden attribute for backend
+                            // Store 24-hour format as data attribute for backend
                             input.setAttribute('data-time-24hr', time24);
-                            // Keep the value as 24-hour format for backend compatibility
+                            // Keep the actual value as 24-hour for backend compatibility
                             input.value = time24;
                         }
 
@@ -1795,28 +1798,15 @@ $current_user = get_auth_user();
                         const event = new Event('change', { bubbles: true });
                         input.dispatchEvent(event);
                     },
-                    // Parse existing 24-hour values and display as 12-hour, add backdrop
-                    onOpen: function(selectedDates, dateStr, instance) {
-                        // Add backdrop on mobile
-                        if (window.innerWidth <= 768) {
-                            document.body.classList.add('flatpickr-mobile-open');
-                        }
-
-                        // Parse existing time
-                        if (input.value && input.value.match(/^\d{2}:\d{2}$/)) {
-                            // Parse 24-hour format
-                            const [hours, minutes] = input.value.split(':');
-                            const hour24 = parseInt(hours);
-                            const hour12 = hour24 === 0 ? 12 : (hour24 > 12 ? hour24 - 12 : hour24);
-                            const ampm = hour24 >= 12 ? 'PM' : 'AM';
-
-                            // Update the display
-                            instance.input.value = `${String(hour12).padStart(2, '0')}:${minutes} ${ampm}`;
-                        }
-                    },
-                    // Remove backdrop when calendar closes
+                    // Ensure value is in 24-hour format when closing
                     onClose: function(selectedDates, dateStr, instance) {
-                        document.body.classList.remove('flatpickr-mobile-open');
+                        if (selectedDates.length > 0) {
+                            const date = selectedDates[0];
+                            const hours = String(date.getHours()).padStart(2, '0');
+                            const minutes = String(date.getMinutes()).padStart(2, '0');
+                            const time24 = hours + ':' + minutes;
+                            input.value = time24;
+                        }
                     }
                 });
             });
@@ -1829,11 +1819,11 @@ $current_user = get_auth_user();
             datetimeInputs.forEach(function(input) {
                 flatpickr(input, {
                     enableTime: true,
-                    dateFormat: "Y-m-d H:i", // Format for datetime-local compatibility
+                    dateFormat: "Y-m-d h:i K", // Date with 12-hour time and AM/PM
                     time_24hr: false, // Use 12-hour format with AM/PM
                     minuteIncrement: 1,
-                    // Mobile-friendly configuration
-                    disableMobile: false,
+                    // Allow native mobile datetime picker
+                    disableMobile: true,
                     // Allow manual input
                     allowInput: true,
                     // Better mobile touch experience
@@ -1881,11 +1871,23 @@ $current_user = get_auth_user();
                     // Remove backdrop when calendar closes
                     onClose: function(selectedDates, dateStr, instance) {
                         document.body.classList.remove('flatpickr-mobile-open');
+
+                        // Ensure datetime value is in correct format for backend
+                        if (selectedDates.length > 0) {
+                            const date = selectedDates[0];
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+                            const hours = String(date.getHours()).padStart(2, '0');
+                            const minutes = String(date.getMinutes()).padStart(2, '0');
+                            const datetimeValue = `${year}-${month}-${day}T${hours}:${minutes}`;
+                            input.value = datetimeValue;
+                        }
                     }
                 });
             });
 
-            console.log('Flatpickr initialized on ' + datetimeInputs.length + ' datetime inputs with mobile optimization');
+            console.log('Flatpickr initialized on ' + datetimeInputs.length + ' datetime inputs with 12-hour AM/PM format');
 
             // ============================================
             // FLATPICKR DATE PICKER INITIALIZATION
@@ -1897,8 +1899,8 @@ $current_user = get_auth_user();
             dateInputs.forEach(function(input) {
                 flatpickr(input, {
                     dateFormat: "Y-m-d", // Format for date input compatibility
-                    // Mobile-friendly configuration
-                    disableMobile: false,
+                    // USE NATIVE MOBILE DATE PICKER - Much easier to use!
+                    disableMobile: true,
                     // Allow manual input
                     allowInput: true,
                     // Better mobile touch experience
@@ -1950,6 +1952,9 @@ $current_user = get_auth_user();
 
             console.log('Flatpickr initialized on ' + dateInputs.length + ' date inputs with mobile optimization');
         });
+        */
+        // End of Flatpickr (disabled - using custom dropdowns)
+        }); // End of DOMContentLoaded event listener
 
         // ============================================
         // AUTOSAVE FUNCTIONALITY
@@ -2355,14 +2360,28 @@ $current_user = get_auth_user();
                         if (input.type === 'time') {
                             const timeValue = data[key];
                             // Only set value if it's not null, empty, or 00:00:00
-                            if (timeValue && timeValue !== '00:00:00' && timeValue !== '0000-00-00 00:00:00') {
+                            if (timeValue &&
+                                timeValue !== '00:00:00' &&
+                                timeValue !== '0000-00-00 00:00:00' &&
+                                timeValue !== 'null' &&
+                                timeValue.trim() !== '') {
                                 input.value = timeValue;
+                            } else {
+                                // Explicitly clear the field
+                                input.value = '';
                             }
                         } else if (input.type === 'date' || input.type === 'datetime-local') {
                             const dateValue = data[key];
                             // Only set value if it's not null, empty, or 0000-00-00
-                            if (dateValue && dateValue !== '0000-00-00' && dateValue !== '0000-00-00 00:00:00') {
+                            if (dateValue &&
+                                dateValue !== '0000-00-00' &&
+                                dateValue !== '0000-00-00 00:00:00' &&
+                                dateValue !== 'null' &&
+                                dateValue.trim() !== '') {
                                 input.value = dateValue;
+                            } else {
+                                // Explicitly clear the field
+                                input.value = '';
                             }
                         } else {
                             // Regular input - set value or empty string

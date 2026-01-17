@@ -37,6 +37,51 @@ try {
         throw new Exception('Draft not found or unauthorized');
     }
 
+    // Clean up time and date fields - prevent 00:00:00 and 0000-00-00 from being loaded
+    $timeFields = [
+        'departure_time', 'arrival_time', 'arrival_scene_time', 'departure_scene_time',
+        'arrival_hospital_time', 'departure_hospital_time', 'arrival_station_time',
+        'incident_time', 'call_arrival_time', 'initial_time', 'followup_time',
+        'ob_delivery_time'
+    ];
+
+    foreach ($timeFields as $field) {
+        if (isset($draft[$field])) {
+            // Clear time fields if they are '00:00:00' or NULL or empty
+            if ($draft[$field] === '00:00:00' || $draft[$field] === null || $draft[$field] === '' ||
+                $draft[$field] === '0000-00-00 00:00:00') {
+                $draft[$field] = '';
+            }
+        }
+    }
+
+    // Clean up datetime fields
+    $dateTimeFields = [
+        'endorsement_datetime'
+    ];
+
+    foreach ($dateTimeFields as $field) {
+        if (isset($draft[$field])) {
+            // Clear datetime fields if they are '00:00:00' or NULL or empty
+            if ($draft[$field] === '00:00:00' || $draft[$field] === null || $draft[$field] === '' ||
+                $draft[$field] === '0000-00-00 00:00:00') {
+                $draft[$field] = '';
+            }
+        }
+    }
+
+    // Clean up date-only fields (form_date can be 0000-00-00 in draft state)
+    $dateFields = ['form_date', 'date_of_birth', 'ob_lmp', 'ob_edc'];
+    foreach ($dateFields as $field) {
+        if (isset($draft[$field])) {
+            // Clear date fields if they are '0000-00-00' or NULL or empty
+            if ($draft[$field] === '0000-00-00' || $draft[$field] === null || $draft[$field] === '' ||
+                $draft[$field] === '0000-00-00 00:00:00') {
+                $draft[$field] = '';
+            }
+        }
+    }
+
     echo json_encode([
         'success' => true,
         'data' => $draft,

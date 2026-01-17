@@ -238,7 +238,7 @@ try {
     $other_care = !empty($_POST['other_care']) ? sanitize($_POST['other_care']) : null;
 
     // Initial Vitals - Handle empty values properly
-    $initial_time = !empty($_POST['initial_time']) ? sanitize($_POST['initial_time']) : null;
+    $initial_time = !empty($_POST['initial_time']) ? sanitize($_POST['initial_time'], false) : null; // Don't uppercase time
     $initial_bp = !empty($_POST['initial_bp']) ? sanitize($_POST['initial_bp']) : null;
     $initial_temp = (!empty($_POST['initial_temp']) && $_POST['initial_temp'] !== '') ? (float)$_POST['initial_temp'] : null;
     $initial_pulse = (!empty($_POST['initial_pulse']) && $_POST['initial_pulse'] !== '') ? (int)$_POST['initial_pulse'] : null;
@@ -250,7 +250,7 @@ try {
     $initial_helmet = !empty($_POST['initial_helmet']) ? sanitize($_POST['initial_helmet']) : null;
 
     // Follow-up Vitals
-    $followup_time = !empty($_POST['followup_time']) ? sanitize($_POST['followup_time']) : null;
+    $followup_time = !empty($_POST['followup_time']) ? sanitize($_POST['followup_time'], false) : null; // Don't uppercase time
     $followup_bp = !empty($_POST['followup_bp']) ? sanitize($_POST['followup_bp']) : null;
     $followup_temp = (!empty($_POST['followup_temp']) && $_POST['followup_temp'] !== '') ? (float)$_POST['followup_temp'] : null;
     $followup_pulse = (!empty($_POST['followup_pulse']) && $_POST['followup_pulse'] !== '') ? (int)$_POST['followup_pulse'] : null;
@@ -278,11 +278,11 @@ try {
 
     // OB Information
     $ob_baby_status = !empty($_POST['baby_status']) ? sanitize($_POST['baby_status']) : null;
-    $ob_delivery_time = !empty($_POST['delivery_time']) ? sanitize($_POST['delivery_time']) : null;
-    $ob_placenta = !empty($_POST['placenta']) ? sanitize($_POST['placenta']) : null;
-    $ob_lmp = !empty($_POST['lmp']) ? sanitize($_POST['lmp']) : null;
+    $ob_delivery_time = !empty($_POST['delivery_time']) ? sanitize($_POST['delivery_time'], false) : null; // Don't uppercase time
+    $ob_placenta = !empty($_POST['placenta']) ? sanitize($_POST['placenta'], false) : null; // Don't uppercase enum
+    $ob_lmp = !empty($_POST['lmp']) ? sanitize($_POST['lmp'], false) : null; // Don't uppercase date
     $ob_aog = !empty($_POST['aog']) ? sanitize($_POST['aog']) : null;
-    $ob_edc = !empty($_POST['edc']) ? sanitize($_POST['edc']) : null;
+    $ob_edc = !empty($_POST['edc']) ? sanitize($_POST['edc'], false) : null; // Don't uppercase date
 
     // Team Information
     $team_leader_notes = !empty($_POST['team_leader_notes']) ? sanitize($_POST['team_leader_notes']) : null;
@@ -305,7 +305,7 @@ try {
         }
     }
 
-    $endorsement_datetime = $endorsement_datetime_raw ? sanitize($endorsement_datetime_raw) : null;
+    $endorsement_datetime = $endorsement_datetime_raw ? sanitize($endorsement_datetime_raw, false) : null; // Don't uppercase datetime
 
     // Handle file upload security - Endorsement Attachment
     // Get existing endorsement attachment from database first

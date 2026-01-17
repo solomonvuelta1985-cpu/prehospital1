@@ -7,6 +7,7 @@ define('APP_ACCESS', true);
 require_once '../includes/config.php';
 require_once '../includes/functions.php';
 require_once '../includes/auth.php';
+require_once '../includes/version.php';
 
 // Security headers
 header("X-Frame-Options: DENY");
@@ -54,7 +55,7 @@ $dateTimeFields = [
     'departure_time', 'arrival_time', 'arrival_scene_time', 'departure_scene_time',
     'arrival_hospital_time', 'departure_hospital_time', 'arrival_station_time',
     'incident_time', 'call_arrival_time', 'initial_time', 'followup_time',
-    'delivery_time', 'endorsement_datetime'
+    'ob_delivery_time', 'endorsement_datetime'
 ];
 
 foreach ($dateTimeFields as $field) {
@@ -68,7 +69,7 @@ foreach ($dateTimeFields as $field) {
 }
 
 // Clean up date-only fields
-$dateFields = ['date_of_birth', 'lmp', 'edc'];
+$dateFields = ['form_date', 'date_of_birth', 'ob_lmp', 'ob_edc'];
 foreach ($dateFields as $field) {
     if (isset($record[$field])) {
         // Clear date fields if they are '0000-00-00' or NULL or empty
@@ -98,7 +99,6 @@ if (!is_array($followup_consciousness)) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link href="css/prehospital-form.css" rel="stylesheet">
     <style>
         /* Sidebar Layout Compatibility Fixes */
@@ -1733,15 +1733,31 @@ if (!is_array($followup_consciousness)) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="js/prehospital-form.js"></script>
+    <script src="js/prehospital-form.js?v=<?php echo asset_version(); ?>"></script>
+    <!-- Custom Date/Time Components - Load AFTER main form script -->
+    <script src="js/custom-datetime.js?v=<?php echo asset_version(); ?>"></script>
     <script>
-        // Remove loading class after page loads
+        // Remove loading class after page loads - CRITICAL: Always remove skeleton
         window.addEventListener('load', function() {
             setTimeout(function() {
-                document.body.classList.remove('loading');
-            }, 800);
+                try {
+                    document.body.classList.remove('loading');
+                    console.log('Skeleton loading removed successfully');
+                } catch(e) {
+                    console.error('Error removing skeleton:', e);
+                    // Force remove skeleton even if error
+                    document.body.className = document.body.className.replace('loading', '');
+                }
+            }, 1000); // Increased to 1000ms to ensure custom-datetime.js finishes
         });
+
+        // Failsafe: Remove skeleton after 3 seconds no matter what
+        setTimeout(function() {
+            if (document.body.classList.contains('loading')) {
+                console.warn('Failsafe: Forcing skeleton removal');
+                document.body.classList.remove('loading');
+            }
+        }, 3000);
 
         // Show flash messages with Notiflix
         document.addEventListener('DOMContentLoaded', function() {
@@ -1786,8 +1802,9 @@ if (!is_array($followup_consciousness)) {
             console.log('Uppercase conversion initialized on ' + textInputs.length + ' text inputs');
 
             // ============================================
-            // FLATPICKR TIME PICKER INITIALIZATION
+            // FLATPICKR TIME PICKER INITIALIZATION - DISABLED (Using custom dropdowns instead)
             // ============================================
+            /*
             // Initialize Flatpickr for time inputs
             const timeInputs = document.querySelectorAll('input[type="time"]');
 
@@ -1855,8 +1872,10 @@ if (!is_array($followup_consciousness)) {
             });
 
             console.log('Flatpickr initialized on ' + timeInputs.length + ' time inputs with 12-hour AM/PM format');
+            */
 
-            // Initialize Flatpickr for datetime-local inputs (Date & Time pickers)
+            /*
+            // Initialize Flatpickr for datetime-local inputs (Date & Time pickers) - DISABLED
             const datetimeInputs = document.querySelectorAll('input[type="datetime-local"]');
 
             datetimeInputs.forEach(function(input) {
@@ -1917,7 +1936,7 @@ if (!is_array($followup_consciousness)) {
             console.log('Flatpickr initialized on ' + datetimeInputs.length + ' datetime inputs with mobile optimization');
 
             // ============================================
-            // FLATPICKR DATE PICKER INITIALIZATION
+            // FLATPICKR DATE PICKER INITIALIZATION - DISABLED
             // ============================================
             // Select all date input fields
             const dateInputs = document.querySelectorAll('input[type="date"]');
@@ -1978,6 +1997,7 @@ if (!is_array($followup_consciousness)) {
             });
 
             console.log('Flatpickr initialized on ' + dateInputs.length + ' date inputs with mobile optimization');
+            */
         });
 
         // Configure Notiflix
