@@ -57,22 +57,19 @@ $drafts = $stmt->fetchAll();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #0f172a;
-            --primary-hover: #1e293b;
-            --accent-color: #3b82f6;
-            --accent-hover: #2563eb;
-            --success-color: #059669;
-            --success-hover: #047857;
-            --danger-color: #dc2626;
-            --danger-hover: #b91c1c;
-            --border-color: #e2e8f0;
-            --text-primary: #1e293b;
-            --text-secondary: #334155;
-            --text-muted: #64748b;
-            --bg-page: #f8fafc;
+            --primary-color: #1e3a5f;
+            --accent-color: #2563eb;
+            --accent-hover: #1d4ed8;
+            --danger-color: #b91c1c;
+            --danger-hover: #991b1b;
+            --border-color: #d1d5db;
+            --border-light: #e5e7eb;
+            --text-primary: #111827;
+            --text-secondary: #1f2937;
+            --text-muted: #374151;
+            --text-light: #4b5563;
+            --bg-page: #f9fafb;
             --bg-card: #ffffff;
-            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
         }
 
         * {
@@ -80,26 +77,25 @@ $drafts = $stmt->fetchAll();
         }
 
         body {
-            background-color: var(--bg-page);
-            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-            color: #2e6eaf;
-            line-height: 1.6;
+            background-color: #f9fafb !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+            color: #111827 !important;
+            line-height: 1.5 !important;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
+        /* Page Header */
         .page-header {
-            background: transparent;
-            padding: 0;
-            margin-bottom: 2rem;
-            border-bottom: none;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #2563eb;
         }
 
         .header-content {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            gap: 2rem;
+            align-items: flex-start;
+            gap: 1.5rem;
         }
 
         .header-left {
@@ -108,181 +104,196 @@ $drafts = $stmt->fetchAll();
 
         .header-right {
             flex-shrink: 0;
+            align-self: center;
         }
 
         .page-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin: 0;
-            letter-spacing: -0.03em;
-            line-height: 1.2;
+            font-size: 1.375rem !important;
+            font-weight: 600 !important;
+            color: #111827 !important;
+            margin: 0 !important;
         }
 
         .page-subtitle {
-            font-size: 0.9375rem;
-            color: #64748b;
-            margin: 0.5rem 0 0 0;
-            font-weight: 400;
-            line-height: 1.5;
+            font-size: 0.875rem !important;
+            color: #4b5563 !important;
+            margin: 0.25rem 0 0 0 !important;
+            font-weight: 400 !important;
         }
 
+        /* Statistics */
         .stats-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.25rem;
-            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
         }
 
         .stat-box {
             background: var(--bg-card);
-            padding: 1.5rem;
-            border-radius: 6px;
+            padding: 1.25rem 1.5rem;
             border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            min-width: 180px;
+        }
+
+        .stat-box.stat-today {
+            border-left-color: #059669;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #eff6ff;
+            color: var(--accent-color);
+            font-size: 1.25rem;
+        }
+
+        .stat-box.stat-today .stat-icon {
+            background: #ecfdf5;
+            color: #059669;
+        }
+
+        .stat-content {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
         }
 
         .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #2e6eaf;
-            margin-bottom: 0;
-            line-height: 1;
-            letter-spacing: -0.02em;
+            font-size: 1.75rem !important;
+            font-weight: 700 !important;
+            color: #111827 !important;
+            line-height: 1 !important;
+            font-variant-numeric: tabular-nums;
         }
 
         .stat-label {
-            font-size: 0.75rem;
-            color: #1e293b;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            display: flex;
-            align-items: center;
-            gap: 0;
-        }
-
-        .stat-label i {
-            display: none;
+            font-size: 0.75rem !important;
+            color: #374151 !important;
+            font-weight: 500 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.025em;
+            margin-top: 0.25rem;
         }
 
         hr {
             border: none;
-            border-top: 1px solid var(--border-color);
-            margin: 2rem 0;
-            opacity: 0.6;
+            border-top: 1px solid var(--border-light);
+            margin: 1.5rem 0;
         }
 
+        /* Table */
         .table-container {
             background: var(--bg-card);
-            border-radius: 6px;
             border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-sm);
             overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
         }
 
         .drafts-table {
             width: 100%;
             min-width: 900px;
             border-collapse: collapse;
-            font-size: 0.875rem;
+            font-size: 0.8125rem;
         }
 
         .drafts-table thead {
-            background: #9ce9a0;
-            border-bottom: 2px solid var(--border-color);
+            background: #f3f4f6;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .drafts-table th {
-            padding: 0.875rem 1.25rem;
+            padding: 0.75rem 1rem;
             text-align: left;
-            font-weight: 700;
-            color: #1e293b;
+            font-weight: 600 !important;
+            color: #374151 !important;
             text-transform: uppercase;
-            font-size: 0.6875rem;
-            letter-spacing: 0.08em;
-            border-right: 1px solid var(--border-color);
-        }
-
-        .drafts-table th:last-child {
-            border-right: none;
+            font-size: 0.6875rem !important;
+            letter-spacing: 0.05em;
         }
 
         .drafts-table td {
-            padding: 1rem 1.25rem;
-            border-bottom: 1px solid var(--border-color);
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
             vertical-align: middle;
+            color: #1f2937 !important;
         }
 
-        .drafts-table tbody tr {
-            transition: background-color 0.15s ease;
+        .drafts-table tbody tr:nth-child(even) {
+            background-color: #e8f0fe;
         }
 
         .drafts-table tbody tr:hover {
-            background-color: #f8fafc;
+            background-color: #eef2f7;
         }
 
         .drafts-table tbody tr:last-child td {
             border-bottom: none;
         }
 
+        /* Table Content Styles */
+        .drafts-table th:first-child,
+        .drafts-table td:first-child {
+            border-right: 1px solid #e5e7eb;
+            text-align: center;
+            width: 50px;
+        }
+
+        .row-number {
+            font-weight: 500 !important;
+            color: #4b5563 !important;
+            font-size: 0.75rem !important;
+            font-variant-numeric: tabular-nums;
+        }
+
         .form-number {
-            font-weight: 700;
-            color: #1e293b;
-            font-family: 'Monaco', 'Courier New', monospace;
-            font-size: 0.8125rem;
-            letter-spacing: 0.01em;
-            display: flex;
-            align-items: center;
-            gap: 0;
-            white-space: nowrap;
+            font-weight: 600 !important;
+            color: #111827 !important;
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace !important;
+            font-size: 0.8125rem !important;
         }
 
         .form-number i {
             display: none;
         }
 
-        .patient-name {
-            font-weight: 600;
-            color: #1e293b;
-            font-size: 0.875rem;
-        }
-
-        .patient-name.empty {
-            color: #475569;
-            font-style: normal;
-            font-weight: 400;
-        }
-
         .patient-info {
             display: flex;
             flex-direction: column;
-            gap: 0.25rem;
+            gap: 0.125rem;
+        }
+
+        .patient-name {
+            font-weight: 500 !important;
+            color: #111827 !important;
+            font-size: 0.8125rem !important;
+        }
+
+        .patient-name.empty {
+            color: #6b7280 !important;
+            font-weight: 400 !important;
+            font-style: italic;
         }
 
         .patient-meta {
-            font-size: 0.75rem;
-            color: #334155;
-            font-weight: 500;
+            font-size: 0.75rem !important;
+            color: #374151 !important;
+            font-weight: 400 !important;
         }
 
         .location-info {
             display: flex;
             flex-direction: column;
-            gap: 0.25rem;
-            font-size: 0.8125rem;
+            gap: 0.125rem;
         }
 
         .location-item {
-            display: flex;
-            align-items: center;
-            gap: 0;
-            color: #334155;
-            font-size: 0.8125rem;
+            color: #1f2937 !important;
+            font-size: 0.8125rem !important;
         }
 
         .location-item i {
@@ -290,22 +301,27 @@ $drafts = $stmt->fetchAll();
         }
 
         .location-item::before {
-            content: "•";
-            margin-right: 0.5rem;
-            color: #64748b;
-        }
-
-        .location-item:first-child::before {
-            content: "";
-            margin-right: 0;
+            display: none;
         }
 
         .date-info {
-            color: #334155;
-            white-space: nowrap;
-            font-size: 0.8125rem;
+            color: #1f2937 !important;
+            font-size: 0.8125rem !important;
+            font-variant-numeric: tabular-nums;
         }
 
+        .date-time {
+            display: block;
+            color: #374151 !important;
+            font-size: 0.75rem !important;
+            margin-top: 0.125rem;
+        }
+
+        .text-placeholder {
+            color: #9ca3af !important;
+        }
+
+        /* Actions */
         .table-actions {
             display: flex;
             gap: 0.5rem;
@@ -315,206 +331,174 @@ $drafts = $stmt->fetchAll();
 
         .action-separator {
             width: 1px;
-            height: 24px;
-            background-color: var(--border-color);
-            margin: 0 0.25rem;
+            height: 20px;
+            background-color: #d1d5db;
         }
 
         .btn-resume {
             background: var(--accent-color);
             color: white;
             border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            font-weight: 600;
+            padding: 0.375rem 0.875rem;
+            font-weight: 500;
             font-size: 0.75rem;
             display: inline-flex;
             align-items: center;
             gap: 0.375rem;
-            transition: all 0.2s ease;
             text-decoration: none;
             cursor: pointer;
-            white-space: nowrap;
-            text-transform: uppercase;
-            letter-spacing: 0.025em;
         }
 
         .btn-resume:hover {
             background: var(--accent-hover);
             color: white;
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
         }
 
         .btn-resume i {
-            font-size: 0.875rem;
+            font-size: 0.75rem;
         }
 
         .btn-delete {
-            background: var(--danger-color);
+            background: #dc3545;
             color: white;
-            border: none;
-            padding: 0.5rem 0.75rem;
-            border-radius: 4px;
-            font-weight: 600;
+            border: 1px solid #dc3545;
+            padding: 0.375rem 0.5rem;
+            font-weight: 500;
             font-size: 0.75rem;
-            transition: all 0.2s ease;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 0.25rem;
         }
 
         .btn-delete:hover {
-            background: var(--danger-hover);
+            background: #b91c1c;
             color: white;
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
+            border-color: #b91c1c;
         }
 
         .btn-delete i {
-            font-size: 0.875rem;
+            font-size: 0.75rem;
         }
 
         .btn-new {
             background: var(--accent-color);
             color: white;
             border: none;
-            padding: 0.75rem 2rem;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.9375rem;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            font-size: 0.8125rem;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            gap: 0.625rem;
-            transition: all 0.2s ease;
+            gap: 0.5rem;
             cursor: pointer;
-            text-transform: none;
-            letter-spacing: 0;
-            box-shadow: var(--shadow-sm);
         }
 
         .btn-new:hover {
             background: var(--accent-hover);
             color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px -4px rgba(59, 130, 246, 0.4);
         }
 
         .btn-new i {
-            font-size: 1.125rem;
+            font-size: 0.875rem;
         }
 
+        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 4rem 2rem;
             background: var(--bg-card);
-            border-radius: 6px;
             border: 1px solid var(--border-color);
         }
 
         .empty-icon {
-            font-size: 4rem;
-            color: var(--text-muted);
-            margin-bottom: 1.5rem;
+            font-size: 3rem !important;
+            color: #6b7280 !important;
+            margin-bottom: 1rem;
         }
 
         .empty-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #2e6eaf;
-            margin-bottom: 0.75rem;
+            font-size: 1.125rem !important;
+            font-weight: 600 !important;
+            color: #111827 !important;
+            margin-bottom: 0.5rem;
         }
 
         .empty-text {
-            color: #2e6eaf;
-            margin-bottom: 2rem;
-            font-size: 0.9375rem;
-            max-width: 450px;
+            color: #4b5563 !important;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem !important;
+            max-width: 400px;
             margin-left: auto;
             margin-right: auto;
-            line-height: 1.6;
         }
 
-        .row-number {
-            font-weight: 600;
-            color: #64748b;
-            font-size: 0.8125rem;
-        }
-
+        /* Pagination */
         .pagination-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1.5rem 0;
-            margin-top: 1.5rem;
+            padding: 1rem 0;
+            margin-top: 1rem;
         }
 
         .pagination-info {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
+            font-size: 0.8125rem !important;
+            color: #374151 !important;
         }
 
         .pagination {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.25rem;
             align-items: center;
         }
 
         .pagination a,
         .pagination span {
-            padding: 0.5rem 0.875rem;
-            border-radius: 4px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            text-decoration: none;
-            transition: all 0.2s ease;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8125rem !important;
+            font-weight: 500 !important;
+            text-decoration: none !important;
         }
 
         .pagination a {
-            background: var(--bg-card);
-            color: var(--text-secondary);
-            border: 1px solid var(--border-color);
+            background: #ffffff !important;
+            color: #1f2937 !important;
+            border: 1px solid #d1d5db !important;
         }
 
         .pagination a:hover {
-            background: var(--accent-color);
-            color: white;
-            border-color: var(--accent-color);
-            transform: translateY(-1px);
+            background: #2563eb !important;
+            color: white !important;
+            border-color: #2563eb !important;
         }
 
         .pagination .current {
-            background: var(--accent-color);
-            color: white;
-            border: 1px solid var(--accent-color);
-            font-weight: 600;
+            background: #2563eb !important;
+            color: white !important;
+            border: 1px solid #2563eb !important;
         }
 
         .pagination .disabled {
-            background: var(--bg-card);
-            color: var(--text-muted);
-            border: 1px solid var(--border-color);
+            background: #ffffff !important;
+            color: #9ca3af !important;
+            border: 1px solid #e5e7eb !important;
             cursor: not-allowed;
-            opacity: 0.5;
         }
 
-        @media (max-width: 1200px) {
-            .location-info {
-                font-size: 0.75rem;
-            }
+        /* Notiflix button overrides - remove underline */
+        #NotiflixConfirmWrap button,
+        #NotiflixConfirmWrap a,
+        [id^="Notiflix"] button,
+        [id^="Notiflix"] a {
+            text-decoration: none !important;
         }
 
+        /* Responsive */
         @media (max-width: 768px) {
-            .page-header {
-                margin-bottom: 1.5rem;
-            }
-
             .header-content {
                 flex-direction: column;
-                align-items: flex-start;
-                gap: 1.25rem;
+                gap: 1rem;
             }
 
             .header-right {
@@ -527,53 +511,37 @@ $drafts = $stmt->fetchAll();
             }
 
             .page-title {
-                font-size: 1.5rem;
-            }
-
-            .page-subtitle {
-                font-size: 0.875rem;
+                font-size: 1.25rem;
             }
 
             .stats-row {
-                grid-template-columns: 1fr;
-                gap: 1rem;
+                flex-direction: column;
+                gap: 0.75rem;
             }
 
             .stat-box {
-                padding: 1.25rem;
+                padding: 1rem 1.25rem;
+                min-width: auto;
+            }
+
+            .stat-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
             }
 
             .stat-value {
-                font-size: 1.75rem;
+                font-size: 1.5rem;
             }
 
             .drafts-table {
-                font-size: 0.8125rem;
-                min-width: 900px;
+                min-width: 800px;
             }
 
-            .drafts-table th,
-            .drafts-table td {
-                padding: 0.875rem 0.75rem;
-            }
-
-            .table-actions {
-                flex-direction: row;
-                gap: 0.375rem;
-            }
-
-            .btn-resume {
-                padding: 0.5rem 0.875rem;
-                font-size: 0.6875rem;
-            }
-
-            .btn-delete {
-                padding: 0.5rem 0.625rem;
-            }
-
-            .btn-new {
-                padding: 0.5rem 1.25rem;
-                font-size: 0.8125rem;
+            .pagination-container {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
             }
         }
     </style>
@@ -601,19 +569,29 @@ $drafts = $stmt->fetchAll();
 
             <div class="stats-row">
                 <div class="stat-box">
-                    <div class="stat-value"><?php echo count($drafts); ?></div>
-                    <div class="stat-label">Total Drafts</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value">
-                        <?php
-                        $today_drafts = array_filter($drafts, function($d) {
-                            return date('Y-m-d', strtotime($d['updated_at'])) === date('Y-m-d');
-                        });
-                        echo count($today_drafts);
-                        ?>
+                    <div class="stat-icon">
+                        <i class="bi bi-file-earmark-text"></i>
                     </div>
-                    <div class="stat-label">Updated Today</div>
+                    <div class="stat-content">
+                        <div class="stat-value"><?php echo $total_records; ?></div>
+                        <div class="stat-label">Total Drafts</div>
+                    </div>
+                </div>
+                <div class="stat-box stat-today">
+                    <div class="stat-icon">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">
+                            <?php
+                            // Count today's drafts from database for accuracy
+                            $today_sql = "SELECT COUNT(*) as total FROM prehospital_forms WHERE created_by = ? AND status = 'draft' AND DATE(updated_at) = CURDATE()";
+                            $today_stmt = db_query($today_sql, [$user_id]);
+                            echo $today_stmt->fetch()['total'];
+                            ?>
+                        </div>
+                        <div class="stat-label">Updated Today</div>
+                    </div>
                 </div>
             </div>
 
@@ -645,11 +623,7 @@ $drafts = $stmt->fetchAll();
                         </thead>
                         <tbody>
                             <?php foreach ($drafts as $index => $draft): ?>
-                                <?php
-                                // Debug: Log draft ID
-                                error_log("Draft ID type: " . gettype($draft['id']) . ", Value: " . var_export($draft['id'], true));
-                                $row_number = $offset + $index + 1;
-                                ?>
+                                <?php $row_number = $offset + $index + 1; ?>
                                 <tr>
                                     <td>
                                         <div class="row-number"><?php echo $row_number; ?></div>
@@ -682,35 +656,27 @@ $drafts = $stmt->fetchAll();
                                             <?php if ($draft['form_date'] && $draft['form_date'] !== '0000-00-00'): ?>
                                                 <?php echo date('M d, Y', strtotime($draft['form_date'])); ?>
                                             <?php else: ?>
-                                                <span style="color: var(--text-muted); font-style: italic;">Not set</span>
+                                                <span class="text-placeholder">—</span>
                                             <?php endif; ?>
                                         </div>
                                     </td>
                                     <td>
                                         <div class="location-info">
                                             <?php if ($draft['place_of_incident']): ?>
-                                                <div class="location-item">
-                                                    <i class="bi bi-geo-alt-fill"></i>
-                                                    <?php echo e($draft['place_of_incident']); ?>
-                                                </div>
+                                                <div class="location-item"><?php echo e($draft['place_of_incident']); ?></div>
                                             <?php endif; ?>
                                             <?php if ($draft['arrival_hospital_name']): ?>
-                                                <div class="location-item">
-                                                    <i class="bi bi-hospital-fill"></i>
-                                                    <?php echo e($draft['arrival_hospital_name']); ?>
-                                                </div>
+                                                <div class="location-item"><?php echo e($draft['arrival_hospital_name']); ?></div>
                                             <?php endif; ?>
                                             <?php if (!$draft['place_of_incident'] && !$draft['arrival_hospital_name']): ?>
-                                                <span style="color: var(--text-muted); font-style: italic;">Not set</span>
+                                                <span class="text-placeholder">—</span>
                                             <?php endif; ?>
                                         </div>
                                     </td>
                                     <td>
                                         <div class="date-info">
-                                            <?php echo date('M d, Y', strtotime($draft['updated_at'])); ?><br>
-                                            <span style="color: var(--text-muted); font-size: 0.75rem;">
-                                                <?php echo date('h:i A', strtotime($draft['updated_at'])); ?>
-                                            </span>
+                                            <?php echo date('M d, Y', strtotime($draft['updated_at'])); ?>
+                                            <span class="date-time"><?php echo date('h:i A', strtotime($draft['updated_at'])); ?></span>
                                         </div>
                                     </td>
                                     <td>
@@ -784,40 +750,66 @@ $drafts = $stmt->fetchAll();
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
     <script>
         function deleteDraft(id) {
-            console.log('Deleting draft ID:', id, 'Type:', typeof id);
-
             if (!id || id <= 0) {
-                alert('Invalid draft ID: ' + id);
+                Notiflix.Notify.failure('Invalid draft ID.');
                 return;
             }
 
-            if (confirm('Are you sure you want to delete this draft?\n\nThis action cannot be undone.')) {
-                fetch('../api/delete_record.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ id: parseInt(id) })
-                })
-                .then(response => {
-                    console.log('Response status:', response.status);
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Response data:', data);
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Error: ' + (data.message || 'Unknown error'));
-                    }
-                })
-                .catch(error => {
-                    alert('Error deleting draft: ' + error.message);
-                    console.error('Error:', error);
-                });
-            }
+            Notiflix.Confirm.show(
+                'Delete Draft',
+                'Are you sure you want to delete this draft? This action cannot be undone.',
+                'Yes, Delete',
+                'Cancel',
+                function okCb() {
+                    Notiflix.Loading.standard('Deleting draft...');
+
+                    fetch('../api/delete_record.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ id: parseInt(id) })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        Notiflix.Loading.remove();
+
+                        if (data.success) {
+                            Notiflix.Notify.success('Draft deleted successfully!', {
+                                timeout: 2000,
+                            });
+                            setTimeout(() => {
+                                location.reload();
+                            }, 500);
+                        } else {
+                            Notiflix.Notify.failure('Error: ' + (data.message || 'Unknown error'), {
+                                timeout: 3000,
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        Notiflix.Loading.remove();
+                        Notiflix.Notify.failure('Error deleting draft. Please try again.', {
+                            timeout: 3000,
+                        });
+                        console.error('Error:', error);
+                    });
+                },
+                function cancelCb() {
+                    // User cancelled
+                },
+                {
+                    borderRadius: '8px',
+                    titleColor: '#dc3545',
+                    okButtonBackground: '#dc3545',
+                    okButtonColor: '#fff',
+                    cssAnimationStyle: 'zoom',
+                }
+            );
         }
     </script>
 </body>

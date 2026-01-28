@@ -77,6 +77,32 @@ $current_user = get_auth_user();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
     <style>
+        /* Corporate Design System Variables */
+        :root {
+            --primary: #0052CC;
+            --primary-hover: #0041A3;
+            --primary-light: #E6F0FF;
+            --accent-success: #00875A;
+            --accent-warning: #FF8B00;
+            --accent-danger: #DE350B;
+            --accent-info: #0065FF;
+            --accent-purple: #5243AA;
+            --accent-teal: #00A3BF;
+            --text-primary: #1a1a1a;
+            --text-secondary: #333333;
+            --text-muted: #555555;
+            --text-light: #666666;
+            --bg-white: #FFFFFF;
+            --bg-light: #F4F5F7;
+            --bg-subtle: #FAFBFC;
+            --border-light: #DFE1E6;
+            --border-medium: #C1C7D0;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 6px 12px rgba(0, 0, 0, 0.12);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -84,9 +110,9 @@ $current_user = get_auth_user();
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-            color: #212529;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background-color: #F4F5F7;
+            color: #1a1a1a;
             padding: 20px;
             line-height: 1.6;
         }
@@ -94,15 +120,16 @@ $current_user = get_auth_user();
         .form-container {
             max-width: 1100px;
             margin: 0 auto;
-            background: #ffffff;
-            border: 1px solid #dee2e6;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            background: #FFFFFF;
+            border: 1px solid #DFE1E6;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
 
         .header {
-            background-color: #ffffff;
-            padding: 30px 40px;
-            border-bottom: 3px solid #1a4d8f;
+            background-color: #0052CC;
+            padding: 24px 40px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -115,45 +142,65 @@ $current_user = get_auth_user();
         }
 
         .header .logo {
-            width: 70px;
+            width: 60px;
             height: auto;
+            background: #FFFFFF;
+            padding: 8px;
+            border-radius: 6px;
         }
 
         .header-text h1 {
-            color: #1a4d8f;
-            font-size: 22px;
-            font-weight: 600;
-            margin-bottom: 5px;
+            color: #FFFFFF !important;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
             letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
 
         .header-text .form-meta {
-            color: #6c757d;
+            color: rgba(255, 255, 255, 0.9) !important;
             font-size: 13px;
+            font-weight: 500;
+        }
+
+        .header-text .form-meta strong {
+            color: #FFFFFF !important;
         }
 
         .header-right .badge-status {
-            padding: 8px 16px;
-            border-radius: 4px;
+            padding: 8px 18px;
+            border-radius: 20px;
             font-size: 11px;
-            font-weight: 600;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .badge-success {
-            background-color: #28a745;
-            color: white;
+            background-color: #00875A !important;
+            color: #FFFFFF !important;
         }
 
         .badge-danger {
-            background-color: #dc3545;
-            color: white;
+            background-color: #DE350B !important;
+            color: #FFFFFF !important;
         }
 
         .badge-info {
-            background-color: #0d6efd;
-            color: white;
+            background-color: #0065FF !important;
+            color: #FFFFFF !important;
+        }
+
+        .badge-warning {
+            background-color: #FF8B00 !important;
+            color: #FFFFFF !important;
+        }
+
+        .badge-purple {
+            background-color: #5243AA !important;
+            color: #FFFFFF !important;
         }
 
         .content-body {
@@ -161,19 +208,22 @@ $current_user = get_auth_user();
         }
 
         .section-header {
-            background-color: #1a4d8f;
-            color: #ffffff;
-            padding: 12px 40px;
-            font-weight: 600;
-            font-size: 13px;
+            background-color: #F4F5F7;
+            color: #0052CC !important;
+            padding: 14px 40px;
+            font-weight: 700;
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             margin: 0;
+            border-left: 4px solid #0052CC;
+            border-bottom: 1px solid #DFE1E6;
         }
 
         .section-content {
-            padding: 25px 40px;
-            border-bottom: 1px solid #e9ecef;
+            padding: 24px 40px;
+            border-bottom: 1px solid #DFE1E6;
+            background-color: #FFFFFF;
         }
 
         .section-content:last-child {
@@ -183,7 +233,7 @@ $current_user = get_auth_user();
         .data-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px 30px;
+            gap: 16px 24px;
         }
 
         .data-grid.two-column {
@@ -197,7 +247,7 @@ $current_user = get_auth_user();
         .data-field {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 6px;
         }
 
         .data-field.full-width {
@@ -205,71 +255,76 @@ $current_user = get_auth_user();
         }
 
         .data-field label {
-            font-size: 11px;
-            font-weight: 600;
-            color: #6c757d;
+            font-size: 10px;
+            font-weight: 700;
+            color: #555555 !important;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
         }
 
         .data-field .value {
             font-size: 14px;
-            color: #212529;
-            font-weight: 500;
-            padding: 8px 12px;
-            background-color: #f8f9fa;
-            border-left: 3px solid #dee2e6;
-            min-height: 36px;
+            color: #1a1a1a !important;
+            font-weight: 600;
+            padding: 8px 4px;
+            background-color: transparent;
+            border: none;
+            border-bottom: 2px solid #0052CC;
+            border-radius: 0;
+            min-height: 32px;
             display: flex;
             align-items: center;
         }
 
         .data-field .value.empty {
-            color: #adb5bd;
+            color: #888888 !important;
             font-style: italic;
+            border-bottom-color: #C1C7D0;
         }
 
         .data-field .value.multiline {
             white-space: pre-wrap;
             align-items: flex-start;
-            padding-top: 10px;
-            padding-bottom: 10px;
+            padding-top: 8px;
+            padding-bottom: 8px;
         }
 
         .vital-signs-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 25px;
+            gap: 20px;
         }
 
         .vital-box {
-            background-color: #f8f9fa;
-            border: 2px solid #dee2e6;
+            background-color: #FFFFFF;
+            border: 1px solid #DFE1E6;
+            border-radius: 6px;
             padding: 0;
             overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .vital-box-header {
-            background-color: #e9ecef;
+            background-color: #0052CC;
             padding: 12px 20px;
-            border-bottom: 2px solid #dee2e6;
         }
 
         .vital-box h4 {
-            font-size: 13px;
-            font-weight: 600;
-            color: #1a4d8f;
+            font-size: 12px;
+            font-weight: 700;
+            color: #FFFFFF !important;
             margin: 0;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
         }
 
         .vital-box-content {
             padding: 20px;
+            background-color: #FAFBFC;
         }
 
         .vital-box .data-field {
-            margin-bottom: 15px;
+            margin-bottom: 14px;
         }
 
         .vital-box .data-field:last-child {
@@ -277,72 +332,77 @@ $current_user = get_auth_user();
         }
 
         .vital-box .data-field .value {
-            background-color: #ffffff;
-            border: 1px solid #dee2e6;
-            border-left: 3px solid #1a4d8f;
+            background-color: transparent;
+            border: none;
+            border-bottom: 2px solid #0052CC;
         }
 
         .injuries-section {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
         }
 
         .injury-card {
-            background-color: #ffffff;
-            border: 1px solid #dee2e6;
-            border-left: 4px solid #1a4d8f;
-            padding: 20px;
+            background-color: #FFFFFF;
+            border: 1px solid #DFE1E6;
+            border-left: 4px solid #DE350B;
+            border-radius: 6px;
+            padding: 18px 20px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .injury-card-header {
-            font-size: 14px;
-            font-weight: 600;
-            color: #1a4d8f;
-            margin-bottom: 15px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #1a1a1a !important;
+            margin-bottom: 14px;
             padding-bottom: 10px;
-            border-bottom: 1px solid #e9ecef;
+            border-bottom: 1px solid #DFE1E6;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .injury-details {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            gap: 14px;
         }
 
         .injury-detail-item {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 6px;
         }
 
         .injury-detail-item label {
-            font-size: 11px;
-            font-weight: 600;
-            color: #6c757d;
+            font-size: 10px;
+            font-weight: 700;
+            color: #555555 !important;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .injury-detail-item .value {
             font-size: 13px;
-            color: #212529;
-            font-weight: 500;
+            color: #1a1a1a !important;
+            font-weight: 600;
         }
 
         .action-buttons {
             display: flex;
             gap: 12px;
             justify-content: center;
-            padding: 30px 40px;
-            background-color: #f8f9fa;
-            border-top: 1px solid #dee2e6;
+            padding: 24px 40px;
+            background-color: #F4F5F7;
+            border-top: 1px solid #DFE1E6;
         }
 
         .btn {
-            padding: 11px 24px;
+            padding: 12px 28px;
             border: none;
-            font-size: 13px;
-            font-weight: 600;
+            font-size: 12px;
+            font-weight: 700;
             cursor: pointer;
             text-decoration: none;
             display: inline-flex;
@@ -350,40 +410,55 @@ $current_user = get_auth_user();
             gap: 8px;
             transition: all 0.2s ease;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
+            border-radius: 6px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .btn-primary {
-            background-color: #1a4d8f;
-            color: white;
+            background-color: #0052CC !important;
+            color: #FFFFFF !important;
         }
 
         .btn-primary:hover {
-            background-color: #153d73;
-            color: white;
-            box-shadow: 0 2px 8px rgba(26, 77, 143, 0.3);
+            background-color: #0041A3 !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
         }
 
         .btn-secondary {
-            background-color: #6c757d;
-            color: white;
+            background-color: #6B778C !important;
+            color: #FFFFFF !important;
         }
 
         .btn-secondary:hover {
-            background-color: #5a6268;
-            color: white;
-            box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+            background-color: #5A6373 !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
         }
 
         .btn-warning {
-            background-color: #ffc107;
-            color: #212529;
+            background-color: #FF8B00 !important;
+            color: #FFFFFF !important;
         }
 
         .btn-warning:hover {
-            background-color: #e0a800;
-            color: #212529;
-            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+            background-color: #E67E00 !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background-color: #00875A !important;
+            color: #FFFFFF !important;
+        }
+
+        .btn-danger {
+            background-color: #DE350B !important;
+            color: #FFFFFF !important;
         }
 
         .info-table {
@@ -392,24 +467,26 @@ $current_user = get_auth_user();
         }
 
         .info-table td {
-            padding: 10px 0;
-            border-bottom: 1px solid #e9ecef;
+            padding: 12px 0;
+            border-bottom: 1px solid #DFE1E6;
         }
 
         .info-table td:first-child {
-            font-size: 11px;
-            font-weight: 600;
-            color: #6c757d;
+            font-size: 10px;
+            font-weight: 700;
+            color: #555555 !important;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
             width: 200px;
         }
 
         .info-table td:last-child {
             font-size: 14px;
-            color: #212529;
-            font-weight: 500;
+            color: #1a1a1a !important;
+            font-weight: 600;
         }
 
+        /* Print Styles */
         @media print {
             .no-print {
                 display: none !important;
@@ -424,13 +501,13 @@ $current_user = get_auth_user();
             .form-container {
                 box-shadow: none;
                 border: none;
+                border-radius: 0;
                 max-width: 100%;
                 margin: 0;
             }
 
             .header {
                 padding: 15px 20px;
-                border-bottom: 2px solid #1a4d8f;
                 page-break-after: avoid;
             }
 
@@ -467,8 +544,9 @@ $current_user = get_auth_user();
 
             .data-field .value {
                 font-size: 10px;
-                padding: 4px 8px;
-                min-height: 24px;
+                padding: 4px 2px;
+                min-height: 20px;
+                border-bottom: 1px solid #333;
             }
 
             .vital-signs-grid {
@@ -476,7 +554,7 @@ $current_user = get_auth_user();
             }
 
             .vital-box {
-                border: 1px solid #dee2e6;
+                border: 1px solid #DFE1E6;
             }
 
             .vital-box-header {
@@ -493,7 +571,7 @@ $current_user = get_auth_user();
 
             .injury-card {
                 padding: 10px;
-                border: 1px solid #dee2e6;
+                border: 1px solid #DFE1E6;
                 page-break-inside: avoid;
             }
 
@@ -514,6 +592,7 @@ $current_user = get_auth_user();
             }
         }
 
+        /* Mobile Responsive */
         @media (max-width: 768px) {
             body {
                 padding: 0;
@@ -522,6 +601,7 @@ $current_user = get_auth_user();
             .form-container {
                 border: none;
                 box-shadow: none;
+                border-radius: 0;
             }
 
             .header {
@@ -539,7 +619,7 @@ $current_user = get_auth_user();
 
             .section-header {
                 padding: 10px 20px;
-                font-size: 12px;
+                font-size: 11px;
             }
 
             .section-content {
@@ -562,6 +642,245 @@ $current_user = get_auth_user();
             .btn {
                 width: 100%;
                 justify-content: center;
+            }
+        }
+
+        /* Force High Contrast Text - scoped to content area only */
+        .content h1, .content h2, .content h3, .content h4, .content h5, .content h6 {
+            color: #1a1a1a !important;
+        }
+
+        .content p, .content span, .content div, .content td, .content th, .content li {
+            color: #1a1a1a;
+        }
+
+        .header h1, .header .form-meta, .header .form-meta strong {
+            color: #FFFFFF !important;
+        }
+
+        /* Ensure all value text is clearly visible */
+        .value, .data-field .value, .injury-detail-item .value {
+            color: #1a1a1a !important;
+            font-weight: 600 !important;
+        }
+
+        /* ========================================
+           DESKTOP/LAPTOP COMPACT FIT
+           ======================================== */
+        @media (min-width: 1024px) {
+            body {
+                padding: 12px;
+            }
+
+            .form-container {
+                max-width: 1200px;
+            }
+
+            .header {
+                padding: 18px 32px;
+            }
+
+            .header .logo {
+                width: 55px;
+                padding: 6px;
+            }
+
+            .header-text h1 {
+                font-size: 18px;
+                margin-bottom: 3px;
+            }
+
+            .header-text .form-meta {
+                font-size: 13px;
+            }
+
+            .header-right .badge-status {
+                padding: 7px 16px;
+                font-size: 11px;
+            }
+
+            .section-header {
+                padding: 12px 32px;
+                font-size: 12px;
+                letter-spacing: 1.2px;
+            }
+
+            .section-content {
+                padding: 18px 32px;
+            }
+
+            .data-grid {
+                gap: 14px 22px;
+            }
+
+            .data-grid.three-column {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .data-grid.two-column {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .data-field {
+                gap: 5px;
+            }
+
+            .data-field label {
+                font-size: 10px;
+            }
+
+            .data-field .value {
+                font-size: 13px;
+                padding: 6px 4px;
+                min-height: 30px;
+                border-bottom-width: 2px;
+            }
+
+            .vital-signs-grid {
+                gap: 18px;
+            }
+
+            .vital-box-header {
+                padding: 11px 18px;
+            }
+
+            .vital-box h4 {
+                font-size: 12px;
+            }
+
+            .vital-box-content {
+                padding: 16px;
+            }
+
+            .vital-box .data-field {
+                margin-bottom: 12px;
+            }
+
+            .injury-card {
+                padding: 16px 18px;
+            }
+
+            .injury-card-header {
+                font-size: 13px;
+                margin-bottom: 12px;
+                padding-bottom: 9px;
+            }
+
+            .injury-details {
+                gap: 12px;
+            }
+
+            .action-buttons {
+                padding: 18px 32px;
+                gap: 12px;
+            }
+
+            .btn {
+                padding: 11px 24px;
+                font-size: 12px;
+            }
+        }
+
+        /* Standard laptop (1366x768) - Extra Compact */
+        @media (min-width: 1024px) and (max-height: 800px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 14px 28px;
+            }
+
+            .header .logo {
+                width: 48px;
+                padding: 5px;
+            }
+
+            .header-text h1 {
+                font-size: 16px;
+            }
+
+            .header-text .form-meta {
+                font-size: 12px;
+            }
+
+            .section-header {
+                padding: 10px 28px;
+                font-size: 11px;
+            }
+
+            .section-content {
+                padding: 14px 28px;
+            }
+
+            .data-grid {
+                gap: 10px 18px;
+            }
+
+            .data-field label {
+                font-size: 9px;
+                letter-spacing: 0.6px;
+            }
+
+            .data-field .value {
+                font-size: 12px;
+                padding: 5px 4px;
+                min-height: 28px;
+            }
+
+            .vital-signs-grid {
+                gap: 14px;
+            }
+
+            .vital-box-header {
+                padding: 9px 14px;
+            }
+
+            .vital-box h4 {
+                font-size: 11px;
+            }
+
+            .vital-box-content {
+                padding: 12px;
+            }
+
+            .vital-box .data-field {
+                margin-bottom: 10px;
+            }
+
+            .injury-card {
+                padding: 12px 14px;
+                margin-bottom: 10px;
+            }
+
+            .injury-card-header {
+                font-size: 12px;
+                margin-bottom: 10px;
+                padding-bottom: 7px;
+            }
+
+            .action-buttons {
+                padding: 14px 28px;
+            }
+
+            .btn {
+                padding: 9px 20px;
+                font-size: 11px;
+            }
+        }
+
+        /* Large desktop (1920x1080+) */
+        @media (min-width: 1600px) {
+            .form-container {
+                max-width: 1400px;
+            }
+
+            .data-grid.three-column {
+                grid-template-columns: repeat(5, 1fr);
+            }
+
+            .data-grid.two-column {
+                grid-template-columns: repeat(4, 1fr);
             }
         }
     </style>
@@ -709,7 +1028,7 @@ $current_user = get_auth_user();
                             <div class="value<?php echo empty($record['zone']) ? ' empty' : ''; ?>"><?php echo e($record['zone'] ?: 'Not specified'); ?></div>
                         </div>
                         <div class="data-field full-width">
-                            <label>Place of Incident</label>
+                            <label>Type of Emergency Call</label>
                             <div class="value<?php echo empty($record['place_of_incident']) ? ' empty' : ''; ?>"><?php echo e($record['place_of_incident'] ?: 'Not specified'); ?></div>
                         </div>
                         <div class="data-field">
@@ -900,7 +1219,7 @@ $current_user = get_auth_user();
                 <?php endif; ?>
 
                 <!-- Hospital & Team Information -->
-                <div class="section-header">Hospital Information</div>
+                <div class="section-header">Care Management</div>
                 <div class="section-content">
                     <div class="data-grid">
                         <div class="data-field">
@@ -955,6 +1274,14 @@ $current_user = get_auth_user();
                     </div>
                 </div>
 
+                <!-- Narrative Report -->
+                <?php if (!empty($record['narrative_report'])): ?>
+                <div class="section-header">Narrative Report</div>
+                <div class="section-content">
+                    <div style="font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-size: 0.8125rem; line-height: 1.8; color: #1f2937; white-space: pre-wrap;"><?php echo e($record['narrative_report']); ?></div>
+                </div>
+                <?php endif; ?>
+
                 <!-- Record Information -->
                 <div class="section-header">Record Information</div>
                 <div class="section-content">
@@ -989,31 +1316,33 @@ $current_user = get_auth_user();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
     <script>
-        // Configure Notiflix
+        // Configure Notiflix - Corporate Design Colors
         Notiflix.Notify.init({
             width: '320px',
             position: 'right-top',
             distance: '15px',
             timeout: 3000,
-            fontSize: '15px',
+            fontSize: '14px',
+            fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
             cssAnimationStyle: 'from-right',
+            borderRadius: '6px',
             success: {
-                background: '#28a745',
+                background: '#00875A',
                 textColor: '#fff',
                 notiflixIconColor: '#fff',
             },
             failure: {
-                background: '#dc3545',
+                background: '#DE350B',
                 textColor: '#fff',
                 notiflixIconColor: '#fff',
             },
             warning: {
-                background: '#ffc107',
-                textColor: '#333',
-                notiflixIconColor: '#333',
+                background: '#FF8B00',
+                textColor: '#fff',
+                notiflixIconColor: '#fff',
             },
             info: {
-                background: '#0066cc',
+                background: '#0052CC',
                 textColor: '#fff',
                 notiflixIconColor: '#fff',
             },

@@ -15,7 +15,7 @@ let injuryCounter = 0;
 let selectedInjuryType = 'laceration';
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Restore saved tab state from localStorage
+    // Restore saved tab state
     restoreSavedTab();
 
     updateNavigation();
@@ -44,17 +44,29 @@ window.addEventListener('resize', repositionMarkers);
 // TAB NAVIGATION FUNCTIONS
 // ============================================
 
-// Save current tab to localStorage
+// Save current tab to sessionStorage
 function saveCurrentTab() {
-    localStorage.setItem('prehospitalFormCurrentTab', currentTab);
+    var key = document.getElementById('editForm') ? 'editFormCurrentTab' : 'createFormCurrentTab';
+    sessionStorage.setItem(key, currentTab);
 }
 
-// Restore saved tab from localStorage
+// Restore saved tab (only on page refresh, not on fresh navigation)
 function restoreSavedTab() {
-    const savedTab = localStorage.getItem('prehospitalFormCurrentTab');
+    var navEntries = performance.getEntriesByType('navigation');
+    var isReload = navEntries.length > 0 && navEntries[0].type === 'reload';
+    var key = document.getElementById('editForm') ? 'editFormCurrentTab' : 'createFormCurrentTab';
+
+    if (!isReload) {
+        // Fresh navigation - clear saved tab, start at Basic Info
+        sessionStorage.removeItem(key);
+        return;
+    }
+
+    // Page was refreshed - restore saved tab
+    var savedTab = sessionStorage.getItem(key);
 
     if (savedTab !== null) {
-        const tabIndex = parseInt(savedTab, 10);
+        var tabIndex = parseInt(savedTab, 10);
 
         // Validate the saved tab index
         if (tabIndex >= 0 && tabIndex < totalTabs) {
@@ -66,7 +78,7 @@ function restoreSavedTab() {
             });
 
             // Show the saved pane
-            const targetPane = document.querySelector(`#section${currentTab + 1}`);
+            var targetPane = document.querySelector(`#section${currentTab + 1}`);
             if (targetPane) {
                 targetPane.classList.add('show', 'active');
             }
@@ -114,6 +126,16 @@ function navigateTab(direction) {
             tab.classList.remove('active');
         }
     });
+
+    // Scroll the active tab into view within the tabs container
+    const activeTab = tabs[currentTab];
+    if (activeTab) {
+        activeTab.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+            inline: 'center'
+        });
+    }
 
     // Save the current tab to localStorage
     saveCurrentTab();
@@ -479,6 +501,13 @@ function submitFormData() {
         injuriesDataField.value = JSON.stringify(injuries);
     }
 
+    // Capture narrative report text before submission
+    const narrativeField = document.getElementById('narrativeReportField');
+    const narrativeTextEl = document.querySelector('#narrativeContent .narrative-text');
+    if (narrativeField && narrativeTextEl) {
+        narrativeField.value = narrativeTextEl.textContent.trim();
+    }
+
     // Get the form element
     const form = document.getElementById('preHospitalForm');
     const formData = new FormData(form);
@@ -492,7 +521,7 @@ function submitFormData() {
     }
 
     // Clear saved tab state from localStorage
-    localStorage.removeItem('prehospitalFormCurrentTab');
+    sessionStorage.removeItem('createFormCurrentTab');
 
     // Submit using Fetch API
     fetch(form.action, {
@@ -562,7 +591,7 @@ function clearForm() {
             }
 
             // Clear saved tab state from localStorage
-            localStorage.removeItem('prehospitalFormCurrentTab');
+            sessionStorage.removeItem('createFormCurrentTab');
 
             Notiflix.Notify.success('Form data cleared successfully');
         },
@@ -1005,7 +1034,7 @@ function initializeCameraButton() {
 function openCamera() {
     const cameraContainer = document.getElementById('cameraContainer');
     const video = document.getElementById('cameraVideo');
-    const openCameraBtn = document.getElementById('openCameraBtn');
+    const controlsContainer = document.querySelector('.endorsement-doc-controls');
 
     // Check if browser supports getUserMedia
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -1025,7 +1054,7 @@ function openCamera() {
         cameraStream = stream;
         video.srcObject = stream;
         cameraContainer.style.display = 'block';
-        openCameraBtn.style.display = 'none';
+        if (controlsContainer) controlsContainer.style.display = 'none';
     })
     .catch(function(error) {
         console.error('Error accessing camera:', error);
@@ -1048,7 +1077,8 @@ function openCamera() {
 function capturePhoto() {
     const video = document.getElementById('cameraVideo');
     const preview = document.getElementById('attachmentPreview');
-    const removeBtn = document.getElementById('removeAttachmentBtn');
+    const previewContainer = document.getElementById('previewContainer');
+    const controlsContainer = document.querySelector('.endorsement-doc-controls');
     const fileUpload = document.getElementById('fileUpload');
 
     // Create canvas to capture image
@@ -1071,8 +1101,8 @@ function capturePhoto() {
         // Display preview
         const imageUrl = URL.createObjectURL(blob);
         preview.src = imageUrl;
-        preview.style.display = 'block';
-        removeBtn.style.display = 'inline-block';
+        previewContainer.style.display = 'block';
+        if (controlsContainer) controlsContainer.style.display = 'none';
 
         // Close camera
         closeCamera();
@@ -1084,7 +1114,8 @@ function capturePhoto() {
 function closeCamera() {
     const cameraContainer = document.getElementById('cameraContainer');
     const video = document.getElementById('cameraVideo');
-    const openCameraBtn = document.getElementById('openCameraBtn');
+    const controlsContainer = document.querySelector('.endorsement-doc-controls');
+    const previewContainer = document.getElementById('previewContainer');
 
     // Stop all video tracks
     if (cameraStream) {
@@ -1094,22 +1125,28 @@ function closeCamera() {
 
     video.srcObject = null;
     cameraContainer.style.display = 'none';
-    openCameraBtn.style.display = 'inline-block';
+
+    // Show controls only if no image is previewed
+    if (previewContainer && previewContainer.style.display !== 'block') {
+        if (controlsContainer) controlsContainer.style.display = 'flex';
+    }
 }
 
 function validateFileUpload(input) {
     const file = input.files[0];
     const uploadError = document.getElementById('uploadError');
+    const errorText = uploadError.querySelector('span');
     const preview = document.getElementById('attachmentPreview');
-    const removeBtn = document.getElementById('removeAttachmentBtn');
+    const previewContainer = document.getElementById('previewContainer');
+    const controlsContainer = document.querySelector('.endorsement-doc-controls');
 
     if (!file) return;
 
     // Validate file size (5MB max)
     const maxSize = 5 * 1024 * 1024; // 5MB in bytes
     if (file.size > maxSize) {
-        uploadError.textContent = 'File size exceeds 5MB limit.';
-        uploadError.style.display = 'block';
+        if (errorText) errorText.textContent = 'File size exceeds 5MB limit.';
+        uploadError.style.display = 'flex';
         input.value = '';
         return;
     }
@@ -1117,8 +1154,8 @@ function validateFileUpload(input) {
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-        uploadError.textContent = 'Invalid file format. Allowed: JPG, PNG, GIF, WebP';
-        uploadError.style.display = 'block';
+        if (errorText) errorText.textContent = 'Invalid file format. Allowed: JPG, PNG, GIF, WebP';
+        uploadError.style.display = 'flex';
         input.value = '';
         return;
     }
@@ -1128,8 +1165,8 @@ function validateFileUpload(input) {
     const reader = new FileReader();
     reader.onload = function(e) {
         preview.src = e.target.result;
-        preview.style.display = 'block';
-        removeBtn.style.display = 'inline-block';
+        previewContainer.style.display = 'block';
+        if (controlsContainer) controlsContainer.style.display = 'none';
     };
     reader.readAsDataURL(file);
 }
@@ -1137,12 +1174,46 @@ function validateFileUpload(input) {
 function removeAttachment() {
     const fileUpload = document.getElementById('fileUpload');
     const preview = document.getElementById('attachmentPreview');
-    const removeBtn = document.getElementById('removeAttachmentBtn');
+    const previewContainer = document.getElementById('previewContainer');
+    const controlsContainer = document.querySelector('.endorsement-doc-controls');
 
     fileUpload.value = '';
     preview.src = '';
-    preview.style.display = 'none';
-    removeBtn.style.display = 'none';
+    previewContainer.style.display = 'none';
+    if (controlsContainer) controlsContainer.style.display = 'flex';
+}
+
+// Endorsement Image Modal Functions
+function openEndorsementImageModal() {
+    const modal = document.getElementById('endorsementImageModal');
+    const modalImage = document.getElementById('endorsementModalImage');
+    const preview = document.getElementById('attachmentPreview');
+
+    if (modal && modalImage && preview && preview.src) {
+        modalImage.src = preview.src;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeEndorsementImageModal() {
+    const modal = document.getElementById('endorsementImageModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+// Open modal for existing endorsement image (edit page)
+function openExistingEndorsementImageModal(imageUrl) {
+    const modal = document.getElementById('endorsementImageModal');
+    const modalImage = document.getElementById('endorsementModalImage');
+
+    if (modal && modalImage && imageUrl) {
+        modalImage.src = imageUrl;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 // Patient Documentation Camera Functions
@@ -1160,7 +1231,7 @@ function initializePatientCameraButton() {
 function openPatientCamera() {
     const cameraContainer = document.getElementById('patientCameraContainer');
     const video = document.getElementById('patientCameraVideo');
-    const openCameraBtn = document.getElementById('openPatientCameraBtn');
+    const controlsContainer = document.querySelector('.patient-doc-controls');
 
     // Check if browser supports getUserMedia
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -1180,7 +1251,7 @@ function openPatientCamera() {
         patientCameraStream = stream;
         video.srcObject = stream;
         cameraContainer.style.display = 'block';
-        openCameraBtn.style.display = 'none';
+        if (controlsContainer) controlsContainer.style.display = 'none';
     })
     .catch(function(error) {
         console.error('Error accessing camera:', error);
@@ -1203,7 +1274,8 @@ function openPatientCamera() {
 function capturePatientPhoto() {
     const video = document.getElementById('patientCameraVideo');
     const preview = document.getElementById('patientAttachmentPreview');
-    const removeBtn = document.getElementById('removePatientAttachmentBtn');
+    const previewContainer = document.getElementById('patientPreviewContainer');
+    const controlsContainer = document.querySelector('.patient-doc-controls');
     const fileUpload = document.getElementById('patientFileUpload');
 
     // Create canvas to capture image
@@ -1226,8 +1298,8 @@ function capturePatientPhoto() {
         // Display preview
         const imageUrl = URL.createObjectURL(blob);
         preview.src = imageUrl;
-        preview.style.display = 'block';
-        removeBtn.style.display = 'inline-block';
+        previewContainer.style.display = 'block';
+        if (controlsContainer) controlsContainer.style.display = 'none';
 
         // Close camera
         closePatientCamera();
@@ -1239,7 +1311,8 @@ function capturePatientPhoto() {
 function closePatientCamera() {
     const cameraContainer = document.getElementById('patientCameraContainer');
     const video = document.getElementById('patientCameraVideo');
-    const openCameraBtn = document.getElementById('openPatientCameraBtn');
+    const controlsContainer = document.querySelector('.patient-doc-controls');
+    const previewContainer = document.getElementById('patientPreviewContainer');
 
     // Stop all video tracks
     if (patientCameraStream) {
@@ -1249,22 +1322,28 @@ function closePatientCamera() {
 
     video.srcObject = null;
     cameraContainer.style.display = 'none';
-    openCameraBtn.style.display = 'inline-block';
+
+    // Show controls only if no image is previewed
+    if (previewContainer && previewContainer.style.display !== 'block') {
+        if (controlsContainer) controlsContainer.style.display = 'flex';
+    }
 }
 
 function validatePatientFileUpload(input) {
     const file = input.files[0];
     const uploadError = document.getElementById('patientUploadError');
+    const errorText = uploadError.querySelector('span');
     const preview = document.getElementById('patientAttachmentPreview');
-    const removeBtn = document.getElementById('removePatientAttachmentBtn');
+    const previewContainer = document.getElementById('patientPreviewContainer');
+    const controlsContainer = document.querySelector('.patient-doc-controls');
 
     if (!file) return;
 
     // Validate file size (5MB max)
     const maxSize = 5 * 1024 * 1024; // 5MB in bytes
     if (file.size > maxSize) {
-        uploadError.textContent = 'File size exceeds 5MB limit.';
-        uploadError.style.display = 'block';
+        if (errorText) errorText.textContent = 'File size exceeds 5MB limit.';
+        uploadError.style.display = 'flex';
         input.value = '';
         return;
     }
@@ -1272,8 +1351,8 @@ function validatePatientFileUpload(input) {
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-        uploadError.textContent = 'Invalid file format. Allowed: JPG, PNG, GIF, WebP';
-        uploadError.style.display = 'block';
+        if (errorText) errorText.textContent = 'Invalid file format. Allowed: JPG, PNG, GIF, WebP';
+        uploadError.style.display = 'flex';
         input.value = '';
         return;
     }
@@ -1283,8 +1362,8 @@ function validatePatientFileUpload(input) {
     const reader = new FileReader();
     reader.onload = function(e) {
         preview.src = e.target.result;
-        preview.style.display = 'block';
-        removeBtn.style.display = 'inline-block';
+        previewContainer.style.display = 'block';
+        if (controlsContainer) controlsContainer.style.display = 'none';
     };
     reader.readAsDataURL(file);
 }
@@ -1292,13 +1371,55 @@ function validatePatientFileUpload(input) {
 function removePatientAttachment() {
     const fileUpload = document.getElementById('patientFileUpload');
     const preview = document.getElementById('patientAttachmentPreview');
-    const removeBtn = document.getElementById('removePatientAttachmentBtn');
+    const previewContainer = document.getElementById('patientPreviewContainer');
+    const controlsContainer = document.querySelector('.patient-doc-controls');
 
     fileUpload.value = '';
     preview.src = '';
-    preview.style.display = 'none';
-    removeBtn.style.display = 'none';
+    previewContainer.style.display = 'none';
+    if (controlsContainer) controlsContainer.style.display = 'flex';
 }
+
+// Patient Image Modal Functions
+function openPatientImageModal() {
+    const modal = document.getElementById('patientImageModal');
+    const modalImage = document.getElementById('patientModalImage');
+    const preview = document.getElementById('patientAttachmentPreview');
+
+    if (modal && modalImage && preview && preview.src) {
+        modalImage.src = preview.src;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closePatientImageModal() {
+    const modal = document.getElementById('patientImageModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+// Open modal for existing patient image (edit page)
+function openExistingPatientImageModal(imageUrl) {
+    const modal = document.getElementById('patientImageModal');
+    const modalImage = document.getElementById('patientModalImage');
+
+    if (modal && modalImage && imageUrl) {
+        modalImage.src = imageUrl;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+// Close modals with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closePatientImageModal();
+        closeEndorsementImageModal();
+    }
+});
 
 function setupVehicleModals() {
     // Initialize camera buttons

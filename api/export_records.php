@@ -47,14 +47,19 @@ if (!empty($date_to)) {
 $where_sql = !empty($where_conditions) ? "WHERE " . implode(" AND ", $where_conditions) : "";
 
 // Get records
-$sql = "SELECT 
+$sql = "SELECT
     form_number, form_date, patient_name, age, gender, civil_status,
     address, occupation, place_of_incident, incident_time,
     vehicle_used, driver_name, arrival_hospital_name,
+    emergency_medical, emergency_medical_details,
+    emergency_trauma, emergency_trauma_details,
+    emergency_ob, emergency_ob_details,
+    emergency_general, emergency_general_details,
+    care_management,
     initial_bp, initial_temp, initial_pulse, initial_spo2,
-    team_leader, status, created_at
-    FROM prehospital_forms 
-    $where_sql 
+    team_leader, narrative_report, status, created_at
+    FROM prehospital_forms
+    $where_sql
     ORDER BY created_at DESC";
 
 $stmt = db_query($sql, $params);
@@ -81,22 +86,53 @@ fputcsv($output, [
     'Civil Status',
     'Address',
     'Occupation',
-    'Place of Incident',
+    'Type of Emergency Call',
     'Incident Time',
     'Vehicle Used',
     'Driver',
-    'Hospital',
+    'Care Management',
     'Initial BP',
     'Initial Temp',
     'Initial Pulse',
     'Initial SPO2',
     'Team Leader',
+    'Narrative Report',
     'Status',
     'Created At'
 ]);
 
 // Add data rows
 foreach ($records as $record) {
+    // Build emergency type string with details
+    $emergencyTypes = [];
+    if ($record['emergency_medical']) {
+        $detail = $record['emergency_medical_details'] ? ' - ' . $record['emergency_medical_details'] : '';
+        $emergencyTypes[] = 'Medical' . $detail;
+    }
+    if ($record['emergency_trauma']) {
+        $detail = $record['emergency_trauma_details'] ? ' - ' . $record['emergency_trauma_details'] : '';
+        $emergencyTypes[] = 'Trauma' . $detail;
+    }
+    if ($record['emergency_ob']) {
+        $detail = $record['emergency_ob_details'] ? ' - ' . $record['emergency_ob_details'] : '';
+        $emergencyTypes[] = 'OB' . $detail;
+    }
+    if ($record['emergency_general']) {
+        $detail = $record['emergency_general_details'] ? ' - ' . $record['emergency_general_details'] : '';
+        $emergencyTypes[] = 'General' . $detail;
+    }
+    $emergencyTypeStr = $emergencyTypes ? implode('; ', $emergencyTypes) : '';
+
+    // Build care management string
+    $careItems = [];
+    if ($record['care_management']) {
+        $decoded = json_decode($record['care_management'], true);
+        if (is_array($decoded)) {
+            $careItems = array_map('ucfirst', $decoded);
+        }
+    }
+    $careManagementStr = $careItems ? implode(', ', $careItems) : '';
+
     fputcsv($output, [
         $record['form_number'],
         $record['form_date'],
@@ -106,16 +142,17 @@ foreach ($records as $record) {
         ucfirst($record['civil_status'] ?: ''),
         $record['address'],
         $record['occupation'],
-        $record['place_of_incident'],
+        $emergencyTypeStr,
         $record['incident_time'],
         ucfirst($record['vehicle_used'] ?: ''),
         $record['driver_name'],
-        $record['arrival_hospital_name'],
+        $careManagementStr,
         $record['initial_bp'],
         $record['initial_temp'],
         $record['initial_pulse'],
         $record['initial_spo2'],
         $record['team_leader'],
+        $record['narrative_report'],
         ucfirst($record['status']),
         $record['created_at']
     ]);

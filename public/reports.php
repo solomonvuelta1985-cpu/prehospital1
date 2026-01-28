@@ -198,334 +198,319 @@ if ($is_admin) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reports & Analytics - Pre-Hospital Care System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #0d6efd;
-            --secondary-color: #6c757d;
-            --success-color: #198754;
-            --warning-color: #ffc107;
-            --danger-color: #dc3545;
-            --info-color: #0dcaf0;
-            --light-bg: #f8fafc;
-            --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            --card-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --primary: #1e3a5f;
+            --primary-light: #2d5a8a;
+            --accent: #2563eb;
+            --text-primary: #1e3a5f;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --bg-body: #f8fafc;
+            --bg-white: #ffffff;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
         }
 
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            background-color: var(--light-bg);
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            color: #334155;
+            background: var(--bg-body);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: #1e3a5f !important;
         }
 
         /* Page Header */
         .page-header {
-            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-            color: white;
-            padding: 2rem 0;
+            background: var(--bg-white);
+            padding: 1.5rem 0;
             margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-bottom: 3px solid var(--accent);
         }
 
         .page-header h1 {
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            font-size: 2rem;
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+            letter-spacing: -0.02em;
         }
 
         .page-header p {
-            opacity: 0.95;
-            margin-bottom: 0;
-        }
-
-        /* Filter Section */
-        .filter-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: var(--card-shadow);
-            border: 1px solid #e2e8f0;
-        }
-
-        .filter-card h5 {
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: #334155;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        /* Summary Stats */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: var(--card-shadow);
-            border: 1px solid #e2e8f0;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: var(--accent-color);
-        }
-
-        .stat-card:hover {
-            box-shadow: var(--card-hover-shadow);
-            transform: translateY(-4px);
-        }
-
-        .stat-card.blue { --accent-color: #0d6efd; }
-        .stat-card.green { --accent-color: #198754; }
-        .stat-card.orange { --accent-color: #fd7e14; }
-        .stat-card.purple { --accent-color: #6f42c1; }
-        .stat-card.cyan { --accent-color: #0dcaf0; }
-        .stat-card.red { --accent-color: #dc3545; }
-
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-            margin-bottom: 1rem;
-        }
-
-        .stat-card.blue .stat-icon { background: linear-gradient(135deg, #0d6efd, #0a58ca); }
-        .stat-card.green .stat-icon { background: linear-gradient(135deg, #198754, #146c43); }
-        .stat-card.orange .stat-icon { background: linear-gradient(135deg, #fd7e14, #dc6502); }
-        .stat-card.purple .stat-icon { background: linear-gradient(135deg, #6f42c1, #5a32a3); }
-        .stat-card.cyan .stat-icon { background: linear-gradient(135deg, #0dcaf0, #0aa2c0); }
-        .stat-card.red .stat-icon { background: linear-gradient(135deg, #dc3545, #b02a37); }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 0.25rem;
-            line-height: 1;
-        }
-
-        .stat-label {
-            color: #64748b;
+            color: var(--text-muted);
+            margin: 0.25rem 0 0;
             font-size: 0.875rem;
-            font-weight: 500;
-            margin-bottom: 0;
+            font-weight: 400;
         }
 
-        .stat-trend {
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-            font-size: 0.8rem;
-            margin-top: 0.5rem;
-        }
-
-        .stat-trend.up {
-            color: #198754;
-        }
-
-        .stat-trend.down {
-            color: #dc3545;
-        }
-
-        /* Chart Cards */
-        .chart-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: var(--card-shadow);
-            border: 1px solid #e2e8f0;
-        }
-
-        .chart-card h5 {
-            font-weight: 600;
+        /* Section */
+        .section {
+            background: var(--bg-white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
             margin-bottom: 1.5rem;
-            color: #334155;
+        }
+
+        .section-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-light);
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
-        .chart-container {
-            position: relative;
-            height: 300px;
+        .section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #1e3a5f !important;
+            margin: 0;
+            letter-spacing: -0.01em;
         }
 
-        .chart-container.large {
-            height: 400px;
+        .section-badge {
+            font-size: 0.6875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: var(--bg-body);
+            padding: 0.25rem 0.625rem;
+            border-radius: 4px;
         }
 
-        /* Table Styles */
+        .section-body { padding: 1.5rem; }
+
+        /* Filter Bar */
+        .filter-bar {
+            background: var(--bg-white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-bar .form-label {
+            font-size: 0.6875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.375rem;
+        }
+
+        .filter-bar .form-control,
+        .filter-bar .form-select {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            background: var(--bg-white);
+            color: var(--text-primary);
+        }
+
+        .filter-bar .form-control:focus,
+        .filter-bar .form-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+            outline: none;
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-item {
+            background: var(--bg-white);
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .stat-item:nth-child(1) .stat-icon { background: #eff6ff; color: #3b82f6; }
+        .stat-item:nth-child(2) .stat-icon { background: #ecfdf5; color: #10b981; }
+        .stat-item:nth-child(3) .stat-icon { background: #fffbeb; color: #f59e0b; }
+        .stat-item:nth-child(4) .stat-icon { background: #f5f3ff; color: #8b5cf6; }
+
+        .stat-content { min-width: 0; }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e3a5f;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-label {
+            font-size: 0.6875rem;
+            font-weight: 500;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        /* Chart Container */
+        .chart-container { position: relative; height: 280px; }
+
+        /* Data Tables */
         .data-table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-
-        .data-table thead {
-            background: #f8fafc;
+            border-collapse: collapse;
+            font-size: 0.8125rem;
         }
 
         .data-table th {
-            padding: 1rem;
+            padding: 0.75rem 1rem;
             text-align: left;
+            font-size: 0.6875rem;
             font-weight: 600;
-            color: #475569;
-            font-size: 0.875rem;
+            color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border-bottom: 2px solid #e2e8f0;
+            letter-spacing: 0.04em;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-body);
         }
 
         .data-table td {
-            padding: 1rem;
-            border-bottom: 1px solid #f1f5f9;
-            color: #334155;
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-secondary);
         }
 
-        .data-table tbody tr:hover {
-            background: #f8fafc;
+        .data-table td:first-child { color: var(--text-primary); font-weight: 500; }
+        .data-table tbody tr:last-child td { border-bottom: none; }
+        .data-table tbody tr:hover { background: var(--bg-body); }
+
+        /* Progress Bars */
+        .progress-bar-wrap {
+            height: 4px;
+            background: var(--border-light);
+            border-radius: 2px;
+            overflow: hidden;
+            min-width: 100px;
         }
 
-        /* Action Buttons */
-        .btn-custom {
-            padding: 0.625rem 1.25rem;
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
+        .progress-bar-fill {
+            height: 100%;
+            background: #2563eb;
+            border-radius: 2px;
+        }
+
+        /* Buttons */
+        .btn-primary-custom {
+            background: #2563eb;
+            color: white;
             border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.8125rem;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            cursor: pointer;
+            transition: background 0.15s;
         }
 
-        .btn-primary-custom {
-            background: linear-gradient(135deg, #0d6efd, #0a58ca);
-            color: white;
-        }
+        .btn-primary-custom:hover { background: #1d4ed8; color: white; }
 
-        .btn-primary-custom:hover {
-            background: linear-gradient(135deg, #0a58ca, #084298);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
-        }
-
-        .btn-success-custom {
-            background: linear-gradient(135deg, #198754, #146c43);
-            color: white;
-        }
-
-        .btn-success-custom:hover {
-            background: linear-gradient(135deg, #146c43, #0f5132);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
-        }
-
-        .btn-secondary-custom {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-secondary-custom:hover {
-            background: #5c636a;
-            transform: translateY(-2px);
-        }
-
-        /* Progress Bars */
-        .progress-custom {
-            height: 8px;
-            border-radius: 10px;
-            background: #e9ecef;
-            overflow: hidden;
-        }
-
-        .progress-bar-custom {
-            height: 100%;
-            background: linear-gradient(90deg, #0d6efd, #0a58ca);
-            border-radius: 10px;
-            transition: width 0.6s ease;
-        }
-
-        /* Badge Styles */
-        .badge-custom {
-            padding: 0.35rem 0.75rem;
+        .btn-outline {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            padding: 0.5rem 1rem;
             border-radius: 6px;
             font-weight: 500;
-            font-size: 0.75rem;
+            font-size: 0.8125rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.15s;
         }
+
+        .btn-outline:hover {
+            background: var(--bg-body);
+            border-color: var(--text-muted);
+            color: var(--text-primary);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .status-badge.success { background: #e8f5e9; color: #2e7d32; }
+        .status-badge.warning { background: #fff3e0; color: #e65100; }
+        .status-badge.danger { background: #ffebee; color: #c62828; }
+
+        /* Grid Layouts */
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+
+        /* Row Styling */
+        .row { --bs-gutter-x: 1.5rem; }
 
         /* Responsive */
+        @media (max-width: 1200px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .grid-3 { grid-template-columns: repeat(2, 1fr); }
+        }
+
         @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .chart-container {
-                height: 250px;
-            }
-
-            .page-header h1 {
-                font-size: 1.5rem;
-            }
-
-            .filter-card {
-                padding: 1rem;
-            }
+            .page-header h1 { font-size: 1.125rem; }
+            .stats-row { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+            .stat-item { padding: 0.875rem 1rem; }
+            .stat-icon { width: 32px; height: 32px; font-size: 0.875rem; }
+            .stat-value { font-size: 1.25rem; }
+            .section-body { padding: 1rem; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
         }
 
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: #64748b;
+        @media (max-width: 480px) {
+            .stats-row { grid-template-columns: 1fr 1fr; }
+            .stat-value { font-size: 1.125rem; }
+            .filter-bar { padding: 1rem; }
         }
 
-        .empty-state i {
-            font-size: 4rem;
-            opacity: 0.5;
-            margin-bottom: 1rem;
-        }
-
-        .empty-state h5 {
-            font-weight: 600;
-            color: #475569;
-            margin-bottom: 0.5rem;
-        }
-
-        /* Print Styles */
+        /* Print */
         @media print {
-            .filter-card,
-            .btn-custom {
-                display: none !important;
-            }
-
-            .chart-card {
-                page-break-inside: avoid;
-            }
+            .filter-bar, .btn-primary-custom, .btn-outline { display: none !important; }
+            .section { border: 1px solid var(--border); box-shadow: none; }
         }
     </style>
 </head>
@@ -537,33 +522,32 @@ if ($is_admin) {
         <!-- Page Header -->
         <div class="page-header">
             <div class="container-fluid">
-                <h1><i class="bi bi-bar-chart-line"></i> Reports & Analytics</h1>
-                <p>Comprehensive insights and data visualization for Pre-Hospital Care System</p>
+                <h1>Reports & Analytics</h1>
+                <p>Performance metrics and operational insights</p>
             </div>
         </div>
 
         <div class="container-fluid">
             <?php show_flash(); ?>
 
-            <!-- Filter Section -->
-            <div class="filter-card">
-                <h5><i class="bi bi-funnel"></i> Filters</h5>
+            <!-- Filter Bar -->
+            <div class="filter-bar">
                 <form method="GET" action="reports.php">
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label for="date_from" class="form-label">From Date</label>
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-2">
+                            <label for="date_from" class="form-label">From</label>
                             <input type="date" class="form-control" id="date_from" name="date_from"
                                    value="<?php echo e($date_from); ?>">
                         </div>
-                        <div class="col-md-3">
-                            <label for="date_to" class="form-label">To Date</label>
+                        <div class="col-md-2">
+                            <label for="date_to" class="form-label">To</label>
                             <input type="date" class="form-control" id="date_to" name="date_to"
                                    value="<?php echo e($date_to); ?>">
                         </div>
                         <div class="col-md-2">
                             <label for="status" class="form-label">Status</label>
                             <select class="form-select" id="status" name="status">
-                                <option value="all" <?php echo $status_filter === 'all' ? 'selected' : ''; ?>>All</option>
+                                <option value="all" <?php echo $status_filter === 'all' ? 'selected' : ''; ?>>All Status</option>
                                 <option value="completed" <?php echo $status_filter === 'completed' ? 'selected' : ''; ?>>Completed</option>
                                 <option value="draft" <?php echo $status_filter === 'draft' ? 'selected' : ''; ?>>Draft</option>
                                 <option value="archived" <?php echo $status_filter === 'archived' ? 'selected' : ''; ?>>Archived</option>
@@ -583,146 +567,91 @@ if ($is_admin) {
                             </select>
                         </div>
                         <?php endif; ?>
-                        <div class="col-md-2">
-                            <label class="form-label">&nbsp;</label>
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary-custom">
-                                    <i class="bi bi-search"></i> Apply Filters
-                                </button>
-                            </div>
+                        <div class="col-md-auto">
+                            <button type="submit" class="btn btn-primary-custom">
+                                Apply Filters
+                            </button>
                         </div>
                     </div>
                 </form>
             </div>
 
-            <!-- Summary Statistics -->
-            <div class="stats-grid">
-                <div class="stat-card blue">
-                    <div class="stat-icon">
-                        <i class="bi bi-file-earmark-medical"></i>
+            <!-- Key Metrics -->
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="bi bi-file-earmark-text"></i></div>
+                    <div class="stat-content">
+                        <div class="stat-value"><?php echo number_format($summary['total_forms']); ?></div>
+                        <div class="stat-label">Total Forms</div>
                     </div>
-                    <p class="stat-value"><?php echo number_format($summary['total_forms']); ?></p>
-                    <p class="stat-label">Total Forms</p>
                 </div>
-                <div class="stat-card green">
-                    <div class="stat-icon">
-                        <i class="bi bi-check-circle"></i>
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
+                    <div class="stat-content">
+                        <div class="stat-value"><?php echo number_format((int)($summary['completed_forms'] ?? 0)); ?></div>
+                        <div class="stat-label">Completed</div>
                     </div>
-                    <p class="stat-value"><?php echo number_format((int)($summary['completed_forms'] ?? 0)); ?></p>
-                    <p class="stat-label">Completed Forms</p>
-                    <?php if ($summary['total_forms'] > 0): ?>
-                        <div class="progress-custom mt-2">
-                            <div class="progress-bar-custom" style="width: <?php echo ($summary['completed_forms'] / $summary['total_forms'] * 100); ?>%"></div>
-                        </div>
-                    <?php endif; ?>
                 </div>
-                <div class="stat-card cyan">
-                    <div class="stat-icon">
-                        <i class="bi bi-calendar-day"></i>
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+                    <div class="stat-content">
+                        <div class="stat-value"><?php echo number_format((int)($summary['draft_forms'] ?? 0)); ?></div>
+                        <div class="stat-label">In Progress</div>
                     </div>
-                    <p class="stat-value"><?php echo number_format((int)($summary['today_forms'] ?? 0)); ?></p>
-                    <p class="stat-label">Today's Forms</p>
                 </div>
-                <div class="stat-card purple">
-                    <div class="stat-icon">
-                        <i class="bi bi-calendar-week"></i>
+                <div class="stat-item">
+                    <div class="stat-icon"><i class="bi bi-calendar-week"></i></div>
+                    <div class="stat-content">
+                        <div class="stat-value"><?php echo number_format((int)($summary['week_forms'] ?? 0)); ?></div>
+                        <div class="stat-label">This Week</div>
                     </div>
-                    <p class="stat-value"><?php echo number_format((int)($summary['week_forms'] ?? 0)); ?></p>
-                    <p class="stat-label">This Week</p>
-                </div>
-                <div class="stat-card orange">
-                    <div class="stat-icon">
-                        <i class="bi bi-file-earmark-text"></i>
-                    </div>
-                    <p class="stat-value"><?php echo number_format((int)($summary['draft_forms'] ?? 0)); ?></p>
-                    <p class="stat-label">Draft Forms</p>
-                </div>
-                <div class="stat-card red">
-                    <div class="stat-icon">
-                        <i class="bi bi-archive"></i>
-                    </div>
-                    <p class="stat-value"><?php echo number_format((int)($summary['archived_forms'] ?? 0)); ?></p>
-                    <p class="stat-label">Archived Forms</p>
                 </div>
             </div>
 
-            <!-- Charts Row 1 -->
-            <div class="row">
-                <!-- Forms Trend Chart -->
-                <div class="col-lg-8">
-                    <div class="chart-card">
-                        <h5>
-                            <span><i class="bi bi-graph-up"></i> Forms Trend Over Time</span>
-                            <span class="badge bg-primary"><?php echo count($trend_data); ?> days</span>
-                        </h5>
-                        <div class="chart-container large">
-                            <canvas id="trendChart"></canvas>
-                        </div>
+            <!-- Main Trend Chart -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Forms Over Time</h2>
+                    <span class="section-badge"><?php echo count($trend_data); ?> days</span>
+                </div>
+                <div class="section-body">
+                    <div class="chart-container">
+                        <canvas id="trendChart"></canvas>
                     </div>
                 </div>
+            </div>
 
-                <!-- Forms by Status -->
-                <div class="col-lg-4">
-                    <div class="chart-card">
-                        <h5><i class="bi bi-pie-chart"></i> Forms by Status</h5>
+            <!-- Distribution Charts -->
+            <div class="grid-3">
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">By Status</h2>
+                    </div>
+                    <div class="section-body">
                         <div class="chart-container">
                             <canvas id="statusChart"></canvas>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Charts Row 2 -->
-            <div class="row">
-                <!-- Emergency Types -->
-                <div class="col-lg-4">
-                    <div class="chart-card">
-                        <h5><i class="bi bi-exclamation-triangle"></i> Emergency Types</h5>
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Emergency Types</h2>
+                    </div>
+                    <div class="section-body">
                         <div class="chart-container">
                             <canvas id="emergencyChart"></canvas>
                         </div>
                     </div>
                 </div>
 
-                <!-- Vehicle Usage -->
-                <div class="col-lg-4">
-                    <div class="chart-card">
-                        <h5><i class="bi bi-truck"></i> Vehicle Usage</h5>
-                        <div class="chart-container">
-                            <canvas id="vehicleChart"></canvas>
-                        </div>
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Age Groups</h2>
                     </div>
-                </div>
-
-                <!-- Gender Distribution -->
-                <div class="col-lg-4">
-                    <div class="chart-card">
-                        <h5><i class="bi bi-gender-ambiguous"></i> Patient Gender</h5>
-                        <div class="chart-container">
-                            <canvas id="genderChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Charts Row 3 -->
-            <div class="row">
-                <!-- Age Distribution -->
-                <div class="col-lg-6">
-                    <div class="chart-card">
-                        <h5><i class="bi bi-people"></i> Patient Age Distribution</h5>
+                    <div class="section-body">
                         <div class="chart-container">
                             <canvas id="ageChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Injury Types -->
-                <div class="col-lg-6">
-                    <div class="chart-card">
-                        <h5><i class="bi bi-bandaid"></i> Injury Types</h5>
-                        <div class="chart-container">
-                            <canvas id="injuryChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -730,33 +659,33 @@ if ($is_admin) {
 
             <!-- Top Hospitals Table -->
             <?php if (!empty($hospital_data)): ?>
-            <div class="chart-card">
-                <h5><i class="bi bi-hospital"></i> Top 10 Receiving Hospitals</h5>
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Top Receiving Hospitals</h2>
+                    <span class="section-badge">Top 10</span>
+                </div>
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Rank</th>
-                                <th>Hospital Name</th>
-                                <th>Total Forms</th>
-                                <th>Percentage</th>
-                                <th>Distribution</th>
+                                <th>Hospital</th>
+                                <th>Forms</th>
+                                <th>Share</th>
+                                <th style="width: 200px;">Distribution</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
-                            $rank = 1;
                             foreach ($hospital_data as $hospital):
-                                $percentage = ($hospital['count'] / $summary['total_forms']) * 100;
+                                $percentage = $summary['total_forms'] > 0 ? ($hospital['count'] / $summary['total_forms']) * 100 : 0;
                             ?>
                             <tr>
-                                <td><strong>#<?php echo $rank++; ?></strong></td>
                                 <td><?php echo e($hospital['arrival_hospital_name']); ?></td>
-                                <td><strong><?php echo number_format($hospital['count']); ?></strong></td>
+                                <td><?php echo number_format($hospital['count']); ?></td>
                                 <td><?php echo number_format($percentage, 1); ?>%</td>
                                 <td>
-                                    <div class="progress-custom">
-                                        <div class="progress-bar-custom" style="width: <?php echo $percentage; ?>%"></div>
+                                    <div class="progress-bar-wrap">
+                                        <div class="progress-bar-fill" style="width: <?php echo $percentage; ?>%"></div>
                                     </div>
                                 </td>
                             </tr>
@@ -769,52 +698,39 @@ if ($is_admin) {
 
             <!-- User Performance Table (Admin Only) -->
             <?php if ($is_admin && !empty($user_performance)): ?>
-            <div class="chart-card">
-                <h5><i class="bi bi-trophy"></i> User Performance</h5>
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Team Performance</h2>
+                </div>
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Rank</th>
                                 <th>User</th>
-                                <th>Username</th>
-                                <th>Total Forms</th>
+                                <th>Total</th>
                                 <th>Completed</th>
-                                <th>Completion Rate</th>
-                                <th>Performance</th>
+                                <th>Rate</th>
+                                <th style="width: 150px;">Progress</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php
-                            $rank = 1;
-                            foreach ($user_performance as $user):
-                            ?>
+                            <?php foreach ($user_performance as $user): ?>
                             <tr>
-                                <td>
-                                    <?php if ($rank <= 3): ?>
-                                        <span class="badge bg-warning text-dark">
-                                            <i class="bi bi-trophy-fill"></i> #<?php echo $rank; ?>
-                                        </span>
-                                    <?php else: ?>
-                                        <strong>#<?php echo $rank; ?></strong>
-                                    <?php endif; ?>
-                                </td>
-                                <td><strong><?php echo e($user['full_name']); ?></strong></td>
-                                <td><?php echo e($user['username']); ?></td>
+                                <td><?php echo e($user['full_name']); ?></td>
                                 <td><?php echo number_format($user['total_forms']); ?></td>
                                 <td><?php echo number_format($user['completed_forms']); ?></td>
                                 <td>
-                                    <span class="badge-custom <?php echo $user['completion_rate'] >= 80 ? 'bg-success' : ($user['completion_rate'] >= 50 ? 'bg-warning' : 'bg-danger'); ?>">
+                                    <span class="status-badge <?php echo $user['completion_rate'] >= 80 ? 'success' : ($user['completion_rate'] >= 50 ? 'warning' : 'danger'); ?>">
                                         <?php echo number_format($user['completion_rate'], 1); ?>%
                                     </span>
                                 </td>
                                 <td>
-                                    <div class="progress-custom">
-                                        <div class="progress-bar-custom" style="width: <?php echo $user['completion_rate']; ?>%"></div>
+                                    <div class="progress-bar-wrap">
+                                        <div class="progress-bar-fill" style="width: <?php echo $user['completion_rate']; ?>%"></div>
                                     </div>
                                 </td>
                             </tr>
-                            <?php $rank++; endforeach; ?>
+                            <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
@@ -822,18 +738,22 @@ if ($is_admin) {
             <?php endif; ?>
 
             <!-- Export Actions -->
-            <div class="chart-card">
-                <h5><i class="bi bi-download"></i> Export Reports</h5>
-                <div class="d-flex flex-wrap gap-2">
-                    <button onclick="window.print()" class="btn btn-primary-custom">
-                        <i class="bi bi-printer"></i> Print Report
-                    </button>
-                    <button onclick="exportToCSV()" class="btn btn-success-custom">
-                        <i class="bi bi-file-earmark-spreadsheet"></i> Export to CSV
-                    </button>
-                    <button onclick="exportToPDF()" class="btn btn-secondary-custom">
-                        <i class="bi bi-file-earmark-pdf"></i> Export to PDF
-                    </button>
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Export</h2>
+                </div>
+                <div class="section-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        <button onclick="window.print()" class="btn btn-outline">
+                            <i class="bi bi-printer"></i> Print
+                        </button>
+                        <button onclick="exportToCSV()" class="btn btn-outline">
+                            <i class="bi bi-file-earmark-spreadsheet"></i> CSV
+                        </button>
+                        <button onclick="exportToPDF()" class="btn btn-outline">
+                            <i class="bi bi-file-earmark-pdf"></i> PDF
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -842,107 +762,116 @@ if ($is_admin) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
+        // Professional blue color palette
+        const colors = {
+            blue: '#3b82f6',
+            blueDark: '#1d4ed8',
+            blueLight: '#93c5fd',
+            teal: '#14b8a6',
+            emerald: '#10b981',
+            amber: '#f59e0b',
+            slate: '#64748b'
+        };
+
         // Chart.js default configuration
-        Chart.defaults.font.family = "'Segoe UI', system-ui, -apple-system, sans-serif";
+        Chart.defaults.font.family = "'Inter', -apple-system, sans-serif";
+        Chart.defaults.font.weight = 400;
         Chart.defaults.color = '#64748b';
 
+        // Shared chart options
+        const sharedOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1e293b',
+                    padding: 12,
+                    cornerRadius: 6,
+                    titleFont: { size: 12, weight: 600 },
+                    bodyFont: { size: 12, weight: 400 }
+                }
+            }
+        };
+
         // Trend Chart
-        const trendData = <?php echo json_encode($trend_data); ?>;
-        const trendCtx = document.getElementById('trendChart').getContext('2d');
-        new Chart(trendCtx, {
+        const trendData = <?php echo json_encode($trend_data); ?> || [];
+        new Chart(document.getElementById('trendChart'), {
             type: 'line',
             data: {
                 labels: trendData.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
                 datasets: [{
-                    label: 'Forms Created',
+                    label: 'Forms',
                     data: trendData.map(d => d.count),
-                    borderColor: '#0d6efd',
-                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                    borderWidth: 3,
+                    borderColor: colors.blue,
+                    backgroundColor: '#eff6ff',
+                    borderWidth: 2,
                     fill: true,
-                    tension: 0.4,
+                    tension: 0.3,
                     pointRadius: 4,
                     pointHoverRadius: 6,
-                    pointBackgroundColor: '#0d6efd',
+                    pointBackgroundColor: colors.blue,
                     pointBorderColor: '#fff',
                     pointBorderWidth: 2
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 12,
-                        cornerRadius: 8,
-                        titleFont: { size: 14, weight: 'bold' },
-                        bodyFont: { size: 13 }
-                    }
-                },
+                ...sharedOptions,
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: {
-                            precision: 0
-                        },
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
+                        ticks: { precision: 0, font: { size: 11 } },
+                        grid: { color: '#f1f5f9', drawBorder: false },
+                        border: { display: false }
                     },
                     x: {
-                        grid: {
-                            display: false
-                        }
+                        grid: { display: false },
+                        ticks: { font: { size: 11 } },
+                        border: { display: false }
                     }
                 }
             }
         });
 
         // Status Chart
-        const statusCtx = document.getElementById('statusChart').getContext('2d');
-        new Chart(statusCtx, {
+        new Chart(document.getElementById('statusChart'), {
             type: 'doughnut',
             data: {
                 labels: ['Completed', 'Draft', 'Archived'],
                 datasets: [{
                     data: [
-                        <?php echo $summary['completed_forms']; ?>,
-                        <?php echo $summary['draft_forms']; ?>,
-                        <?php echo $summary['archived_forms']; ?>
+                        <?php echo (int)($summary['completed_forms'] ?? 0); ?>,
+                        <?php echo (int)($summary['draft_forms'] ?? 0); ?>,
+                        <?php echo (int)($summary['archived_forms'] ?? 0); ?>
                     ],
-                    backgroundColor: [
-                        '#198754',
-                        '#ffc107',
-                        '#dc3545'
-                    ],
-                    borderWidth: 0,
-                    hoverOffset: 10
+                    backgroundColor: [colors.emerald, colors.amber, colors.slate],
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                    hoverOffset: 4
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                ...sharedOptions,
+                cutout: '65%',
                 plugins: {
+                    ...sharedOptions.plugins,
                     legend: {
+                        display: true,
                         position: 'bottom',
                         labels: {
-                            padding: 15,
-                            font: { size: 12 }
+                            padding: 16,
+                            font: { size: 11, weight: 500 },
+                            usePointStyle: true,
+                            pointStyle: 'circle'
                         }
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 12,
-                        cornerRadius: 8,
+                        ...sharedOptions.plugins.tooltip,
                         callbacks: {
                             label: function(context) {
-                                const total = <?php echo $summary['total_forms']; ?>;
-                                const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
-                                return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                const total = <?php echo (int)($summary['total_forms'] ?? 0); ?>;
+                                const pct = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                return context.label + ': ' + context.parsed + ' (' + pct + '%)';
                             }
                         }
                     }
@@ -951,211 +880,66 @@ if ($is_admin) {
         });
 
         // Emergency Types Chart
-        const emergencyCtx = document.getElementById('emergencyChart').getContext('2d');
-        new Chart(emergencyCtx, {
+        new Chart(document.getElementById('emergencyChart'), {
             type: 'bar',
             data: {
                 labels: ['Medical', 'Trauma', 'Obstetric', 'General'],
                 datasets: [{
-                    label: 'Cases',
                     data: [
-                        <?php echo $emergency_data['medical']; ?>,
-                        <?php echo $emergency_data['trauma']; ?>,
-                        <?php echo $emergency_data['obstetric']; ?>,
-                        <?php echo $emergency_data['general']; ?>
+                        <?php echo (int)($emergency_data['medical'] ?? 0); ?>,
+                        <?php echo (int)($emergency_data['trauma'] ?? 0); ?>,
+                        <?php echo (int)($emergency_data['obstetric'] ?? 0); ?>,
+                        <?php echo (int)($emergency_data['general'] ?? 0); ?>
                     ],
-                    backgroundColor: [
-                        'rgba(13, 110, 253, 0.8)',
-                        'rgba(220, 53, 69, 0.8)',
-                        'rgba(111, 66, 193, 0.8)',
-                        'rgba(25, 135, 84, 0.8)'
-                    ],
-                    borderRadius: 8,
-                    barThickness: 40
+                    backgroundColor: [colors.blue, colors.teal, colors.emerald, colors.amber],
+                    borderRadius: 4,
+                    barThickness: 32
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
+                ...sharedOptions,
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: {
-                            precision: 0
-                        },
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
+                        ticks: { precision: 0, font: { size: 11 } },
+                        grid: { color: '#f1f5f9', drawBorder: false },
+                        border: { display: false }
                     },
                     x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        });
-
-        // Vehicle Chart
-        const vehicleData = <?php echo json_encode($vehicle_data); ?>;
-        const vehicleCtx = document.getElementById('vehicleChart').getContext('2d');
-        new Chart(vehicleCtx, {
-            type: 'pie',
-            data: {
-                labels: vehicleData.map(v => v.vehicle_used || 'Not Specified'),
-                datasets: [{
-                    data: vehicleData.map(v => v.count),
-                    backgroundColor: [
-                        '#0d6efd',
-                        '#198754',
-                        '#ffc107',
-                        '#dc3545',
-                        '#6f42c1'
-                    ],
-                    borderWidth: 0,
-                    hoverOffset: 10
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 15,
-                            font: { size: 12 }
-                        }
-                    }
-                }
-            }
-        });
-
-        // Gender Chart
-        const genderData = <?php echo json_encode($gender_data); ?>;
-        const genderCtx = document.getElementById('genderChart').getContext('2d');
-        new Chart(genderCtx, {
-            type: 'doughnut',
-            data: {
-                labels: genderData.map(g => g.gender === 'M' ? 'Male' : (g.gender === 'F' ? 'Female' : 'Other')),
-                datasets: [{
-                    data: genderData.map(g => g.count),
-                    backgroundColor: [
-                        '#0d6efd',
-                        '#d63384',
-                        '#6c757d'
-                    ],
-                    borderWidth: 0,
-                    hoverOffset: 10
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 15,
-                            font: { size: 12 }
-                        }
+                        grid: { display: false },
+                        ticks: { font: { size: 11 } },
+                        border: { display: false }
                     }
                 }
             }
         });
 
         // Age Distribution Chart
-        const ageData = <?php echo json_encode($age_data); ?>;
-        const ageCtx = document.getElementById('ageChart').getContext('2d');
-        new Chart(ageCtx, {
+        const ageData = <?php echo json_encode($age_data); ?> || [];
+        new Chart(document.getElementById('ageChart'), {
             type: 'bar',
             data: {
                 labels: ageData.map(a => a.age_group),
                 datasets: [{
-                    label: 'Patients',
                     data: ageData.map(a => a.count),
-                    backgroundColor: 'rgba(13, 110, 253, 0.8)',
-                    borderRadius: 8,
-                    barThickness: 50
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            precision: 0
-                        },
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        });
-
-        // Injury Types Chart
-        const injuryData = <?php echo json_encode($injury_data); ?>;
-        const injuryCtx = document.getElementById('injuryChart').getContext('2d');
-        new Chart(injuryCtx, {
-            type: 'bar',
-            data: {
-                labels: injuryData.map(i => i.injury_type.charAt(0).toUpperCase() + i.injury_type.slice(1)),
-                datasets: [{
-                    label: 'Injuries',
-                    data: injuryData.map(i => i.count),
-                    backgroundColor: [
-                        'rgba(220, 53, 69, 0.8)',
-                        'rgba(253, 126, 20, 0.8)',
-                        'rgba(255, 193, 7, 0.8)',
-                        'rgba(111, 66, 193, 0.8)',
-                        'rgba(13, 202, 240, 0.8)',
-                        'rgba(108, 117, 125, 0.8)'
-                    ],
-                    borderRadius: 8,
+                    backgroundColor: colors.teal,
+                    borderRadius: 4,
                     barThickness: 40
                 }]
             },
             options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
+                ...sharedOptions,
                 scales: {
-                    x: {
-                        beginAtZero: true,
-                        ticks: {
-                            precision: 0
-                        },
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
-                    },
                     y: {
-                        grid: {
-                            display: false
-                        }
+                        beginAtZero: true,
+                        ticks: { precision: 0, font: { size: 11 } },
+                        grid: { color: '#f1f5f9', drawBorder: false },
+                        border: { display: false }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 11 } },
+                        border: { display: false }
                     }
                 }
             }
@@ -1169,8 +953,7 @@ if ($is_admin) {
         }
 
         function exportToPDF() {
-            alert('PDF export feature coming soon!');
-            // window.location.href = 'api/export_reports.php?format=pdf&' + new URLSearchParams(window.location.search);
+            window.print();
         }
     </script>
 </body>

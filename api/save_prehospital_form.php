@@ -138,7 +138,7 @@ try {
     $departure_time = $departure_time ? sanitize($departure_time, false) : null;
     $arrival_time = $arrival_time ? sanitize($arrival_time, false) : null;
 
-    $vehicle_used = sanitize($_POST['vehicle_used'] ?? null);
+    $vehicle_used = !empty($_POST['vehicle_used']) ? sanitize($_POST['vehicle_used'], false) : null;
     // Don't sanitize vehicle_details as it contains JSON - validate and trim only
     $vehicle_details = !empty($_POST['vehicle_details']) ? trim($_POST['vehicle_details']) : null;
     // Validate that vehicle_details is valid JSON if provided
@@ -148,7 +148,7 @@ try {
             throw new Exception('Invalid vehicle details format');
         }
     }
-    $driver_name = sanitize($_POST['driver_name'] ?? null);
+    $driver_name = !empty($_POST['driver']) ? sanitize($_POST['driver']) : null;
 
     // Validate times if provided
     if ($departure_time && !validate_time($departure_time)) {
@@ -171,13 +171,11 @@ try {
     $arrival_station_time = sanitize($_POST['arrival_station_time'] ?? null, false); // Don't uppercase time
     
     // Persons Present (collect checkboxes)
-    $persons_present = [];
-    $person_fields = ['police', 'brgyOfficials', 'relatives', 'bystanders', 'nonePresent'];
-    foreach ($person_fields as $field) {
-        if (isset($_POST[$field])) {
-            $persons_present[] = $field;
-        }
+    $persons_present = isset($_POST['persons_present']) ? $_POST['persons_present'] : [];
+    if (!is_array($persons_present)) {
+        $persons_present = [$persons_present];
     }
+    $persons_present = array_map(function($val) { return sanitize($val, false); }, $persons_present);
     $persons_present_json = json_encode($persons_present);
     
     // Patient Information (REQUIRED)
@@ -242,29 +240,27 @@ try {
     if (!is_array($personal_belongings)) {
         $personal_belongings = [$personal_belongings];
     }
-    $personal_belongings = array_map('sanitize', $personal_belongings);
+    $personal_belongings = array_map(function($val) { return sanitize($val, false); }, $personal_belongings);
     $personal_belongings_json = json_encode($personal_belongings);
     $other_belongings = sanitize($_POST['other_belongings'] ?? null);
     $patient_documentation = $patient_documentation_path; // Store the file path
     
     // Emergency Call Type
-    $emergency_medical = isset($_POST['emergency_medical']) ? 1 : 0;
-    $emergency_medical_details = sanitize($_POST['emergency_medical_details'] ?? null);
-    $emergency_trauma = isset($_POST['emergency_trauma']) ? 1 : 0;
-    $emergency_trauma_details = sanitize($_POST['emergency_trauma_details'] ?? null);
-    $emergency_ob = isset($_POST['emergency_ob']) ? 1 : 0;
-    $emergency_ob_details = sanitize($_POST['emergency_ob_details'] ?? null);
-    $emergency_general = isset($_POST['emergency_general']) ? 1 : 0;
-    $emergency_general_details = sanitize($_POST['emergency_general_details'] ?? null);
+    $emergency_medical = isset($_POST['emergency_type']) && in_array('medical', $_POST['emergency_type']) ? 1 : 0;
+    $emergency_medical_details = !empty($_POST['medical_specify']) ? sanitize($_POST['medical_specify']) : null;
+    $emergency_trauma = isset($_POST['emergency_type']) && in_array('trauma', $_POST['emergency_type']) ? 1 : 0;
+    $emergency_trauma_details = !empty($_POST['trauma_specify']) ? sanitize($_POST['trauma_specify']) : null;
+    $emergency_ob = isset($_POST['emergency_type']) && in_array('ob', $_POST['emergency_type']) ? 1 : 0;
+    $emergency_ob_details = !empty($_POST['ob_specify']) ? sanitize($_POST['ob_specify']) : null;
+    $emergency_general = isset($_POST['emergency_type']) && in_array('general', $_POST['emergency_type']) ? 1 : 0;
+    $emergency_general_details = !empty($_POST['general_specify']) ? sanitize($_POST['general_specify']) : null;
     
     // Care Management
-    $care_management = [];
-    $care_fields = ['immobilization', 'cpr', 'bandaging', 'woundCare', 'cCollar', 'aed', 'ked'];
-    foreach ($care_fields as $field) {
-        if (isset($_POST[$field])) {
-            $care_management[] = $field;
-        }
+    $care_management = isset($_POST['care_management']) ? $_POST['care_management'] : [];
+    if (!is_array($care_management)) {
+        $care_management = [$care_management];
     }
+    $care_management = array_map(function($val) { return sanitize($val, false); }, $care_management);
     $care_management_json = json_encode($care_management);
     $oxygen_lpm = sanitize($_POST['oxygen_lpm'] ?? null);
     $other_care = sanitize($_POST['other_care'] ?? null);
@@ -274,7 +270,7 @@ try {
     $initial_bp = !empty($_POST['initial_bp']) ? sanitize($_POST['initial_bp']) : null;
     $initial_temp = (!empty($_POST['initial_temp']) && $_POST['initial_temp'] !== '') ? (float)$_POST['initial_temp'] : null;
     $initial_pulse = (!empty($_POST['initial_pulse']) && $_POST['initial_pulse'] !== '') ? (int)$_POST['initial_pulse'] : null;
-    $initial_resp_rate = (!empty($_POST['initial_resp_rate']) && $_POST['initial_resp_rate'] !== '') ? (int)$_POST['initial_resp_rate'] : null;
+    $initial_resp_rate = (!empty($_POST['initial_resp']) && $_POST['initial_resp'] !== '') ? (int)$_POST['initial_resp'] : null;
     $initial_pain_score = (isset($_POST['initial_pain_score']) && $_POST['initial_pain_score'] !== '') ? (int)$_POST['initial_pain_score'] : null;
     $initial_spo2 = (!empty($_POST['initial_spo2']) && $_POST['initial_spo2'] !== '') ? (int)$_POST['initial_spo2'] : null;
     $initial_spinal_injury = !empty($_POST['initial_spinal_injury']) ? sanitize($_POST['initial_spinal_injury'], false) : null; // Don't uppercase enum
@@ -286,45 +282,59 @@ try {
     $followup_bp = !empty($_POST['followup_bp']) ? sanitize($_POST['followup_bp']) : null;
     $followup_temp = (!empty($_POST['followup_temp']) && $_POST['followup_temp'] !== '') ? (float)$_POST['followup_temp'] : null;
     $followup_pulse = (!empty($_POST['followup_pulse']) && $_POST['followup_pulse'] !== '') ? (int)$_POST['followup_pulse'] : null;
-    $followup_resp_rate = (!empty($_POST['followup_resp_rate']) && $_POST['followup_resp_rate'] !== '') ? (int)$_POST['followup_resp_rate'] : null;
+    $followup_resp_rate = (!empty($_POST['followup_resp']) && $_POST['followup_resp'] !== '') ? (int)$_POST['followup_resp'] : null;
     $followup_pain_score = (isset($_POST['followup_pain_score']) && $_POST['followup_pain_score'] !== '') ? (int)$_POST['followup_pain_score'] : null;
     $followup_spo2 = (!empty($_POST['followup_spo2']) && $_POST['followup_spo2'] !== '') ? (int)$_POST['followup_spo2'] : null;
     $followup_spinal_injury = !empty($_POST['followup_spinal_injury']) ? sanitize($_POST['followup_spinal_injury'], false) : null; // Don't uppercase enum
     $followup_consciousness = !empty($_POST['followup_consciousness']) ? json_encode(array_map(function($val) { return sanitize($val, false); }, $_POST['followup_consciousness'])) : null; // Don't uppercase enum
 
     // Chief Complaints
-    $chief_complaints = [];
-    $complaint_fields = ['chestPain', 'headache', 'blurredVision', 'difficultyBreathing', 'dizziness', 'bodyMalaise'];
-    foreach ($complaint_fields as $field) {
-        if (isset($_POST[$field])) {
-            $chief_complaints[] = $field;
-        }
+    $chief_complaints = isset($_POST['chief_complaints']) ? $_POST['chief_complaints'] : [];
+    if (!is_array($chief_complaints)) {
+        $chief_complaints = [$chief_complaints];
     }
+    $chief_complaints = array_map(function($val) { return sanitize($val, false); }, $chief_complaints);
     $chief_complaints_json = json_encode($chief_complaints);
     $other_complaints = sanitize($_POST['other_complaints'] ?? null);
 
     // FAST Assessment
-    $fast_face_drooping = sanitize($_POST['fast_face_drooping'] ?? null, false); // Don't uppercase enum
-    $fast_arm_weakness = sanitize($_POST['fast_arm_weakness'] ?? null, false); // Don't uppercase enum
-    $fast_speech_difficulty = sanitize($_POST['fast_speech_difficulty'] ?? null, false); // Don't uppercase enum
-    $fast_time_to_call = sanitize($_POST['fast_time_to_call'] ?? null, false); // Don't uppercase time
-    $fast_sample_details = sanitize($_POST['fast_sample_details'] ?? null);
+    $fast_face_drooping = !empty($_POST['face_drooping']) ? sanitize($_POST['face_drooping'], false) : null;
+    $fast_arm_weakness = !empty($_POST['arm_weakness']) ? sanitize($_POST['arm_weakness'], false) : null;
+    $fast_speech_difficulty = !empty($_POST['speech_difficulty']) ? sanitize($_POST['speech_difficulty'], false) : null;
+    $fast_time_to_call = !empty($_POST['time_to_call']) ? sanitize($_POST['time_to_call'], false) : null;
+    // SAMPLE details is stored as JSON - don't sanitize to preserve JSON structure
+    // Prepared statements handle SQL injection protection
+    $fast_sample_details = $_POST['fast_sample_details'] ?? $_POST['sample_details'] ?? null;
+    if ($fast_sample_details !== null) {
+        $fast_sample_details = trim($fast_sample_details);
+        // Validate it's valid JSON if not empty
+        if (!empty($fast_sample_details)) {
+            $decoded = json_decode($fast_sample_details, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                // Not valid JSON - treat as plain text and convert to JSON format
+                $fast_sample_details = json_encode(['signs' => $fast_sample_details, 'allergies' => '', 'medications' => '', 'pertinent' => '', 'last_intake' => '', 'events' => '']);
+            }
+        }
+    }
 
     // OB Information
-    $ob_baby_status = sanitize($_POST['ob_baby_status'] ?? null, false); // Don't uppercase enum
-    $ob_delivery_time = sanitize($_POST['ob_delivery_time'] ?? null, false); // Don't uppercase time
-    $ob_placenta = sanitize($_POST['ob_placenta'] ?? null, false); // Don't uppercase enum
-    $ob_lmp = sanitize($_POST['ob_lmp'] ?? null, false); // Don't uppercase date
-    $ob_aog = sanitize($_POST['ob_aog'] ?? null);
-    $ob_edc = sanitize($_POST['ob_edc'] ?? null, false); // Don't uppercase date
+    $ob_baby_status = !empty($_POST['baby_status']) ? sanitize($_POST['baby_status']) : null;
+    $ob_delivery_time = !empty($_POST['ob_delivery_time']) ? sanitize($_POST['ob_delivery_time'], false) : null;
+    $ob_placenta = !empty($_POST['placenta']) ? sanitize($_POST['placenta'], false) : null;
+    $ob_lmp = !empty($_POST['lmp']) ? sanitize($_POST['lmp'], false) : null;
+    $ob_aog = !empty($_POST['aog']) ? sanitize($_POST['aog']) : null;
+    $ob_edc = !empty($_POST['edc']) ? sanitize($_POST['edc'], false) : null;
     
     // Team Information
     $team_leader_notes = sanitize($_POST['team_leader_notes'] ?? null);
     $team_leader = sanitize($_POST['team_leader'] ?? null);
     $data_recorder = sanitize($_POST['data_recorder'] ?? null);
     $logistic = sanitize($_POST['logistic'] ?? null);
-    $first_aider = sanitize($_POST['first_aider'] ?? null);
-    $second_aider = sanitize($_POST['second_aider'] ?? null);
+    $first_aider = !empty($_POST['aider1']) ? sanitize($_POST['aider1']) : null;
+    $second_aider = !empty($_POST['aider2']) ? sanitize($_POST['aider2']) : null;
+
+    // Narrative Report
+    $narrative_report = !empty($_POST['narrative_report']) ? trim($_POST['narrative_report']) : null;
 
     // Hospital Endorsement
     $hospital_name = sanitize($_POST['hospital_name'] ?? null);
@@ -462,7 +472,8 @@ try {
         $fast_face_drooping, $fast_arm_weakness, $fast_speech_difficulty, $fast_time_to_call, $fast_sample_details,
         $ob_baby_status, $ob_delivery_time, $ob_placenta, $ob_lmp, $ob_aog, $ob_edc,
         $team_leader_notes, $team_leader, $data_recorder, $logistic, $first_aider, $second_aider,
-        $hospital_name, $endorsement_attachment_path, $endorsement_datetime
+        $hospital_name, $endorsement_attachment_path, $endorsement_datetime,
+        $narrative_report
     ];
 
     if ($is_updating_draft) {
@@ -488,6 +499,7 @@ try {
             ob_baby_status = ?, ob_delivery_time = ?, ob_placenta = ?, ob_lmp = ?, ob_aog = ?, ob_edc = ?,
             team_leader_notes = ?, team_leader = ?, data_recorder = ?, logistic = ?, first_aider = ?, second_aider = ?,
             hospital_name = ?, endorsement_attachment = ?, endorsement_datetime = ?,
+            narrative_report = ?,
             status = 'completed',
             updated_at = NOW()
             WHERE id = ? AND created_by = ?";
@@ -523,6 +535,7 @@ try {
             ob_baby_status, ob_delivery_time, ob_placenta, ob_lmp, ob_aog, ob_edc,
             team_leader_notes, team_leader, data_recorder, logistic, first_aider, second_aider,
             hospital_name, endorsement_attachment, endorsement_datetime,
+            narrative_report,
             created_by, status
         ) VALUES (
             ?, ?, ?, ?, ?, ?, ?,
@@ -544,6 +557,7 @@ try {
             ?, ?, ?, ?, ?,
             ?, ?, ?, ?, ?, ?,
             ?, ?, ?,
+            ?,
             ?, 'completed'
         )";
 

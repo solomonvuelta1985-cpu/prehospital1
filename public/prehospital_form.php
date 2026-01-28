@@ -555,6 +555,10 @@ $current_user = get_auth_user();
                             <i class="bi bi-info-circle"></i> Basic Information
                         </div>
 
+                        <!-- Date & Time Information -->
+                        <div class="subsection-title">
+                            <i class="bi bi-calendar-event"></i> Date & Time
+                        </div>
                         <div class="grid-3 mb-section">
                             <div>
                                 <label for="formDate" class="form-label required-field">Date</label>
@@ -570,6 +574,12 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
+                        <hr class="section-divider-light">
+
+                        <!-- Vehicle Information -->
+                        <div class="subsection-title">
+                            <i class="bi bi-truck"></i> Vehicle Information
+                        </div>
                         <div class="form-group-compact">
                             <label class="form-label">Vehicle Used</label>
                             <div class="inline-group">
@@ -599,6 +609,12 @@ $current_user = get_auth_user();
                             <input type="text" class="form-control" id="driver" name="driver" placeholder="Driver name">
                         </div>
 
+                        <hr class="section-divider-light">
+
+                        <!-- Scene Location & Timing -->
+                        <div class="subsection-title">
+                            <i class="bi bi-geo-alt"></i> Scene Information
+                        </div>
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="arrSceneLocation" class="form-label">Arrival at Scene - Location</label>
@@ -621,6 +637,12 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
+                        <hr class="section-divider-light">
+
+                        <!-- Hospital Information -->
+                        <div class="subsection-title">
+                            <i class="bi bi-hospital"></i> Hospital Information
+                        </div>
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="arrHospName" class="form-label">Arrival at Hospital - Name</label>
@@ -644,6 +666,12 @@ $current_user = get_auth_user();
                             <input type="time" class="form-control" id="arrStation" name="arrival_station_time">
                         </div>
 
+                        <hr class="section-divider-light">
+
+                        <!-- Persons Present -->
+                        <div class="subsection-title">
+                            <i class="bi bi-people"></i> Scene Observation
+                        </div>
                         <div class="form-group-compact">
                             <label class="form-label">Persons Present Upon Arrival</label>
                             <div class="checkbox-grid">
@@ -679,6 +707,10 @@ $current_user = get_auth_user();
                             <i class="bi bi-person-fill"></i> Patient Information
                         </div>
 
+                        <!-- Basic Patient Details -->
+                        <div class="subsection-title">
+                            <i class="bi bi-person-badge"></i> Personal Details
+                        </div>
                         <div class="grid-2 mb-section">
                             <div style="grid-column: span 2;">
                                 <label for="patientName" class="form-label required-field">Patient Name</label>
@@ -710,7 +742,7 @@ $current_user = get_auth_user();
                             </div>
                             <div>
                                 <label class="form-label">Civil Status</label>
-                                <div class="inline-group">
+                                <div class="inline-group inline-group-compact">
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="civil_status" id="single" value="single">
                                         <label class="form-check-label" for="single">Single</label>
@@ -735,6 +767,12 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
+                        <hr class="section-divider-light">
+
+                        <!-- Address & Location -->
+                        <div class="subsection-title">
+                            <i class="bi bi-house-door"></i> Address & Location
+                        </div>
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="address" class="form-label">Address</label>
@@ -746,13 +784,15 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
+                        <hr class="section-divider-light">
+
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="occupation" class="form-label">Occupation</label>
                                 <input type="text" class="form-control" id="occupation" name="occupation" placeholder="Patient's occupation">
                             </div>
                             <div>
-                                <label for="placeOfIncident" class="form-label">Place of Incident</label>
+                                <label for="placeOfIncident" class="form-label">Type of Emergency Call</label>
                                 <input type="text" class="form-control" id="placeOfIncident" name="place_of_incident" placeholder="Location where incident occurred">
                             </div>
                         </div>
@@ -768,7 +808,9 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
-                        <div class="section-title" style="margin-top: 1.5rem;">
+                        <hr class="section-divider">
+
+                        <div class="section-title">
                             <i class="bi bi-telephone"></i> Informant Details
                         </div>
 
@@ -807,6 +849,12 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
+                        <hr class="section-divider-light">
+
+                        <!-- Personal Belongings -->
+                        <div class="subsection-title">
+                            <i class="bi bi-bag"></i> Personal Belongings
+                        </div>
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="relationshipVictim" class="form-label">Relationship to Victim</label>
@@ -834,30 +882,104 @@ $current_user = get_auth_user();
                             <input type="text" class="form-control" id="otherBelongings" name="other_belongings" placeholder="List other belongings not mentioned above">
                         </div>
 
-                        <!-- Patient Documentation -->
-                        <div class="mb-section">
-                            <label class="form-label">PATIENT DOCUMENTATION</label>
-                            <div class="attachment-section">
-                                <div class="attachment-controls">
-                                    <button type="button" class="btn btn-outline-primary btn-sm" id="openPatientCameraBtn">
-                                        <i class="bi bi-camera"></i> Open Camera
+                        <hr class="section-divider">
+
+                        <!-- Patient Documentation - Corporate Design -->
+                        <div class="patient-documentation-card">
+                            <div class="patient-doc-header">
+                                <div class="patient-doc-icon">
+                                    <i class="bi bi-camera-fill"></i>
+                                </div>
+                                <div class="patient-doc-title">
+                                    <h6>Patient Documentation</h6>
+                                    <span>Capture or upload patient photo for records</span>
+                                </div>
+                            </div>
+
+                            <div class="patient-doc-body">
+                                <!-- Upload Controls -->
+                                <div class="patient-doc-controls">
+                                    <button type="button" class="upload-method-btn" id="openPatientCameraBtn">
+                                        <div class="upload-method-icon camera">
+                                            <i class="bi bi-camera-fill"></i>
+                                        </div>
+                                        <div class="upload-method-text">
+                                            <span class="upload-method-title">Open Camera</span>
+                                            <span class="upload-method-desc">Take a photo now</span>
+                                        </div>
                                     </button>
-                                    <input type="file" class="form-control form-control-sm" id="patientFileUpload" name="patient_documentation" accept="image/jpeg,image/png,image/gif,image/webp" style="display: inline-block; width: auto;" onchange="validatePatientFileUpload(this)">
-                                    <small class="text-muted">Max file size: 5MB. Allowed formats: JPG, PNG, GIF, WebP</small>
+
+                                    <div class="upload-divider">
+                                        <span>or</span>
+                                    </div>
+
+                                    <label class="upload-method-btn" for="patientFileUpload">
+                                        <div class="upload-method-icon file">
+                                            <i class="bi bi-cloud-arrow-up-fill"></i>
+                                        </div>
+                                        <div class="upload-method-text">
+                                            <span class="upload-method-title">Upload File</span>
+                                            <span class="upload-method-desc">JPG, PNG, GIF, WebP (max 5MB)</span>
+                                        </div>
+                                        <input type="file" class="hidden-file-input" id="patientFileUpload" name="patient_documentation" accept="image/jpeg,image/png,image/gif,image/webp" onchange="validatePatientFileUpload(this)">
+                                    </label>
                                 </div>
-                                <div id="patientCameraContainer" style="display: none; margin-top: 10px;">
-                                    <video id="patientCameraVideo" autoplay playsinline style="width: 100%; max-width: 300px;"></video>
-                                    <br>
-                                    <button type="button" class="btn btn-success btn-sm" id="capturePatientBtn" onclick="capturePatientPhoto()">Capture Photo</button>
-                                    <button type="button" class="btn btn-secondary btn-sm" id="closePatientCameraBtn" onclick="closePatientCamera()">Close Camera</button>
+
+                                <!-- Camera Container -->
+                                <div id="patientCameraContainer" class="patient-camera-container">
+                                    <div class="camera-viewport">
+                                        <video id="patientCameraVideo" autoplay playsinline></video>
+                                    </div>
+                                    <div class="camera-controls">
+                                        <button type="button" class="camera-btn capture" id="capturePatientBtn" onclick="capturePatientPhoto()">
+                                            <i class="bi bi-circle-fill"></i>
+                                            <span>Capture</span>
+                                        </button>
+                                        <button type="button" class="camera-btn close-cam" id="closePatientCameraBtn" onclick="closePatientCamera()">
+                                            <i class="bi bi-x-lg"></i>
+                                            <span>Close</span>
+                                        </button>
+                                    </div>
                                 </div>
-                                <div id="patientPreviewContainer" style="margin-top: 10px;">
-                                    <img id="patientAttachmentPreview" src="" alt="Patient Documentation Preview" style="max-width: 200px; display: none;">
-                                    <button type="button" class="btn btn-outline-danger btn-sm" id="removePatientAttachmentBtn" style="display: none;" onclick="removePatientAttachment()">
-                                        <i class="bi bi-trash"></i> Remove
-                                    </button>
+
+                                <!-- Image Preview -->
+                                <div id="patientPreviewContainer" class="patient-preview-container">
+                                    <div class="preview-card">
+                                        <div class="preview-image-wrapper" onclick="openPatientImageModal()">
+                                            <img id="patientAttachmentPreview" src="" alt="Patient Documentation Preview">
+                                            <div class="preview-overlay">
+                                                <i class="bi bi-zoom-in"></i>
+                                                <span>Click to enlarge</span>
+                                            </div>
+                                        </div>
+                                        <div class="preview-actions">
+                                            <span class="preview-label">
+                                                <i class="bi bi-check-circle-fill"></i>
+                                                Photo attached
+                                            </span>
+                                            <button type="button" class="remove-preview-btn" id="removePatientAttachmentBtn" onclick="removePatientAttachment()">
+                                                <i class="bi bi-trash3"></i>
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div id="patientUploadError" class="text-danger" style="display: none;"></div>
+
+                                <!-- Error Message -->
+                                <div id="patientUploadError" class="patient-upload-error">
+                                    <i class="bi bi-exclamation-circle-fill"></i>
+                                    <span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Image Preview Modal -->
+                        <div id="patientImageModal" class="image-preview-modal" onclick="closePatientImageModal()">
+                            <div class="modal-content-custom" onclick="event.stopPropagation()">
+                                <button type="button" class="modal-close-btn" onclick="closePatientImageModal()">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                                <img id="patientModalImage" src="" alt="Patient Documentation">
                             </div>
                         </div>
                     </div>
@@ -901,6 +1023,8 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
+                        <hr class="section-divider">
+
                         <div class="section-title">
                             <i class="bi bi-heart-pulse-fill"></i> Care Management
                         </div>
@@ -937,6 +1061,8 @@ $current_user = get_auth_user();
                                 </div>
                             </div>
                         </div>
+
+                        <hr class="section-divider-light">
 
                         <div class="grid-2 mb-section">
                             <div>
@@ -1005,6 +1131,8 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
+                        <hr class="section-divider-light">
+
                         <div class="grid-2 mb-section">
                             <div>
                                 <label class="form-label">Level of Consciousness</label>
@@ -1041,6 +1169,8 @@ $current_user = get_auth_user();
                                 </div>
                             </div>
                         </div>
+
+                        <hr class="section-divider">
 
                         <div class="section-title">
                             <i class="bi bi-arrow-repeat"></i> Follow-up Vital Signs
@@ -1092,6 +1222,8 @@ $current_user = get_auth_user();
                                 </div>
                             </div>
                         </div>
+
+                        <hr class="section-divider-light">
 
                         <div>
                             <label class="form-label">Level of Consciousness</label>
@@ -1157,6 +1289,8 @@ $current_user = get_auth_user();
                             <label for="othersComplaint" class="form-label">Other Complaints</label>
                             <textarea class="form-control" id="othersComplaint" name="other_complaints" rows="2" placeholder="Describe other complaints"></textarea>
                         </div>
+
+                        <hr class="section-divider">
 
                         <!-- INTERACTIVE BODY DIAGRAM -->
                         <div class="body-diagram-container">
@@ -1287,70 +1421,127 @@ $current_user = get_auth_user();
                             </div>
                         </div>
                         <input type="hidden" name="injuries_data" id="injuriesData">
+                        <input type="hidden" name="narrative_report" id="narrativeReportField">
 
-                        <div class="fast-assessment">
-                            <h6><i class="bi bi-exclamation-triangle-fill"></i> FOR Stroke Victim - F.A.S.T. Assessment</h6>
-                            <div class="grid-2" style="gap: 1rem;">
-                                <div class="grid-2" style="gap: 0.75rem;">
-                                    <div>
-                                        <label class="form-label">Face Drooping</label>
-                                        <div class="inline-group">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="face_drooping" id="facePos" value="positive">
-                                                <label class="form-check-label" for="facePos">(+)</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="face_drooping" id="faceNeg" value="negative">
-                                                <label class="form-check-label" for="faceNeg">(++)</label>
+                        <hr class="section-divider">
+
+                        <div class="stroke-assessment-card">
+                            <div class="stroke-assessment-header">
+                                <div class="stroke-header-icon">
+                                    <i class="bi bi-activity"></i>
+                                </div>
+                                <div class="stroke-header-text">
+                                    <h6>Stroke Assessment</h6>
+                                    <span>F.A.S.T. Protocol & S.A.M.P.L.E. History</span>
+                                </div>
+                            </div>
+                            <div class="stroke-assessment-body">
+                                <div class="fast-section">
+                                    <div class="fast-section-title">
+                                        <span class="fast-badge">F.A.S.T.</span>
+                                        <span class="fast-subtitle">Stroke Recognition</span>
+                                    </div>
+                                    <div class="fast-grid">
+                                        <div class="fast-item">
+                                            <div class="fast-item-letter">F</div>
+                                            <div class="fast-item-content">
+                                                <span class="fast-item-label">Face Drooping</span>
+                                                <div class="toggle-group">
+                                                    <input type="radio" name="face_drooping" id="facePos" value="positive" class="toggle-input">
+                                                    <label for="facePos" class="toggle-btn toggle-positive">(+)</label>
+                                                    <input type="radio" name="face_drooping" id="faceNeg" value="negative" class="toggle-input">
+                                                    <label for="faceNeg" class="toggle-btn toggle-negative">(−)</label>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div>
-                                        <label class="form-label">Arm Weakness</label>
-                                        <div class="inline-group">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="arm_weakness" id="armPos" value="positive">
-                                                <label class="form-check-label" for="armPos">(+)</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="arm_weakness" id="armNeg" value="negative">
-                                                <label class="form-check-label" for="armNeg">(++)</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="form-label">Speech Difficulty</label>
-                                        <div class="inline-group">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="speech_difficulty" id="speechPos" value="positive">
-                                                <label class="form-check-label" for="speechPos">(+)</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="speech_difficulty" id="speechNeg" value="negative">
-                                                <label class="form-check-label" for="speechNeg">(++)</label>
+                                        <div class="fast-item">
+                                            <div class="fast-item-letter">A</div>
+                                            <div class="fast-item-content">
+                                                <span class="fast-item-label">Arm Weakness</span>
+                                                <div class="toggle-group">
+                                                    <input type="radio" name="arm_weakness" id="armPos" value="positive" class="toggle-input">
+                                                    <label for="armPos" class="toggle-btn toggle-positive">(+)</label>
+                                                    <input type="radio" name="arm_weakness" id="armNeg" value="negative" class="toggle-input">
+                                                    <label for="armNeg" class="toggle-btn toggle-negative">(−)</label>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div>
-                                        <label class="form-label">Time to Call</label>
-                                        <div class="inline-group">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="time_to_call" id="timePos" value="positive">
-                                                <label class="form-check-label" for="timePos">(+)</label>
+                                        <div class="fast-item">
+                                            <div class="fast-item-letter">S</div>
+                                            <div class="fast-item-content">
+                                                <span class="fast-item-label">Speech Difficulty</span>
+                                                <div class="toggle-group">
+                                                    <input type="radio" name="speech_difficulty" id="speechPos" value="positive" class="toggle-input">
+                                                    <label for="speechPos" class="toggle-btn toggle-positive">(+)</label>
+                                                    <input type="radio" name="speech_difficulty" id="speechNeg" value="negative" class="toggle-input">
+                                                    <label for="speechNeg" class="toggle-btn toggle-negative">(−)</label>
+                                                </div>
                                             </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="time_to_call" id="timeNeg" value="negative">
-                                                <label class="form-check-label" for="timeNeg">(++)</label>
+                                        </div>
+                                        <div class="fast-item">
+                                            <div class="fast-item-letter">T</div>
+                                            <div class="fast-item-content">
+                                                <span class="fast-item-label">Time to Call</span>
+                                                <div class="toggle-group">
+                                                    <input type="radio" name="time_to_call" id="timePos" value="positive" class="toggle-input">
+                                                    <label for="timePos" class="toggle-btn toggle-positive">(+)</label>
+                                                    <input type="radio" name="time_to_call" id="timeNeg" value="negative" class="toggle-input">
+                                                    <label for="timeNeg" class="toggle-btn toggle-negative">(−)</label>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div>
-                                    <label for="fastDetails" class="form-label">S.A.M.P.L.E.</label>
-                                    <textarea class="form-control" id="fastDetails" name="sample_details" rows="5" placeholder="Signs/Symptoms, Allergies, Medications, Pertinent history, Last oral intake, Events"></textarea>
+                                <div class="sample-section">
+                                    <div class="sample-section-title">
+                                        <span class="sample-badge">S.A.M.P.L.E.</span>
+                                        <span class="sample-subtitle">Patient History</span>
+                                    </div>
+                                    <div class="sample-table-modern">
+                                        <div class="sample-row-modern">
+                                            <div class="sample-letter-modern">S</div>
+                                            <div class="sample-input-modern">
+                                                <input type="text" class="form-control" id="sampleSigns" name="sample_signs" placeholder="Signs & Symptoms">
+                                            </div>
+                                        </div>
+                                        <div class="sample-row-modern">
+                                            <div class="sample-letter-modern">A</div>
+                                            <div class="sample-input-modern">
+                                                <input type="text" class="form-control" id="sampleAllergies" name="sample_allergies" placeholder="Allergies">
+                                            </div>
+                                        </div>
+                                        <div class="sample-row-modern">
+                                            <div class="sample-letter-modern">M</div>
+                                            <div class="sample-input-modern">
+                                                <input type="text" class="form-control" id="sampleMedications" name="sample_medications" placeholder="Medications">
+                                            </div>
+                                        </div>
+                                        <div class="sample-row-modern">
+                                            <div class="sample-letter-modern">P</div>
+                                            <div class="sample-input-modern">
+                                                <input type="text" class="form-control" id="samplePertinent" name="sample_pertinent" placeholder="Pertinent History">
+                                            </div>
+                                        </div>
+                                        <div class="sample-row-modern">
+                                            <div class="sample-letter-modern">L</div>
+                                            <div class="sample-input-modern">
+                                                <input type="text" class="form-control" id="sampleLastIntake" name="sample_last_intake" placeholder="Last Oral Intake">
+                                            </div>
+                                        </div>
+                                        <div class="sample-row-modern">
+                                            <div class="sample-letter-modern">E</div>
+                                            <div class="sample-input-modern">
+                                                <input type="text" class="form-control" id="sampleEvents" name="sample_events" placeholder="Events Leading to Illness">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Hidden field to store combined SAMPLE data for backward compatibility -->
+                                    <input type="hidden" id="fastDetails" name="sample_details">
                                 </div>
                             </div>
                         </div>
+
+                        <hr class="section-divider">
 
                         <div class="ob-section">
                             <h6><i class="bi bi-hospital-fill"></i> FOR OB Patients Only</h6>
@@ -1404,6 +1595,8 @@ $current_user = get_auth_user();
                             <textarea class="form-control" id="teamLeaderNotes" name="team_leader_notes" rows="3" placeholder="Enter team leader notes and observations..."></textarea>
                         </div>
 
+                        <hr class="section-divider-light">
+
                         <div class="section-title">
                             <i class="bi bi-people-fill"></i> Team Information
                         </div>
@@ -1423,6 +1616,8 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
+                        <hr class="section-divider-light">
+
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="aider1" class="form-label">1st Aider</label>
@@ -1434,7 +1629,9 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
-                        <div class="section-title" style="margin-top: 1.5rem;">
+                        <hr class="section-divider">
+
+                        <div class="section-title">
                             <i class="bi bi-building"></i> Hospital Endorsement
                         </div>
 
@@ -1445,35 +1642,107 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
-                        <div class="grid-2 mb-section">
-                            <div>
-                                <label class="form-label">ENDORSEMENT ATTACHMENT</label>
-                                <div class="attachment-section">
-                                    <div class="attachment-controls">
-                                        <button type="button" class="btn btn-outline-primary btn-sm" id="openCameraBtn">
-                                            <i class="bi bi-camera"></i> Open Camera
-                                        </button>
-                                        <input type="file" class="form-control form-control-sm" id="fileUpload" name="endorsement_attachment" accept="image/jpeg,image/png,image/gif,image/webp" style="display: inline-block; width: auto;" onchange="validateFileUpload(this)">
-                                        <small class="text-muted">Max file size: 5MB. Allowed formats: JPG, PNG, GIF, WebP</small>
-                                    </div>
-                                    <div id="cameraContainer" style="display: none; margin-top: 10px;">
-                                        <video id="cameraVideo" autoplay playsinline style="width: 100%; max-width: 300px;"></video>
-                                        <br>
-                                        <button type="button" class="btn btn-success btn-sm" id="captureBtn" onclick="capturePhoto()">Capture Photo</button>
-                                        <button type="button" class="btn btn-secondary btn-sm" id="closeCameraBtn" onclick="closeCamera()">Close Camera</button>
-                                    </div>
-                                    <div id="previewContainer" style="margin-top: 10px;">
-                                        <img id="attachmentPreview" src="" alt="Attachment Preview" style="max-width: 200px; display: none;">
-                                        <button type="button" class="btn btn-outline-danger btn-sm" id="removeAttachmentBtn" style="display: none;" onclick="removeAttachment()">
-                                            <i class="bi bi-trash"></i> Remove
-                                        </button>
-                                    </div>
-                                    <div id="uploadError" class="text-danger" style="display: none;"></div>
+                        <div class="mb-section">
+                            <label for="dateTime" class="form-label">Endorsement Date & Time</label>
+                            <input type="datetime-local" class="form-control" id="dateTime" name="endorsement_datetime" style="max-width: 300px;">
+                        </div>
+
+                        <!-- Endorsement Attachment - Corporate Design -->
+                        <div class="endorsement-attachment-card">
+                            <div class="endorsement-doc-header">
+                                <div class="endorsement-doc-icon">
+                                    <i class="bi bi-file-earmark-medical-fill"></i>
+                                </div>
+                                <div class="endorsement-doc-title">
+                                    <h6>Endorsement Attachment</h6>
+                                    <span>Capture or upload hospital endorsement document</span>
                                 </div>
                             </div>
-                            <div>
-                                <label for="dateTime" class="form-label">Date & Time</label>
-                                <input type="datetime-local" class="form-control" id="dateTime" name="endorsement_datetime">
+
+                            <div class="endorsement-doc-body">
+                                <!-- Upload Controls -->
+                                <div class="endorsement-doc-controls">
+                                    <button type="button" class="upload-method-btn" id="openCameraBtn">
+                                        <div class="upload-method-icon camera">
+                                            <i class="bi bi-camera-fill"></i>
+                                        </div>
+                                        <div class="upload-method-text">
+                                            <span class="upload-method-title">Open Camera</span>
+                                            <span class="upload-method-desc">Take a photo now</span>
+                                        </div>
+                                    </button>
+
+                                    <div class="upload-divider">
+                                        <span>or</span>
+                                    </div>
+
+                                    <label class="upload-method-btn" for="fileUpload">
+                                        <div class="upload-method-icon file">
+                                            <i class="bi bi-cloud-arrow-up-fill"></i>
+                                        </div>
+                                        <div class="upload-method-text">
+                                            <span class="upload-method-title">Upload File</span>
+                                            <span class="upload-method-desc">JPG, PNG, GIF, WebP (max 5MB)</span>
+                                        </div>
+                                        <input type="file" class="hidden-file-input" id="fileUpload" name="endorsement_attachment" accept="image/jpeg,image/png,image/gif,image/webp" onchange="validateFileUpload(this)">
+                                    </label>
+                                </div>
+
+                                <!-- Camera Container -->
+                                <div id="cameraContainer" class="endorsement-camera-container">
+                                    <div class="camera-viewport">
+                                        <video id="cameraVideo" autoplay playsinline></video>
+                                    </div>
+                                    <div class="camera-controls">
+                                        <button type="button" class="camera-btn capture" id="captureBtn" onclick="capturePhoto()">
+                                            <i class="bi bi-circle-fill"></i>
+                                            <span>Capture</span>
+                                        </button>
+                                        <button type="button" class="camera-btn close-cam" id="closeCameraBtn" onclick="closeCamera()">
+                                            <i class="bi bi-x-lg"></i>
+                                            <span>Close</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Image Preview -->
+                                <div id="previewContainer" class="endorsement-preview-container">
+                                    <div class="preview-card">
+                                        <div class="preview-image-wrapper" onclick="openEndorsementImageModal()">
+                                            <img id="attachmentPreview" src="" alt="Endorsement Attachment Preview">
+                                            <div class="preview-overlay">
+                                                <i class="bi bi-zoom-in"></i>
+                                                <span>Click to enlarge</span>
+                                            </div>
+                                        </div>
+                                        <div class="preview-actions">
+                                            <span class="preview-label">
+                                                <i class="bi bi-check-circle-fill"></i>
+                                                Document attached
+                                            </span>
+                                            <button type="button" class="remove-preview-btn" id="removeAttachmentBtn" onclick="removeAttachment()">
+                                                <i class="bi bi-trash3"></i>
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Error Message -->
+                                <div id="uploadError" class="endorsement-upload-error">
+                                    <i class="bi bi-exclamation-circle-fill"></i>
+                                    <span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Endorsement Image Preview Modal -->
+                        <div id="endorsementImageModal" class="image-preview-modal" onclick="closeEndorsementImageModal()">
+                            <div class="modal-content-custom" onclick="event.stopPropagation()">
+                                <button type="button" class="modal-close-btn" onclick="closeEndorsementImageModal()">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                                <img id="endorsementModalImage" src="" alt="Endorsement Attachment">
                             </div>
                         </div>
 
@@ -1497,63 +1766,48 @@ $current_user = get_auth_user();
                         </div>
 
                         <div class="narrative-report-container">
-                            <!-- Compact Controls -->
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
-                                <div style="display: inline-flex; gap: 0.5rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 0.25rem;">
-                                    <button type="button" style="padding: 0.375rem 0.75rem; border: none; background: white; color: #475569; border-radius: 3px; font-size: 0.8125rem; cursor: pointer; font-weight: 500; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" class="format-btn active" data-format="professional" onclick="switchNarrativeFormat('professional')">
-                                        <i class="bi bi-journal-text"></i> Professional
-                                    </button>
-                                    <button type="button" style="padding: 0.375rem 0.75rem; border: none; background: transparent; color: #64748b; border-radius: 3px; font-size: 0.8125rem; cursor: pointer; font-weight: 500; transition: all 0.2s;" class="format-btn" data-format="concise" onclick="switchNarrativeFormat('concise')">
-                                        <i class="bi bi-list-ul"></i> Concise
-                                    </button>
+                            <!-- Toolbar -->
+                            <div class="narrative-toolbar">
+                                <div class="narrative-toolbar-left">
+                                    <div class="narrative-format-toggle">
+                                        <button type="button" class="format-btn active" data-format="professional" onclick="switchNarrativeFormat('professional')">
+                                            <i class="bi bi-journal-text"></i> Professional
+                                        </button>
+                                        <button type="button" class="format-btn" data-format="concise" onclick="switchNarrativeFormat('concise')">
+                                            <i class="bi bi-list-ul"></i> Concise
+                                        </button>
+                                    </div>
                                 </div>
-                                <button type="button" style="padding: 0.375rem 0.875rem; border: 1px solid #cbd5e1; background: white; color: #475569; border-radius: 4px; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: all 0.2s;" onclick="generateNarrative()" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                                <button type="button" class="narrative-regenerate-btn" onclick="generateNarrative()">
                                     <i class="bi bi-arrow-clockwise"></i> Regenerate
                                 </button>
                             </div>
 
                             <!-- Narrative Content -->
-                            <div class="narrative-content" id="narrativeContent" style="margin-bottom: 1rem;">
+                            <div class="narrative-content" id="narrativeContent">
                                 <div class="narrative-placeholder">
-                                    <i class="bi bi-file-text" style="font-size: 3rem; color: #dee2e6;"></i>
+                                    <i class="bi bi-file-earmark-text"></i>
                                     <p>Narrative report will be generated automatically when you complete the form.</p>
-                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="generateNarrative()">
+                                    <button type="button" class="narrative-generate-btn" onclick="generateNarrative()">
                                         Generate Now
                                     </button>
                                 </div>
                             </div>
 
-                            <!-- Compact Actions -->
-                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
-                                <button type="button" style="padding: 0.5rem 1rem; border: 1px solid #3b82f6; background: #3b82f6; color: white; border-radius: 4px; font-size: 0.875rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: all 0.2s; font-weight: 500;" onclick="copyNarrativeToClipboard()" onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
-                                    <i class="bi bi-clipboard-check"></i> Copy
+                            <!-- Actions -->
+                            <div class="narrative-actions">
+                                <button type="button" class="narrative-action-btn narrative-action-primary" onclick="copyNarrativeToClipboard()">
+                                    <i class="bi bi-clipboard"></i> Copy
                                 </button>
-                                <button type="button" style="padding: 0.5rem 1rem; border: 1px solid #cbd5e1; background: white; color: #475569; border-radius: 4px; font-size: 0.875rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: all 0.2s;" onclick="printNarrative()" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                                <button type="button" class="narrative-action-btn" onclick="printNarrative()">
                                     <i class="bi bi-printer"></i> Print
                                 </button>
-                                <button type="button" style="padding: 0.5rem 1rem; border: 1px solid #cbd5e1; background: white; color: #475569; border-radius: 4px; font-size: 0.875rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: all 0.2s;" onclick="exportNarrativeAsText()" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                                <button type="button" class="narrative-action-btn" onclick="exportNarrativeAsText()">
                                     <i class="bi bi-download"></i> Download
                                 </button>
                             </div>
                         </div>
 
-                        <div style="margin-top: 2rem; padding: 1rem 0; border-top: 1px solid #e2e8f0;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-                                <div style="display: flex; align-items: center; gap: 0.5rem; color: #059669;">
-                                    <i class="bi bi-check-circle" style="font-size: 1.125rem;"></i>
-                                    <span style="font-weight: 600; font-size: 0.9375rem;">Ready to Submit</span>
-                                    <span style="color: #64748b; font-size: 0.875rem; margin-left: 0.5rem;">Review all information before submitting</span>
-                                </div>
-                                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                                    <button type="button" style="padding: 0.5rem 1rem; border: 1px solid #cbd5e1; background: white; color: #475569; border-radius: 4px; font-size: 0.875rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: all 0.2s;" onclick="printForm()" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                                        <i class="bi bi-printer"></i> Print Form
-                                    </button>
-                                    <button type="button" style="padding: 0.5rem 1rem; border: 1px solid #fca5a5; background: white; color: #dc2626; border-radius: 4px; font-size: 0.875rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; transition: all 0.2s;" onclick="clearForm()" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='white'">
-                                        <i class="bi bi-arrow-clockwise"></i> Clear All
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -1977,8 +2231,56 @@ $current_user = get_auth_user();
             loadDraft(resumeDraftId);
         }
 
+        // Function to combine individual SAMPLE fields into hidden field
+        function combineSampleFields() {
+            const signs = document.getElementById('sampleSigns')?.value || '';
+            const allergies = document.getElementById('sampleAllergies')?.value || '';
+            const medications = document.getElementById('sampleMedications')?.value || '';
+            const pertinent = document.getElementById('samplePertinent')?.value || '';
+            const lastIntake = document.getElementById('sampleLastIntake')?.value || '';
+            const events = document.getElementById('sampleEvents')?.value || '';
+
+            // Combine with delimiter for storage
+            const combined = JSON.stringify({
+                signs: signs,
+                allergies: allergies,
+                medications: medications,
+                pertinent: pertinent,
+                last_intake: lastIntake,
+                events: events
+            });
+
+            const hiddenField = document.getElementById('fastDetails');
+            if (hiddenField) {
+                hiddenField.value = combined;
+            }
+        }
+
+        // Function to populate individual SAMPLE fields from combined data
+        function populateSampleFields(combinedData) {
+            if (!combinedData) return;
+
+            try {
+                const data = JSON.parse(combinedData);
+                if (document.getElementById('sampleSigns')) document.getElementById('sampleSigns').value = data.signs || '';
+                if (document.getElementById('sampleAllergies')) document.getElementById('sampleAllergies').value = data.allergies || '';
+                if (document.getElementById('sampleMedications')) document.getElementById('sampleMedications').value = data.medications || '';
+                if (document.getElementById('samplePertinent')) document.getElementById('samplePertinent').value = data.pertinent || '';
+                if (document.getElementById('sampleLastIntake')) document.getElementById('sampleLastIntake').value = data.last_intake || '';
+                if (document.getElementById('sampleEvents')) document.getElementById('sampleEvents').value = data.events || '';
+            } catch (e) {
+                // If not JSON, it might be old plain text format - put it in signs field
+                if (document.getElementById('sampleSigns')) {
+                    document.getElementById('sampleSigns').value = combinedData;
+                }
+            }
+        }
+
         // Function to collect all form data
         function collectFormData() {
+            // Combine SAMPLE fields before collecting
+            combineSampleFields();
+
             const form = document.getElementById('preHospitalForm');
             const data = {};
 
@@ -2393,6 +2695,11 @@ $current_user = get_auth_user();
                 }
             }
 
+            // Populate individual SAMPLE fields from combined data
+            if (data.fast_sample_details || data.sample_details) {
+                populateSampleFields(data.fast_sample_details || data.sample_details);
+            }
+
             console.log('Form population complete');
         }
 
@@ -2519,6 +2826,12 @@ $current_user = get_auth_user();
                     return;
                 }
 
+                // Skip elements that already have autosave listeners (prevents double-firing on re-init)
+                if (input.dataset.autosaveInit) {
+                    return;
+                }
+                input.dataset.autosaveInit = '1';
+
                 input.addEventListener('change', () => {
                     const section = input.closest('.tab-pane');
                     const sectionName = section ? section.id : 'unknown';
@@ -2577,6 +2890,17 @@ $current_user = get_auth_user();
             // DOM already loaded
             initializeAutosave();
         }
+
+        // Re-initialize after custom-datetime.js replaces date/time inputs with custom dropdowns.
+        // custom-datetime.js runs on window.load + 500ms, so we re-run after 800ms to pick up the
+        // newly created select and hidden input elements. The data-autosave-init attribute prevents
+        // double-attaching listeners to elements that were already initialized above.
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                console.log('Re-initializing autosave for custom datetime elements...');
+                initializeAutosave();
+            }, 800);
+        });
 
         // Save before leaving page
         window.addEventListener('beforeunload', (e) => {
@@ -2697,43 +3021,66 @@ $current_user = get_auth_user();
             setTimeout(setupSidebarInterception, 1000);
         }
 
-        // Manual save button - positioned in top-right, below navbar
+        // Manual save button - positioned in top-right, below navbar (Corporate Design)
         const manualSaveBtn = document.createElement('button');
         manualSaveBtn.type = 'button';
-        manualSaveBtn.className = 'btn btn-sm btn-outline-secondary';
-        manualSaveBtn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill" style="font-size: 1.1rem; margin-right: 6px;"></i> Save Draft Now';
+        manualSaveBtn.className = 'btn save-draft-btn-corporate';
+        manualSaveBtn.innerHTML = `
+            <span class="save-draft-icon">
+                <i class="bi bi-cloud-arrow-up-fill"></i>
+            </span>
+            <span class="save-draft-text">Save Draft</span>
+        `;
         manualSaveBtn.style.cssText = `
             position: fixed;
             top: 80px;
             right: 20px;
             z-index: 1001;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            background: white;
-            color: #0066cc;
-            border: 2px solid #0066cc;
-            padding: 10px 20px;
-            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(30, 58, 95, 0.25);
+            background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+            color: #ffffff;
+            border: none;
+            padding: 0;
+            border-radius: 10px;
             font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            transition: all 0.25s ease;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 0;
+            overflow: hidden;
+            cursor: pointer;
+        `;
+
+        // Style the icon container
+        const iconSpan = manualSaveBtn.querySelector('.save-draft-icon');
+        iconSpan.style.cssText = `
+            background: rgba(255, 255, 255, 0.15);
+            padding: 0.625rem 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        `;
+
+        // Style the text
+        const textSpan = manualSaveBtn.querySelector('.save-draft-text');
+        textSpan.style.cssText = `
+            padding: 0.625rem 1rem 0.625rem 0.75rem;
+            letter-spacing: 0.3px;
         `;
 
         // Add hover effect
         manualSaveBtn.addEventListener('mouseenter', () => {
-            manualSaveBtn.style.background = '#0066cc';
-            manualSaveBtn.style.color = 'white';
+            manualSaveBtn.style.background = 'linear-gradient(135deg, #2c5282 0%, #3d6a9f 100%)';
             manualSaveBtn.style.transform = 'translateY(-2px)';
-            manualSaveBtn.style.boxShadow = '0 6px 16px rgba(0,102,204,0.3)';
+            manualSaveBtn.style.boxShadow = '0 6px 20px rgba(30, 58, 95, 0.35)';
         });
 
         manualSaveBtn.addEventListener('mouseleave', () => {
-            manualSaveBtn.style.background = 'white';
-            manualSaveBtn.style.color = '#0066cc';
+            manualSaveBtn.style.background = 'linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%)';
             manualSaveBtn.style.transform = 'translateY(0)';
-            manualSaveBtn.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+            manualSaveBtn.style.boxShadow = '0 4px 16px rgba(30, 58, 95, 0.25)';
         });
 
         manualSaveBtn.onclick = () => {

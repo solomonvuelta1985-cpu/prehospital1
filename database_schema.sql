@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS prehospital_forms (
     initial_pain_score INT NULL,
     initial_spo2 INT NULL,
     initial_spinal_injury ENUM('yes', 'no') NULL,
-    initial_consciousness ENUM('alert', 'verbal', 'pain', 'unconscious') NULL,
+    initial_consciousness VARCHAR(255) NULL,
     initial_helmet ENUM('ab', 'none') NULL,
     
     -- Follow-up Vitals
@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS prehospital_forms (
     followup_pain_score INT NULL,
     followup_spo2 INT NULL,
     followup_spinal_injury ENUM('yes', 'no') NULL,
-    followup_consciousness ENUM('alert', 'verbal', 'pain', 'unconscious') NULL,
+    followup_consciousness VARCHAR(255) NULL,
     
     -- Chief Complaints (JSON array)
     chief_complaints JSON NULL,
@@ -157,6 +157,9 @@ CREATE TABLE IF NOT EXISTS prehospital_forms (
     received_by VARCHAR(100) NULL,
     endorsement_datetime DATETIME NULL,
     
+    -- Narrative Report
+    narrative_report TEXT NULL,
+
     -- Waiver
     waiver_patient_signature VARCHAR(255) NULL,
     waiver_witness_signature VARCHAR(255) NULL,

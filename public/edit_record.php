@@ -48,7 +48,24 @@ $current_user = get_auth_user();
 
 // Decode JSON fields
 $persons_present = json_decode($record['persons_present'] ?? '[]', true);
+$persons_present = is_array($persons_present) ? $persons_present : [];
+
 $personal_belongings = json_decode($record['personal_belongings'] ?? '[]', true);
+$personal_belongings = is_array($personal_belongings) ? $personal_belongings : [];
+
+// Normalize enum/radio fields to lowercase for consistent comparison with form values
+// Note: vehicle_used is NOT lowercased because its ENUM includes camelCase 'fireTruck'
+$record['gender'] = isset($record['gender']) ? strtolower($record['gender']) : '';
+$record['civil_status'] = isset($record['civil_status']) ? strtolower($record['civil_status']) : '';
+$record['arrival_type'] = isset($record['arrival_type']) ? strtolower($record['arrival_type']) : '';
+$record['initial_spinal_injury'] = isset($record['initial_spinal_injury']) ? strtolower($record['initial_spinal_injury']) : '';
+$record['followup_spinal_injury'] = isset($record['followup_spinal_injury']) ? strtolower($record['followup_spinal_injury']) : '';
+$record['initial_helmet'] = isset($record['initial_helmet']) ? strtolower($record['initial_helmet']) : '';
+$record['ob_placenta'] = isset($record['ob_placenta']) ? strtolower($record['ob_placenta']) : '';
+$record['fast_face_drooping'] = isset($record['fast_face_drooping']) ? strtolower($record['fast_face_drooping']) : '';
+$record['fast_arm_weakness'] = isset($record['fast_arm_weakness']) ? strtolower($record['fast_arm_weakness']) : '';
+$record['fast_speech_difficulty'] = isset($record['fast_speech_difficulty']) ? strtolower($record['fast_speech_difficulty']) : '';
+$record['fast_time_to_call'] = isset($record['fast_time_to_call']) ? strtolower($record['fast_time_to_call']) : '';
 
 // Clean up date and time fields - don't show invalid/empty values
 $dateTimeFields = [
@@ -80,14 +97,21 @@ foreach ($dateFields as $field) {
     }
 }
 $care_management = json_decode($record['care_management'] ?? '[]', true);
+$care_management = is_array($care_management) ? $care_management : [];
+
 $chief_complaints = json_decode($record['chief_complaints'] ?? '[]', true);
+$chief_complaints = is_array($chief_complaints) ? $chief_complaints : [];
+
 $initial_consciousness = json_decode($record['initial_consciousness'] ?? '[]', true);
 if (!is_array($initial_consciousness)) {
-    $initial_consciousness = !empty($record['initial_consciousness']) ? [$record['initial_consciousness']] : [];
+    // Handle legacy single ENUM value (e.g. "alert") by wrapping in array
+    $initial_consciousness = !empty($record['initial_consciousness']) ? [strtolower($record['initial_consciousness'])] : [];
 }
+
 $followup_consciousness = json_decode($record['followup_consciousness'] ?? '[]', true);
 if (!is_array($followup_consciousness)) {
-    $followup_consciousness = !empty($record['followup_consciousness']) ? [$record['followup_consciousness']] : [];
+    // Handle legacy single ENUM value by wrapping in array
+    $followup_consciousness = !empty($record['followup_consciousness']) ? [strtolower($record['followup_consciousness'])] : [];
 }
 ?>
 <!DOCTYPE html>
@@ -112,8 +136,8 @@ if (!is_array($followup_consciousness)) {
             overflow-x: hidden !important;
             padding-bottom: 0 !important;
             min-height: 100vh;
-            max-height: 100vh;
-            position: relative;
+            display: flex;
+            flex-direction: column;
         }
 
         .form-container {
@@ -122,13 +146,16 @@ if (!is_array($followup_consciousness)) {
             max-width: 100%;
             margin-bottom: 0;
             padding-bottom: 0;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
         }
 
         .form-body {
             overflow: visible !important;
             max-height: none !important;
-            padding-bottom: 2rem !important;
-            min-height: calc(100vh - 400px) !important;
+            padding-bottom: 1rem !important;
+            flex: 1;
         }
 
         .navigation-buttons {
@@ -141,7 +168,7 @@ if (!is_array($followup_consciousness)) {
             margin-bottom: 0 !important;
             z-index: 1000 !important;
             border-top: 4px solid #0066cc !important;
-            padding: 1.5rem 2rem !important;
+            padding: 1rem 2rem !important;
             display: flex !important;
             justify-content: space-between !important;
             gap: 1rem !important;
@@ -164,14 +191,6 @@ if (!is_array($followup_consciousness)) {
         .form-section {
             margin-bottom: 0 !important;
             padding-bottom: 0 !important;
-        }
-
-        /* Ensure sticky works in all browsers */
-        @supports (position: sticky) {
-            .navigation-buttons {
-                position: -webkit-sticky !important;
-                position: sticky !important;
-            }
         }
 
         /* Fix Notiflix Report button underline */
@@ -538,6 +557,94 @@ if (!is_array($followup_consciousness)) {
         textarea::placeholder {
             text-transform: none !important;
         }
+
+        /* ========================================
+           DESKTOP/LAPTOP FIT OPTIMIZATION
+           ======================================== */
+        @media (min-width: 1024px) {
+            .content {
+                max-height: 100vh;
+                overflow-y: auto;
+            }
+
+            .form-body {
+                min-height: auto !important;
+                padding-bottom: 1rem !important;
+            }
+
+            .navigation-buttons {
+                position: sticky !important;
+                bottom: 0;
+                margin-top: 0 !important;
+            }
+        }
+
+        /* Standard laptop (1366x768) specific */
+        @media (min-width: 1024px) and (max-height: 800px) {
+            .content {
+                max-height: 100vh;
+            }
+
+            .form-header {
+                padding: 0.65rem 1.5rem !important;
+            }
+
+            .form-header h1 {
+                font-size: 1.1rem !important;
+            }
+
+            .form-header .subtitle {
+                font-size: 0.75rem !important;
+                margin-top: 0.15rem !important;
+            }
+
+            .progress-container {
+                padding: 0.4rem 1.5rem 0.35rem !important;
+            }
+
+            .progress {
+                height: 4px !important;
+            }
+
+            #stepIndicator {
+                font-size: 0.75rem !important;
+            }
+
+            .tabs-container {
+                margin-bottom: 0.5rem !important;
+            }
+
+            .nav-link {
+                padding: 0.5rem 0.65rem !important;
+                font-size: 0.75rem !important;
+            }
+
+            .form-body {
+                padding: 0.65rem 1.5rem !important;
+                min-height: auto !important;
+            }
+
+            .form-section {
+                margin-bottom: 0 !important;
+            }
+
+            .navigation-buttons {
+                padding: 0.65rem 1.5rem !important;
+                border-top-width: 2px !important;
+            }
+
+            .navigation-buttons .btn {
+                padding: 0.5rem 1.25rem !important;
+                font-size: 0.8rem !important;
+            }
+        }
+
+        /* Large desktop screens (1920x1080+) */
+        @media (min-width: 1600px) {
+            .form-section {
+                max-width: 1400px;
+            }
+        }
     </style>
 </head>
 <body class="loading">
@@ -609,6 +716,7 @@ if (!is_array($followup_consciousness)) {
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
             <input type="hidden" name="record_id" value="<?php echo $record_id; ?>">
             <input type="hidden" name="injuries_data" id="injuriesData" value='<?php echo json_encode($injuries); ?>'>
+            <input type="hidden" name="narrative_report" id="narrativeReportField" value="<?php echo e($record['narrative_report'] ?? ''); ?>">
             
             <div class="tab-content" id="formTabContent">
                 <!-- Section 1: Basic Information -->
@@ -740,6 +848,11 @@ if (!is_array($followup_consciousness)) {
                                     <input class="form-check-input" type="checkbox" id="bystanders" name="persons_present[]" value="bystanders"
                                            <?php echo in_array('bystanders', $persons_present) ? 'checked' : ''; ?>>
                                     <label class="form-check-label" for="bystanders">Bystanders</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="nonePresent" name="persons_present[]" value="none"
+                                           <?php echo in_array('none', $persons_present) ? 'checked' : ''; ?>>
+                                    <label class="form-check-label" for="nonePresent">None</label>
                                 </div>
                             </div>
                         </div>
@@ -932,44 +1045,139 @@ if (!is_array($followup_consciousness)) {
                                    value="<?php echo e($record['other_belongings']); ?>" placeholder="List other belongings not mentioned above">
                         </div>
 
-                        <!-- Patient Documentation -->
-                        <div class="mb-section">
-                            <label class="form-label">PATIENT DOCUMENTATION</label>
-                            <?php if (!empty($record['patient_documentation'])): ?>
-                                <div class="mb-2">
-                                    <div class="alert alert-info d-flex align-items-center justify-content-between">
-                                        <div>
-                                            <i class="bi bi-file-earmark-image"></i>
-                                            <strong>Current Document:</strong>
-                                            <a href="<?php echo e($record['patient_documentation']); ?>" target="_blank" class="alert-link">
-                                                View Document <i class="bi bi-box-arrow-up-right"></i>
+                        <!-- Patient Documentation - Corporate Design -->
+                        <div class="patient-documentation-card">
+                            <div class="patient-doc-header">
+                                <div class="patient-doc-icon">
+                                    <i class="bi bi-camera-fill"></i>
+                                </div>
+                                <div class="patient-doc-title">
+                                    <h6>Patient Documentation</h6>
+                                    <span>Capture or upload patient photo for records</span>
+                                </div>
+                            </div>
+
+                            <div class="patient-doc-body">
+                                <?php if (!empty($record['patient_documentation'])): ?>
+                                <!-- Existing Image Display -->
+                                <div class="existing-patient-doc">
+                                    <div class="existing-doc-label">
+                                        <i class="bi bi-image-fill"></i>
+                                        <span>Current Patient Photo</span>
+                                    </div>
+                                    <div class="preview-card">
+                                        <div class="preview-image-wrapper" onclick="openExistingPatientImageModal('<?php echo e($record['patient_documentation']); ?>')">
+                                            <img src="<?php echo e($record['patient_documentation']); ?>" alt="Patient Documentation">
+                                            <div class="preview-overlay">
+                                                <i class="bi bi-zoom-in"></i>
+                                                <span>Click to enlarge</span>
+                                            </div>
+                                        </div>
+                                        <div class="preview-actions">
+                                            <span class="preview-label">
+                                                <i class="bi bi-check-circle-fill"></i>
+                                                Photo on file
+                                            </span>
+                                            <a href="<?php echo e($record['patient_documentation']); ?>" target="_blank" class="view-original-btn">
+                                                <i class="bi bi-box-arrow-up-right"></i>
+                                                View Original
                                             </a>
                                         </div>
                                     </div>
-                                    <img src="<?php echo e($record['patient_documentation']); ?>" alt="Patient Documentation" style="max-width: 200px; border: 1px solid #ddd; border-radius: 4px; padding: 4px;">
+                                    <div class="replace-photo-label">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                        <span>Replace with new photo (optional)</span>
+                                    </div>
                                 </div>
-                            <?php endif; ?>
-                            <div class="attachment-section">
-                                <div class="attachment-controls">
-                                    <button type="button" class="btn btn-outline-primary btn-sm" id="openPatientCameraBtn">
-                                        <i class="bi bi-camera"></i> Open Camera
+                                <?php endif; ?>
+
+                                <!-- Upload Controls -->
+                                <div class="patient-doc-controls">
+                                    <button type="button" class="upload-method-btn" id="openPatientCameraBtn">
+                                        <div class="upload-method-icon camera">
+                                            <i class="bi bi-camera-fill"></i>
+                                        </div>
+                                        <div class="upload-method-text">
+                                            <span class="upload-method-title">Open Camera</span>
+                                            <span class="upload-method-desc">Take a photo now</span>
+                                        </div>
                                     </button>
-                                    <input type="file" class="form-control form-control-sm" id="patientFileUpload" name="patient_documentation" accept="image/jpeg,image/png,image/gif,image/webp" style="display: inline-block; width: auto;" onchange="validatePatientFileUpload(this)">
-                                    <small class="text-muted">Max file size: 5MB. Allowed formats: JPG, PNG, GIF, WebP</small>
+
+                                    <div class="upload-divider">
+                                        <span>or</span>
+                                    </div>
+
+                                    <label class="upload-method-btn" for="patientFileUpload">
+                                        <div class="upload-method-icon file">
+                                            <i class="bi bi-cloud-arrow-up-fill"></i>
+                                        </div>
+                                        <div class="upload-method-text">
+                                            <span class="upload-method-title">Upload File</span>
+                                            <span class="upload-method-desc">JPG, PNG, GIF, WebP (max 5MB)</span>
+                                        </div>
+                                        <input type="file" class="hidden-file-input" id="patientFileUpload" name="patient_documentation" accept="image/jpeg,image/png,image/gif,image/webp" onchange="validatePatientFileUpload(this)">
+                                    </label>
                                 </div>
-                                <div id="patientCameraContainer" style="display: none; margin-top: 10px;">
-                                    <video id="patientCameraVideo" autoplay playsinline style="width: 100%; max-width: 300px;"></video>
-                                    <br>
-                                    <button type="button" class="btn btn-success btn-sm" id="capturePatientBtn" onclick="capturePatientPhoto()">Capture Photo</button>
-                                    <button type="button" class="btn btn-secondary btn-sm" id="closePatientCameraBtn" onclick="closePatientCamera()">Close Camera</button>
+
+                                <!-- Camera Container -->
+                                <div id="patientCameraContainer" class="patient-camera-container">
+                                    <div class="camera-viewport">
+                                        <video id="patientCameraVideo" autoplay playsinline></video>
+                                    </div>
+                                    <div class="camera-controls">
+                                        <button type="button" class="camera-btn capture" id="capturePatientBtn" onclick="capturePatientPhoto()">
+                                            <i class="bi bi-circle-fill"></i>
+                                            <span>Capture</span>
+                                        </button>
+                                        <button type="button" class="camera-btn close-cam" id="closePatientCameraBtn" onclick="closePatientCamera()">
+                                            <i class="bi bi-x-lg"></i>
+                                            <span>Close</span>
+                                        </button>
+                                    </div>
                                 </div>
-                                <div id="patientPreviewContainer" style="margin-top: 10px;">
-                                    <img id="patientAttachmentPreview" src="" alt="Patient Documentation Preview" style="max-width: 200px; display: none;">
-                                    <button type="button" class="btn btn-outline-danger btn-sm" id="removePatientAttachmentBtn" style="display: none;" onclick="removePatientAttachment()">
-                                        <i class="bi bi-trash"></i> Remove
-                                    </button>
+
+                                <!-- New Image Preview -->
+                                <div id="patientPreviewContainer" class="patient-preview-container">
+                                    <div class="new-photo-label">
+                                        <i class="bi bi-plus-circle-fill"></i>
+                                        <span>New Photo Preview</span>
+                                    </div>
+                                    <div class="preview-card">
+                                        <div class="preview-image-wrapper" onclick="openPatientImageModal()">
+                                            <img id="patientAttachmentPreview" src="" alt="Patient Documentation Preview">
+                                            <div class="preview-overlay">
+                                                <i class="bi bi-zoom-in"></i>
+                                                <span>Click to enlarge</span>
+                                            </div>
+                                        </div>
+                                        <div class="preview-actions">
+                                            <span class="preview-label">
+                                                <i class="bi bi-check-circle-fill"></i>
+                                                New photo ready
+                                            </span>
+                                            <button type="button" class="remove-preview-btn" id="removePatientAttachmentBtn" onclick="removePatientAttachment()">
+                                                <i class="bi bi-trash3"></i>
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div id="patientUploadError" class="text-danger" style="display: none;"></div>
+
+                                <!-- Error Message -->
+                                <div id="patientUploadError" class="patient-upload-error">
+                                    <i class="bi bi-exclamation-circle-fill"></i>
+                                    <span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Image Preview Modal -->
+                        <div id="patientImageModal" class="image-preview-modal" onclick="closePatientImageModal()">
+                            <div class="modal-content-custom" onclick="event.stopPropagation()">
+                                <button type="button" class="modal-close-btn" onclick="closePatientImageModal()">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                                <img id="patientModalImage" src="" alt="Patient Documentation">
                             </div>
                         </div>
                     </div>
@@ -1445,74 +1653,132 @@ if (!is_array($followup_consciousness)) {
                             </div>
                         </div>
 
-                        <div class="fast-assessment">
-                            <h6><i class="bi bi-exclamation-triangle-fill"></i> FOR Stroke Victim - F.A.S.T. Assessment</h6>
-                            <div class="grid-2" style="gap: 1rem;">
-                                <div class="grid-2" style="gap: 0.75rem;">
-                                    <div>
-                                        <label class="form-label">Face Drooping</label>
-                                        <div class="inline-group">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="face_drooping" id="facePos" value="positive"
-                                                       <?php echo $record['fast_face_drooping'] === 'positive' ? 'checked' : ''; ?>>
-                                                <label class="form-check-label" for="facePos">(+)</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="face_drooping" id="faceNeg" value="negative"
-                                                       <?php echo $record['fast_face_drooping'] === 'negative' ? 'checked' : ''; ?>>
-                                                <label class="form-check-label" for="faceNeg">(++)</label>
+                        <?php
+                        // Parse SAMPLE data - either JSON or plain text
+                        $sampleData = ['signs' => '', 'allergies' => '', 'medications' => '', 'pertinent' => '', 'last_intake' => '', 'events' => ''];
+                        $rawSample = $record['fast_sample_details'] ?? '';
+                        if (!empty($rawSample)) {
+                            $decoded = json_decode($rawSample, true);
+                            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                                $sampleData = array_merge($sampleData, $decoded);
+                            } else {
+                                // Old plain text format - put in signs field
+                                $sampleData['signs'] = $rawSample;
+                            }
+                        }
+                        ?>
+                        <div class="stroke-assessment-card">
+                            <div class="stroke-assessment-header">
+                                <div class="stroke-header-icon">
+                                    <i class="bi bi-activity"></i>
+                                </div>
+                                <div class="stroke-header-text">
+                                    <h6>Stroke Assessment</h6>
+                                    <span>F.A.S.T. Protocol & S.A.M.P.L.E. History</span>
+                                </div>
+                            </div>
+                            <div class="stroke-assessment-body">
+                                <div class="fast-section">
+                                    <div class="fast-section-title">
+                                        <span class="fast-badge">F.A.S.T.</span>
+                                        <span class="fast-subtitle">Stroke Recognition</span>
+                                    </div>
+                                    <div class="fast-grid">
+                                        <div class="fast-item">
+                                            <div class="fast-item-letter">F</div>
+                                            <div class="fast-item-content">
+                                                <span class="fast-item-label">Face Drooping</span>
+                                                <div class="toggle-group">
+                                                    <input type="radio" name="face_drooping" id="facePos" value="positive" class="toggle-input" <?php echo $record['fast_face_drooping'] === 'positive' ? 'checked' : ''; ?>>
+                                                    <label for="facePos" class="toggle-btn toggle-positive">(+)</label>
+                                                    <input type="radio" name="face_drooping" id="faceNeg" value="negative" class="toggle-input" <?php echo $record['fast_face_drooping'] === 'negative' ? 'checked' : ''; ?>>
+                                                    <label for="faceNeg" class="toggle-btn toggle-negative">(−)</label>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div>
-                                        <label class="form-label">Arm Weakness</label>
-                                        <div class="inline-group">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="arm_weakness" id="armPos" value="positive"
-                                                       <?php echo $record['fast_arm_weakness'] === 'positive' ? 'checked' : ''; ?>>
-                                                <label class="form-check-label" for="armPos">(+)</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="arm_weakness" id="armNeg" value="negative"
-                                                       <?php echo $record['fast_arm_weakness'] === 'negative' ? 'checked' : ''; ?>>
-                                                <label class="form-check-label" for="armNeg">(++)</label>
+                                        <div class="fast-item">
+                                            <div class="fast-item-letter">A</div>
+                                            <div class="fast-item-content">
+                                                <span class="fast-item-label">Arm Weakness</span>
+                                                <div class="toggle-group">
+                                                    <input type="radio" name="arm_weakness" id="armPos" value="positive" class="toggle-input" <?php echo $record['fast_arm_weakness'] === 'positive' ? 'checked' : ''; ?>>
+                                                    <label for="armPos" class="toggle-btn toggle-positive">(+)</label>
+                                                    <input type="radio" name="arm_weakness" id="armNeg" value="negative" class="toggle-input" <?php echo $record['fast_arm_weakness'] === 'negative' ? 'checked' : ''; ?>>
+                                                    <label for="armNeg" class="toggle-btn toggle-negative">(−)</label>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div>
-                                        <label class="form-label">Speech Difficulty</label>
-                                        <div class="inline-group">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="speech_difficulty" id="speechPos" value="positive"
-                                                       <?php echo $record['fast_speech_difficulty'] === 'positive' ? 'checked' : ''; ?>>
-                                                <label class="form-check-label" for="speechPos">(+)</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="speech_difficulty" id="speechNeg" value="negative"
-                                                       <?php echo $record['fast_speech_difficulty'] === 'negative' ? 'checked' : ''; ?>>
-                                                <label class="form-check-label" for="speechNeg">(++)</label>
+                                        <div class="fast-item">
+                                            <div class="fast-item-letter">S</div>
+                                            <div class="fast-item-content">
+                                                <span class="fast-item-label">Speech Difficulty</span>
+                                                <div class="toggle-group">
+                                                    <input type="radio" name="speech_difficulty" id="speechPos" value="positive" class="toggle-input" <?php echo $record['fast_speech_difficulty'] === 'positive' ? 'checked' : ''; ?>>
+                                                    <label for="speechPos" class="toggle-btn toggle-positive">(+)</label>
+                                                    <input type="radio" name="speech_difficulty" id="speechNeg" value="negative" class="toggle-input" <?php echo $record['fast_speech_difficulty'] === 'negative' ? 'checked' : ''; ?>>
+                                                    <label for="speechNeg" class="toggle-btn toggle-negative">(−)</label>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div>
-                                        <label class="form-label">Time to Call</label>
-                                        <div class="inline-group">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="time_to_call" id="timePos" value="positive"
-                                                       <?php echo $record['fast_time_to_call'] === 'positive' ? 'checked' : ''; ?>>
-                                                <label class="form-check-label" for="timePos">(+)</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="time_to_call" id="timeNeg" value="negative"
-                                                       <?php echo $record['fast_time_to_call'] === 'negative' ? 'checked' : ''; ?>>
-                                                <label class="form-check-label" for="timeNeg">(++)</label>
+                                        <div class="fast-item">
+                                            <div class="fast-item-letter">T</div>
+                                            <div class="fast-item-content">
+                                                <span class="fast-item-label">Time to Call</span>
+                                                <div class="toggle-group">
+                                                    <input type="radio" name="time_to_call" id="timePos" value="positive" class="toggle-input" <?php echo $record['fast_time_to_call'] === 'positive' ? 'checked' : ''; ?>>
+                                                    <label for="timePos" class="toggle-btn toggle-positive">(+)</label>
+                                                    <input type="radio" name="time_to_call" id="timeNeg" value="negative" class="toggle-input" <?php echo $record['fast_time_to_call'] === 'negative' ? 'checked' : ''; ?>>
+                                                    <label for="timeNeg" class="toggle-btn toggle-negative">(−)</label>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div>
-                                    <label for="fastDetails" class="form-label">S.A.M.P.L.E.</label>
-                                    <textarea class="form-control" id="fastDetails" name="sample_details" rows="5" placeholder="Signs/Symptoms, Allergies, Medications, Pertinent history, Last oral intake, Events"><?php echo e($record['fast_sample_details']); ?></textarea>
+                                <div class="sample-section">
+                                    <div class="sample-section-title">
+                                        <span class="sample-badge">S.A.M.P.L.E.</span>
+                                        <span class="sample-subtitle">Patient History</span>
+                                    </div>
+                                    <div class="sample-table-modern">
+                                        <div class="sample-row-modern">
+                                            <div class="sample-letter-modern">S</div>
+                                            <div class="sample-input-modern">
+                                                <input type="text" class="form-control" id="sampleSigns" name="sample_signs" placeholder="Signs & Symptoms" value="<?php echo e($sampleData['signs']); ?>">
+                                            </div>
+                                        </div>
+                                        <div class="sample-row-modern">
+                                            <div class="sample-letter-modern">A</div>
+                                            <div class="sample-input-modern">
+                                                <input type="text" class="form-control" id="sampleAllergies" name="sample_allergies" placeholder="Allergies" value="<?php echo e($sampleData['allergies']); ?>">
+                                            </div>
+                                        </div>
+                                        <div class="sample-row-modern">
+                                            <div class="sample-letter-modern">M</div>
+                                            <div class="sample-input-modern">
+                                                <input type="text" class="form-control" id="sampleMedications" name="sample_medications" placeholder="Medications" value="<?php echo e($sampleData['medications']); ?>">
+                                            </div>
+                                        </div>
+                                        <div class="sample-row-modern">
+                                            <div class="sample-letter-modern">P</div>
+                                            <div class="sample-input-modern">
+                                                <input type="text" class="form-control" id="samplePertinent" name="sample_pertinent" placeholder="Pertinent History" value="<?php echo e($sampleData['pertinent']); ?>">
+                                            </div>
+                                        </div>
+                                        <div class="sample-row-modern">
+                                            <div class="sample-letter-modern">L</div>
+                                            <div class="sample-input-modern">
+                                                <input type="text" class="form-control" id="sampleLastIntake" name="sample_last_intake" placeholder="Last Oral Intake" value="<?php echo e($sampleData['last_intake']); ?>">
+                                            </div>
+                                        </div>
+                                        <div class="sample-row-modern">
+                                            <div class="sample-letter-modern">E</div>
+                                            <div class="sample-input-modern">
+                                                <input type="text" class="form-control" id="sampleEvents" name="sample_events" placeholder="Events Leading to Illness" value="<?php echo e($sampleData['events']); ?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Hidden field to store combined SAMPLE data -->
+                                    <input type="hidden" id="fastDetails" name="sample_details" value="<?php echo e($record['fast_sample_details']); ?>">
                                 </div>
                             </div>
                         </div>
@@ -1620,46 +1886,145 @@ if (!is_array($followup_consciousness)) {
                             </div>
                         </div>
 
-                        <div class="grid-2 mb-section">
-                            <div>
-                                <label class="form-label">ENDORSEMENT ATTACHMENT</label>
-                                <div class="attachment-section">
-                                    <?php if (!empty($record['endorsement_attachment'])): ?>
-                                        <div class="current-attachment mb-2">
-                                            <img src="<?php echo e($record['endorsement_attachment']); ?>"
-                                                 alt="Current Endorsement" style="max-width: 200px; border: 1px solid #ddd; padding: 5px;">
-                                            <p class="text-muted small">Current attachment</p>
-                                        </div>
-                                    <?php endif; ?>
-                                    <div class="attachment-controls">
-                                        <button type="button" class="btn btn-outline-primary btn-sm" id="openCameraBtn">
-                                            <i class="bi bi-camera"></i> Open Camera
-                                        </button>
-                                        <input type="file" class="form-control form-control-sm" id="fileUpload"
-                                               name="endorsement_attachment" accept="image/jpeg,image/png,image/gif,image/webp"
-                                               style="display: inline-block; width: auto;" onchange="validateFileUpload(this)">
-                                        <small class="text-muted">Max file size: 5MB. Allowed formats: JPG, PNG, GIF, WebP</small>
-                                    </div>
-                                    <div id="cameraContainer" style="display: none; margin-top: 10px;">
-                                        <video id="cameraVideo" autoplay playsinline style="width: 100%; max-width: 300px;"></video>
-                                        <br>
-                                        <button type="button" class="btn btn-success btn-sm" id="captureBtn" onclick="capturePhoto()">Capture Photo</button>
-                                        <button type="button" class="btn btn-secondary btn-sm" id="closeCameraBtn" onclick="closeCamera()">Close Camera</button>
-                                    </div>
-                                    <div id="previewContainer" style="margin-top: 10px;">
-                                        <img id="attachmentPreview" src="" alt="Attachment Preview" style="max-width: 200px; display: none;">
-                                        <button type="button" class="btn btn-outline-danger btn-sm" id="removeAttachmentBtn"
-                                                style="display: none;" onclick="removeAttachment()">
-                                            <i class="bi bi-trash"></i> Remove
-                                        </button>
-                                    </div>
-                                    <div id="uploadError" class="text-danger" style="display: none;"></div>
+                        <div class="mb-section">
+                            <label for="dateTime" class="form-label">Endorsement Date & Time</label>
+                            <input type="datetime-local" class="form-control" id="dateTime" name="endorsement_datetime"
+                                   value="<?php echo e($record['endorsement_datetime']); ?>" style="max-width: 300px;">
+                        </div>
+
+                        <!-- Endorsement Attachment - Corporate Design -->
+                        <div class="endorsement-attachment-card">
+                            <div class="endorsement-doc-header">
+                                <div class="endorsement-doc-icon">
+                                    <i class="bi bi-file-earmark-medical-fill"></i>
+                                </div>
+                                <div class="endorsement-doc-title">
+                                    <h6>Endorsement Attachment</h6>
+                                    <span>Capture or upload hospital endorsement document</span>
                                 </div>
                             </div>
-                            <div>
-                                <label for="dateTime" class="form-label">Date & Time</label>
-                                <input type="datetime-local" class="form-control" id="dateTime" name="endorsement_datetime"
-                                       value="<?php echo e($record['endorsement_datetime']); ?>">
+
+                            <div class="endorsement-doc-body">
+                                <?php if (!empty($record['endorsement_attachment'])): ?>
+                                <!-- Existing Endorsement Display -->
+                                <div class="existing-patient-doc">
+                                    <div class="existing-doc-label">
+                                        <i class="bi bi-image-fill"></i>
+                                        <span>Current Endorsement Document</span>
+                                    </div>
+                                    <div class="preview-card">
+                                        <div class="preview-image-wrapper" onclick="openExistingEndorsementImageModal('<?php echo e($record['endorsement_attachment']); ?>')">
+                                            <img src="<?php echo e($record['endorsement_attachment']); ?>" alt="Endorsement Attachment">
+                                            <div class="preview-overlay">
+                                                <i class="bi bi-zoom-in"></i>
+                                                <span>Click to enlarge</span>
+                                            </div>
+                                        </div>
+                                        <div class="preview-actions">
+                                            <span class="preview-label">
+                                                <i class="bi bi-check-circle-fill"></i>
+                                                Document on file
+                                            </span>
+                                            <a href="<?php echo e($record['endorsement_attachment']); ?>" target="_blank" class="view-original-btn">
+                                                <i class="bi bi-box-arrow-up-right"></i>
+                                                View Original
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="replace-photo-label">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                        <span>Replace with new document (optional)</span>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
+
+                                <!-- Upload Controls -->
+                                <div class="endorsement-doc-controls">
+                                    <button type="button" class="upload-method-btn" id="openCameraBtn">
+                                        <div class="upload-method-icon camera">
+                                            <i class="bi bi-camera-fill"></i>
+                                        </div>
+                                        <div class="upload-method-text">
+                                            <span class="upload-method-title">Open Camera</span>
+                                            <span class="upload-method-desc">Take a photo now</span>
+                                        </div>
+                                    </button>
+
+                                    <div class="upload-divider">
+                                        <span>or</span>
+                                    </div>
+
+                                    <label class="upload-method-btn" for="fileUpload">
+                                        <div class="upload-method-icon file">
+                                            <i class="bi bi-cloud-arrow-up-fill"></i>
+                                        </div>
+                                        <div class="upload-method-text">
+                                            <span class="upload-method-title">Upload File</span>
+                                            <span class="upload-method-desc">JPG, PNG, GIF, WebP (max 5MB)</span>
+                                        </div>
+                                        <input type="file" class="hidden-file-input" id="fileUpload" name="endorsement_attachment" accept="image/jpeg,image/png,image/gif,image/webp" onchange="validateFileUpload(this)">
+                                    </label>
+                                </div>
+
+                                <!-- Camera Container -->
+                                <div id="cameraContainer" class="endorsement-camera-container">
+                                    <div class="camera-viewport">
+                                        <video id="cameraVideo" autoplay playsinline></video>
+                                    </div>
+                                    <div class="camera-controls">
+                                        <button type="button" class="camera-btn capture" id="captureBtn" onclick="capturePhoto()">
+                                            <i class="bi bi-circle-fill"></i>
+                                            <span>Capture</span>
+                                        </button>
+                                        <button type="button" class="camera-btn close-cam" id="closeCameraBtn" onclick="closeCamera()">
+                                            <i class="bi bi-x-lg"></i>
+                                            <span>Close</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- New Image Preview -->
+                                <div id="previewContainer" class="endorsement-preview-container">
+                                    <div class="new-photo-label">
+                                        <i class="bi bi-plus-circle-fill"></i>
+                                        <span>New Document Preview</span>
+                                    </div>
+                                    <div class="preview-card">
+                                        <div class="preview-image-wrapper" onclick="openEndorsementImageModal()">
+                                            <img id="attachmentPreview" src="" alt="Endorsement Attachment Preview">
+                                            <div class="preview-overlay">
+                                                <i class="bi bi-zoom-in"></i>
+                                                <span>Click to enlarge</span>
+                                            </div>
+                                        </div>
+                                        <div class="preview-actions">
+                                            <span class="preview-label">
+                                                <i class="bi bi-check-circle-fill"></i>
+                                                New document ready
+                                            </span>
+                                            <button type="button" class="remove-preview-btn" id="removeAttachmentBtn" onclick="removeAttachment()">
+                                                <i class="bi bi-trash3"></i>
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Error Message -->
+                                <div id="uploadError" class="endorsement-upload-error">
+                                    <i class="bi bi-exclamation-circle-fill"></i>
+                                    <span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Endorsement Image Preview Modal -->
+                        <div id="endorsementImageModal" class="image-preview-modal" onclick="closeEndorsementImageModal()">
+                            <div class="modal-content-custom" onclick="event.stopPropagation()">
+                                <button type="button" class="modal-close-btn" onclick="closeEndorsementImageModal()">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                                <img id="endorsementModalImage" src="" alt="Endorsement Attachment">
                             </div>
                         </div>
 
@@ -1671,42 +2036,6 @@ if (!is_array($followup_consciousness)) {
                             <textarea class="form-control" id="teamLeaderNotes" name="team_leader_notes" rows="3" placeholder="Enter team leader notes and observations..."><?php echo e($record['team_leader_notes']); ?></textarea>
                         </div>
 
-                        <div class="waiver-section">
-                            <h6><i class="bi bi-file-earmark-text"></i> WAIVER - REFUSAL OF TREATMENT/TRANSPORTATION</h6>
-                            <p>I, the undersigned have been advised that assistance on my behalf is necessary and refusal of assistance and/or transportation for further treatment may result in death or impair my health condition. Nevertheless, I refuse to accept treatment and/or transport and assume all risks and consequences of my decision and release the Rescue 118 responders from any liability arising from any delay or refusal.</p>
-
-                            <div class="grid-2">
-                                <div>
-                                    <label class="form-label">Patient Name & Signature</label>
-                                    <div class="signature-box">
-                                        <i class="bi bi-pen"></i>
-                                        <p>Patient signature</p>
-                                    </div>
-                                    <input type="hidden" name="patient_signature" id="patientSignature" value="<?php echo e($record['waiver_patient_signature']); ?>">
-                                </div>
-                                <div>
-                                    <label class="form-label">Witness Name & Signature</label>
-                                    <div class="signature-box">
-                                        <i class="bi bi-pen"></i>
-                                        <p>Witness signature</p>
-                                    </div>
-                                    <input type="hidden" name="witness_signature" id="witnessSignature" value="<?php echo e($record['waiver_witness_signature']); ?>">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="alert alert-success" style="margin-top: 1.5rem;">
-                            <h5 class="alert-heading"><i class="bi bi-check-circle"></i> Ready to Update</h5>
-                            <p class="mb-3">Review all information before submitting. Navigate back using tabs to check previous sections.</p>
-                            <div class="d-flex gap-2 flex-wrap">
-                                <button type="button" class="btn btn-outline-primary" onclick="printForm()">
-                                    <i class="bi bi-printer"></i> Print Form
-                                </button>
-                                <button type="button" class="btn btn-outline-danger" onclick="clearForm()">
-                                    <i class="bi bi-arrow-clockwise"></i> Clear All
-                                </button>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -1723,9 +2052,9 @@ if (!is_array($followup_consciousness)) {
                 <button type="button" class="btn btn-primary" id="nextBtn" onclick="navigateTab(1)">
                     Next <i class="bi bi-chevron-right"></i>
                 </button>
-        <button type="button" class="btn btn-success" id="updateBtn" onclick="updateRecord()">
-            <i class="bi bi-check2"></i> Update Record
-        </button>
+                <button type="button" class="btn btn-success" id="updateBtn" onclick="updateRecord()" style="display: none;">
+                    <i class="bi bi-check2"></i> Update Record
+                </button>
             </div>
         </div>
         </div>
@@ -2079,6 +2408,30 @@ if (!is_array($followup_consciousness)) {
             },
         });
 
+        // Function to combine individual SAMPLE fields into hidden field
+        function combineSampleFields() {
+            const signs = document.getElementById('sampleSigns')?.value || '';
+            const allergies = document.getElementById('sampleAllergies')?.value || '';
+            const medications = document.getElementById('sampleMedications')?.value || '';
+            const pertinent = document.getElementById('samplePertinent')?.value || '';
+            const lastIntake = document.getElementById('sampleLastIntake')?.value || '';
+            const events = document.getElementById('sampleEvents')?.value || '';
+
+            const combined = JSON.stringify({
+                signs: signs,
+                allergies: allergies,
+                medications: medications,
+                pertinent: pertinent,
+                last_intake: lastIntake,
+                events: events
+            });
+
+            const hiddenField = document.getElementById('fastDetails');
+            if (hiddenField) {
+                hiddenField.value = combined;
+            }
+        }
+
         // Override submit function for edit mode
         function updateRecord() {
             Notiflix.Confirm.show(
@@ -2087,6 +2440,9 @@ if (!is_array($followup_consciousness)) {
                 'Yes, Update',
                 'Cancel',
                 function okCb() {
+                    // Combine SAMPLE fields before submitting
+                    combineSampleFields();
+
                     // Show loading indicator
                     Notiflix.Loading.standard('Updating record...', {
                         backgroundColor: 'rgba(0,0,0,0.8)',

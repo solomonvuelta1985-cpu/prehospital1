@@ -78,114 +78,191 @@ try {
     ?>
     <div class="modal-record-view">
         <style>
+            /* ========================================
+               Modal Record View - Clean Minimal Design
+               ======================================== */
             .modal-record-view {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+                color: #1a1a1a;
+                line-height: 1.5;
+                background: #FFFFFF;
+                padding: 8px;
+                border-radius: 8px;
             }
+
+            /* Record Header */
             .record-header {
-                background-color: #f8f9fa;
-                padding: 20px;
+                background-color: #0052CC;
+                padding: 20px 24px;
                 border-radius: 6px;
-                margin-bottom: 20px;
-                border-left: 4px solid #1a4d8f;
+                margin-bottom: 24px;
+                color: #FFFFFF;
             }
             .record-header h2 {
-                color: #1a4d8f;
-                font-size: 1.5rem;
-                margin-bottom: 10px;
-                font-weight: 600;
+                color: #FFFFFF;
+                font-size: 1.125rem;
+                margin: 0 0 8px 0;
+                font-weight: 700;
+                letter-spacing: 0.02em;
+                text-transform: uppercase;
             }
             .record-header .meta {
-                color: #6c757d;
-                font-size: 0.9rem;
-            }
-            .section-title {
-                background-color: #1a4d8f;
-                color: white;
-                padding: 10px 15px;
-                margin: 20px 0 15px 0;
-                font-weight: 600;
-                font-size: 0.95rem;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-            .data-row {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 15px;
-                margin-bottom: 15px;
-            }
-            .data-item {
-                padding: 12px;
-                background-color: #f8f9fa;
-                border-left: 3px solid #dee2e6;
-            }
-            .data-item label {
-                font-size: 0.75rem;
-                color: #6c757d;
-                text-transform: uppercase;
-                font-weight: 600;
-                display: block;
-                margin-bottom: 5px;
-            }
-            .data-item .value {
-                font-size: 0.95rem;
-                color: #212529;
+                color: rgba(255,255,255,0.9);
+                font-size: 0.8125rem;
                 font-weight: 500;
             }
-            .data-item .value.empty {
-                color: #adb5bd;
-                font-style: italic;
-            }
-            .vital-box {
-                background-color: #f8f9fa;
-                border: 2px solid #dee2e6;
-                padding: 15px;
-                border-radius: 6px;
-                margin-bottom: 15px;
-            }
-            .vital-box h4 {
-                color: #1a4d8f;
-                font-size: 1rem;
-                margin-bottom: 15px;
-                padding-bottom: 10px;
-                border-bottom: 2px solid #dee2e6;
+            .record-header .meta strong {
+                color: #FFFFFF;
                 font-weight: 600;
             }
+
+            /* Section Titles */
+            .section-title {
+                background-color: #F4F5F7;
+                color: #0052CC;
+                padding: 10px 16px;
+                margin: 24px 0 12px 0;
+                font-weight: 700;
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                border-left: 4px solid #0052CC;
+            }
+
+            /* Data Grid */
+            .data-row {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 8px 16px;
+                margin-bottom: 8px;
+            }
+
+            /* Data Items - Clean Underline Style */
+            .data-item {
+                padding: 10px 12px;
+                background-color: transparent;
+            }
+            .data-item label {
+                font-size: 0.625rem;
+                color: #666666;
+                text-transform: uppercase;
+                font-weight: 700;
+                display: block;
+                margin-bottom: 4px;
+                letter-spacing: 0.04em;
+            }
+            .data-item .value {
+                font-size: 0.875rem;
+                color: #1a1a1a;
+                font-weight: 500;
+                padding: 6px 2px;
+                border-bottom: 2px solid #0052CC;
+                display: block;
+            }
+            .data-item .value.empty {
+                color: #999999;
+                font-style: italic;
+                font-weight: 400;
+                border-bottom-color: #C1C7D0;
+            }
+
+            /* Vital Signs Boxes */
+            .vital-box {
+                background-color: transparent;
+                padding: 12px 0;
+                margin-bottom: 12px;
+            }
+            .vital-box h4 {
+                color: #0052CC;
+                font-size: 0.8125rem;
+                margin: 0 0 12px 0;
+                padding-bottom: 8px;
+                border-bottom: 2px solid #0052CC;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.02em;
+            }
+            .vital-box .data-item {
+                padding: 8px 0;
+            }
+            .vital-box .data-item .value {
+                border-bottom: 2px solid #0052CC;
+            }
+
+            /* Injury Cards */
             .injury-card {
-                background-color: #ffffff;
-                border: 1px solid #dee2e6;
-                border-left: 4px solid #1a4d8f;
-                padding: 15px;
-                margin-bottom: 15px;
+                background-color: #FFFFFF;
+                border: 1px solid #DFE1E6;
+                border-left: 4px solid #DE350B;
+                padding: 14px 16px;
+                margin-bottom: 10px;
                 border-radius: 4px;
             }
             .injury-card-header {
-                font-size: 1rem;
-                font-weight: 600;
-                color: #1a4d8f;
-                margin-bottom: 12px;
-                padding-bottom: 8px;
-                border-bottom: 1px solid #e9ecef;
+                font-size: 0.8125rem;
+                font-weight: 700;
+                color: #DE350B;
+                margin-bottom: 10px;
+                text-transform: uppercase;
+                letter-spacing: 0.02em;
             }
+            .injury-card .data-row {
+                gap: 6px 12px;
+            }
+            .injury-card .data-item {
+                padding: 6px 0;
+            }
+            .injury-card .data-item .value {
+                border-bottom: 2px solid #DE350B;
+            }
+
+            /* Status Badges */
             .badge-status {
                 display: inline-block;
                 padding: 4px 10px;
                 border-radius: 4px;
-                font-size: 0.75rem;
-                font-weight: 600;
+                font-size: 0.625rem;
+                font-weight: 700;
                 text-transform: uppercase;
+                letter-spacing: 0.04em;
             }
             .badge-success {
-                background-color: #28a745;
-                color: white;
+                background-color: #00875A;
+                color: #FFFFFF;
+            }
+            .badge-warning {
+                background-color: #FF8B00;
+                color: #FFFFFF;
             }
             .badge-danger {
-                background-color: #dc3545;
-                color: white;
+                background-color: #DE350B;
+                color: #FFFFFF;
             }
             .badge-info {
-                background-color: #0d6efd;
-                color: white;
+                background-color: #0065FF;
+                color: #FFFFFF;
+            }
+            .badge-purple {
+                background-color: #5243AA;
+                color: #FFFFFF;
+            }
+
+            /* Row utility for Bootstrap */
+            .row {
+                display: flex;
+                flex-wrap: wrap;
+                margin: 0 -6px;
+            }
+            .col-md-6 {
+                flex: 0 0 50%;
+                max-width: 50%;
+                padding: 0 6px;
+            }
+            @media (max-width: 768px) {
+                .col-md-6 {
+                    flex: 0 0 100%;
+                    max-width: 100%;
+                }
             }
         </style>
 
@@ -281,7 +358,7 @@ try {
                 <div class="value<?php echo empty($record['zone']) ? ' empty' : ''; ?>"><?php echo e($record['zone'] ?: 'Not specified'); ?></div>
             </div>
             <div class="data-item" style="grid-column: 1 / -1;">
-                <label>Place of Incident</label>
+                <label>Type of Emergency Call</label>
                 <div class="value<?php echo empty($record['place_of_incident']) ? ' empty' : ''; ?>"><?php echo e($record['place_of_incident'] ?: 'Not specified'); ?></div>
             </div>
             <div class="data-item">
@@ -404,7 +481,7 @@ try {
         <?php endif; ?>
 
         <!-- Hospital Information -->
-        <div class="section-title">Hospital Information</div>
+        <div class="section-title">Care Management</div>
         <div class="data-row">
             <div class="data-item">
                 <label>Arrival Hospital Name</label>
@@ -454,6 +531,12 @@ try {
             </div>
             <?php endif; ?>
         </div>
+
+        <!-- Narrative Report -->
+        <?php if (!empty($record['narrative_report'])): ?>
+        <div class="section-title">Narrative Report</div>
+        <div style="padding: 16px 20px; background: #FAFBFC; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-size: 0.8125rem; line-height: 1.8; color: #1f2937; white-space: pre-wrap; border-bottom: 1px solid #DFE1E6;"><?php echo e($record['narrative_report']); ?></div>
+        <?php endif; ?>
 
         <!-- Record Information -->
         <div class="section-title">Record Information</div>

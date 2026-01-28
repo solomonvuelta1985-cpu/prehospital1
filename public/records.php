@@ -76,6 +76,11 @@ $sql = "SELECT
     pf.id, pf.form_number, pf.form_date, pf.patient_name, pf.age, pf.gender,
     pf.place_of_incident, pf.vehicle_used, pf.status, pf.created_at,
     pf.arrival_hospital_name,
+    pf.emergency_medical, pf.emergency_medical_details,
+    pf.emergency_trauma, pf.emergency_trauma_details,
+    pf.emergency_ob, pf.emergency_ob_details,
+    pf.emergency_general, pf.emergency_general_details,
+    pf.care_management,
     u.full_name as created_by_name
     FROM prehospital_forms pf
     LEFT JOIN users u ON pf.created_by = u.id
@@ -265,8 +270,8 @@ $records = $stmt->fetchAll();
                         <th style="border-right: 1px solid #dee2e6;">Date</th>
                         <th style="border-right: 1px solid #dee2e6;">Patient Name</th>
                         <th style="border-right: 1px solid #dee2e6;">Age/Gender</th>
-                        <th style="border-right: 1px solid #dee2e6;">Incident Location</th>
-                        <th style="border-right: 1px solid #dee2e6;">Hospital</th>
+                        <th style="border-right: 1px solid #dee2e6;">Type of Emergency Call</th>
+                        <th style="border-right: 1px solid #dee2e6;">Care Management</th>
                         <th style="border-right: 1px solid #dee2e6;">Vehicle</th>
                         <th style="border-right: 1px solid #dee2e6;">Created By</th>
                         <th style="border-right: 1px solid #dee2e6;">Status</th>
@@ -343,8 +348,40 @@ $records = $stmt->fetchAll();
                                     <?php echo e($record['age']); ?> /
                                     <?php echo $record['gender'] ? ucfirst((string)$record['gender']) : '-'; ?>
                                 </td>
-                                <td><?php echo e($record['place_of_incident'] ?: '-'); ?></td>
-                                <td><?php echo e($record['arrival_hospital_name'] ?: '-'); ?></td>
+                                <td>
+                                    <?php
+                                    $emergencyTypes = [];
+                                    if ($record['emergency_medical']) {
+                                        $detail = $record['emergency_medical_details'] ? ' - ' . $record['emergency_medical_details'] : '';
+                                        $emergencyTypes[] = 'Medical' . $detail;
+                                    }
+                                    if ($record['emergency_trauma']) {
+                                        $detail = $record['emergency_trauma_details'] ? ' - ' . $record['emergency_trauma_details'] : '';
+                                        $emergencyTypes[] = 'Trauma' . $detail;
+                                    }
+                                    if ($record['emergency_ob']) {
+                                        $detail = $record['emergency_ob_details'] ? ' - ' . $record['emergency_ob_details'] : '';
+                                        $emergencyTypes[] = 'OB' . $detail;
+                                    }
+                                    if ($record['emergency_general']) {
+                                        $detail = $record['emergency_general_details'] ? ' - ' . $record['emergency_general_details'] : '';
+                                        $emergencyTypes[] = 'General' . $detail;
+                                    }
+                                    echo $emergencyTypes ? e(implode('; ', $emergencyTypes)) : '-';
+                                    ?>
+                                </td>
+                                <td>
+                                    <?php
+                                    $careItems = [];
+                                    if ($record['care_management']) {
+                                        $decoded = json_decode($record['care_management'], true);
+                                        if (is_array($decoded)) {
+                                            $careItems = array_map('ucfirst', $decoded);
+                                        }
+                                    }
+                                    echo $careItems ? implode(', ', $careItems) : '-';
+                                    ?>
+                                </td>
                                 <td>
                                     <?php if ($record['vehicle_used']): ?>
                                         <span class="badge-custom status-pending"><?php echo ucfirst((string)e($record['vehicle_used'])); ?></span>
@@ -370,24 +407,37 @@ $records = $stmt->fetchAll();
                                     </span>
                                 </td>
                                 <td>
-                                    <?php if ($record['status'] === 'draft'): ?>
-                                        <a href="prehospital_form.php?draft_id=<?php echo $record['id']; ?>"
-                                           class="btn btn-table btn-success" title="Resume Draft" style="background: #28a745; color: white; border-color: #28a745;">
-                                            <i class="fas fa-play"></i> Resume
-                                        </a>
-                                    <?php endif; ?>
-                                    <button onclick="viewRecord(<?php echo $record['id']; ?>)"
-                                       class="btn btn-table btn-view" title="View">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <a href="edit_record.php?id=<?php echo $record['id']; ?>"
-                                       class="btn btn-table btn-edit" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <button onclick="deleteRecord(<?php echo $record['id']; ?>)"
-                                            class="btn btn-table btn-delete" title="Delete">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    <div class="dropdown action-dropdown">
+                                        <button class="btn btn-sm action-dropdown-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-cog"></i> Actions <i class="fas fa-chevron-down action-chevron"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end action-dropdown-menu">
+                                            <?php if ($record['status'] === 'draft'): ?>
+                                            <li>
+                                                <a class="dropdown-item" href="prehospital_form.php?draft_id=<?php echo $record['id']; ?>">
+                                                    <i class="fas fa-play text-success"></i> Resume
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <?php endif; ?>
+                                            <li>
+                                                <a class="dropdown-item" href="javascript:void(0)" onclick="viewRecord(<?php echo $record['id']; ?>)">
+                                                    <i class="fas fa-eye" style="color: #0065FF;"></i> View
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="edit_record.php?id=<?php echo $record['id']; ?>">
+                                                    <i class="fas fa-edit" style="color: #FF8B00;"></i> Edit
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item dropdown-item-danger" href="javascript:void(0)" onclick="deleteRecord(<?php echo $record['id']; ?>)">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -456,8 +506,8 @@ $records = $stmt->fetchAll();
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal" style="font-size: 0.875rem;">
                         <i class="fas fa-times"></i> Close
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="printModalContent()" style="font-size: 0.875rem;">
-                        <i class="fas fa-print"></i> Print
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="viewFullDetailsBtn" style="font-size: 0.875rem;">
+                        <i class="fas fa-expand"></i> See Full Details
                     </button>
                     <button type="button" class="btn btn-sm btn-primary" id="editRecordBtn" style="font-size: 0.875rem;">
                         <i class="fas fa-edit"></i> Edit
@@ -591,6 +641,7 @@ $records = $stmt->fetchAll();
         const modal = new bootstrap.Modal(document.getElementById('viewRecordModal'));
         const modalContent = document.getElementById('modalRecordContent');
         const editBtn = document.getElementById('editRecordBtn');
+        const viewFullDetailsBtn = document.getElementById('viewFullDetailsBtn');
 
         // Reset content to loading state
         modalContent.innerHTML = `
@@ -605,6 +656,11 @@ $records = $stmt->fetchAll();
         // Set edit button URL
         editBtn.onclick = function() {
             window.location.href = 'edit_record.php?id=' + id;
+        };
+
+        // Set view full details button URL
+        viewFullDetailsBtn.onclick = function() {
+            window.location.href = 'view_record.php?id=' + id;
         };
 
         // Show modal
@@ -636,39 +692,6 @@ $records = $stmt->fetchAll();
             });
     }
 
-    // Print modal content
-    function printModalContent() {
-        const modalContent = document.getElementById('modalRecordContent').innerHTML;
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Print Record</title>
-                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-                <style>
-                    body { padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-                    @media print {
-                        body { padding: 0; }
-                        .no-print { display: none !important; }
-                    }
-                </style>
-            </head>
-            <body>
-                ${modalContent}
-                <script>
-                    window.onload = function() {
-                        window.print();
-                        window.onafterprint = function() {
-                            window.close();
-                        };
-                    };
-                <\/script>
-            </body>
-            </html>
-        `);
-        printWindow.document.close();
-    }
     </script>
 </body>
 </html>

@@ -109,7 +109,7 @@ function replaceDateInput(originalInput) {
     }
     daySelect.innerHTML = dayOptions;
 
-    // Year dropdown (current year ± 100 years)
+    // Year dropdown (current year down to 100 years back, no future years)
     const yearSelect = document.createElement('select');
     yearSelect.className = 'form-control';
     yearSelect.name = fieldName + '_year';
@@ -119,7 +119,7 @@ function replaceDateInput(originalInput) {
 
     const currentYear = new Date().getFullYear();
     let yearOptions = '<option value="">Year</option>';
-    for (let i = currentYear + 10; i >= currentYear - 100; i--) {
+    for (let i = currentYear; i >= currentYear - 100; i--) {
         yearOptions += `<option value="${i}" ${selectedYear === String(i) ? 'selected' : ''}>${i}</option>`;
     }
     yearSelect.innerHTML = yearOptions;

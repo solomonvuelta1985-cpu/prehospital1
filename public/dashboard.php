@@ -116,22 +116,30 @@ for ($i = 11; $i >= 0; $i--) {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         :root {
-            --primary-blue: #1e40af;
-            --primary-dark: #1e3a8a;
-            --accent-blue: #3b82f6;
-            --success-green: #059669;
-            --warning-orange: #d97706;
-            --danger-red: #dc2626;
-            --neutral-50: #f9fafb;
-            --neutral-100: #f3f4f6;
-            --neutral-200: #e5e7eb;
-            --neutral-300: #d1d5db;
-            --neutral-400: #9ca3af;
-            --neutral-500: #6b7280;
-            --neutral-600: #4b5563;
-            --neutral-700: #374151;
-            --neutral-800: #1f2937;
-            --neutral-900: #111827;
+            /* Primary - Muted corporate blue */
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+
+            /* Semantic colors - Muted, professional */
+            --success: #16a34a;
+            --warning: #ca8a04;
+            --danger: #dc2626;
+
+            /* Neutral palette */
+            --gray-50: #fafafa;
+            --gray-100: #f4f4f5;
+            --gray-200: #e4e4e7;
+            --gray-300: #d4d4d8;
+            --gray-400: #a1a1aa;
+            --gray-500: #71717a;
+            --gray-600: #52525b;
+            --gray-700: #3f3f46;
+            --gray-800: #27272a;
+            --gray-900: #18181b;
+
+            /* Typography */
+            --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, sans-serif;
+            --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
         }
 
         * {
@@ -141,135 +149,144 @@ for ($i = 11; $i >= 0; $i--) {
         }
 
         body {
-            background-color: var(--neutral-100);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            color: var(--neutral-800);
-            line-height: 1.6;
+            background-color: var(--gray-50);
+            font-family: var(--font-sans);
+            color: var(--gray-800);
+            line-height: 1.5;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         /* Page Header */
-        .page-header {
-            background: white;
-            border-bottom: 1px solid var(--neutral-200);
-            padding: 2rem 0;
-            margin-bottom: 2rem;
+        .page-header-inline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid var(--gray-200);
         }
 
         .page-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--neutral-900);
-            margin: 0 0 0.5rem 0;
-            letter-spacing: -0.025em;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin: 0 0 0.125rem 0;
+            letter-spacing: -0.01em;
         }
 
         .page-subtitle {
-            font-size: 1rem;
-            color: var(--neutral-500);
+            font-size: 0.8125rem;
+            color: var(--gray-500);
             margin: 0;
+            font-weight: 400;
+        }
+
+        @media (max-width: 576px) {
+            .page-header-inline {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
         }
 
         /* Stat Cards */
         .stat-card {
             background: white;
-            border: 1px solid var(--neutral-200);
-            border-radius: 8px;
-            padding: 1.5rem;
+            border: 1px solid var(--gray-200);
+            border-radius: 6px;
+            padding: 1.25rem;
             height: 100%;
-            transition: all 0.2s ease;
-        }
-
-        .stat-card:hover {
-            border-color: var(--neutral-300);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
         .stat-card-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
 
         .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.125rem;
         }
 
         .stat-icon.blue {
-            background: var(--primary-blue);
-            color: white;
+            background: #eff6ff;
+            color: var(--primary);
         }
 
         .stat-icon.green {
-            background: var(--success-green);
-            color: white;
+            background: #f0fdf4;
+            color: var(--success);
         }
 
         .stat-icon.orange {
-            background: var(--warning-orange);
-            color: white;
+            background: #fefce8;
+            color: var(--warning);
         }
 
         .stat-icon.red {
-            background: var(--danger-red);
-            color: white;
+            background: #fef2f2;
+            color: var(--danger);
         }
 
         .stat-icon.purple {
-            background: #7c3aed;
-            color: white;
+            background: #faf5ff;
+            color: #7c3aed;
         }
 
         .stat-icon.teal {
-            background: #0d9488;
-            color: white;
+            background: #f0fdfa;
+            color: #0d9488;
         }
 
         .stat-label {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--neutral-500);
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--gray-500);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
         }
 
         .stat-value {
-            font-size: 2.25rem;
-            font-weight: 700;
-            color: var(--neutral-900);
-            line-height: 1;
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            line-height: 1.2;
+            font-variant-numeric: tabular-nums;
         }
 
         .stat-trend {
-            font-size: 0.875rem;
-            color: var(--neutral-500);
-            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-top: 0.25rem;
         }
 
         .stat-trend.positive {
-            color: var(--success-green);
+            color: var(--success);
         }
 
         .stat-trend.negative {
-            color: var(--danger-red);
+            color: var(--danger);
         }
 
         /* Action Cards */
         .action-card {
             background: white;
-            border: 1px solid var(--neutral-200);
-            border-radius: 8px;
-            padding: 2rem;
+            border: 1px solid var(--gray-200);
+            border-radius: 6px;
+            padding: 1.5rem;
             height: 100%;
             text-align: center;
-            transition: all 0.2s ease;
+            transition: border-color 0.15s ease;
             text-decoration: none;
             display: flex;
             flex-direction: column;
@@ -278,226 +295,239 @@ for ($i = 11; $i >= 0; $i--) {
         }
 
         .action-card:hover {
-            border-color: var(--primary-blue);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            transform: translateY(-2px);
+            border-color: var(--gray-300);
         }
 
         .action-card-icon {
-            width: 64px;
-            height: 64px;
-            background: var(--neutral-100);
-            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            background: var(--gray-100);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            color: var(--primary-blue);
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+            color: var(--gray-600);
+            transition: all 0.15s ease;
         }
 
         .action-card:hover .action-card-icon {
-            background: var(--primary-blue);
+            background: var(--primary);
             color: white;
         }
 
         .action-card-title {
-            font-size: 1.125rem;
+            font-size: 0.875rem;
             font-weight: 600;
-            color: var(--neutral-900);
-            margin-bottom: 0.5rem;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
         }
 
         .action-card-description {
-            font-size: 0.875rem;
-            color: var(--neutral-500);
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            line-height: 1.4;
         }
 
         /* Recent Activity */
         .activity-card {
             background: white;
-            border: 1px solid var(--neutral-200);
-            border-radius: 8px;
-            padding: 1.5rem;
+            border: 1px solid var(--gray-200);
+            border-radius: 6px;
+            padding: 1.25rem;
         }
 
         .activity-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--neutral-200);
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--gray-100);
         }
 
         .activity-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--neutral-900);
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-900);
             margin: 0;
         }
 
         .activity-item {
             display: flex;
             align-items: flex-start;
-            padding: 1rem;
-            border-radius: 6px;
-            margin-bottom: 0.5rem;
-            transition: background 0.2s ease;
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin-bottom: 0.25rem;
+            transition: background 0.15s ease;
         }
 
         .activity-item:hover {
-            background: var(--neutral-50);
+            background: var(--gray-50);
+        }
+
+        .activity-item:last-child {
+            margin-bottom: 0;
         }
 
         .activity-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1rem;
-            margin-right: 1rem;
+            font-size: 0.875rem;
+            margin-right: 0.75rem;
             flex-shrink: 0;
         }
 
         .activity-icon.completed {
-            background: #d1fae5;
-            color: var(--success-green);
+            background: #f0fdf4;
+            color: var(--success);
         }
 
         .activity-icon.pending {
-            background: #fef3c7;
-            color: var(--warning-orange);
+            background: #fefce8;
+            color: var(--warning);
         }
 
         .activity-icon.draft {
-            background: var(--neutral-100);
-            color: var(--neutral-500);
+            background: var(--gray-100);
+            color: var(--gray-500);
         }
 
         .activity-content {
             flex: 1;
+            min-width: 0;
         }
 
         .activity-title-text {
-            font-size: 0.9375rem;
-            font-weight: 600;
-            color: var(--neutral-900);
-            margin-bottom: 0.25rem;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--gray-900);
+            margin-bottom: 0.125rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .activity-meta {
-            font-size: 0.8125rem;
-            color: var(--neutral-500);
+            font-size: 0.75rem;
+            color: var(--gray-500);
         }
 
         .activity-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
+            padding: 0.125rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.6875rem;
+            font-weight: 500;
             text-transform: uppercase;
-            letter-spacing: 0.025em;
+            letter-spacing: 0.03em;
         }
 
         .activity-badge.completed {
-            background: #d1fae5;
-            color: var(--success-green);
+            background: #f0fdf4;
+            color: var(--success);
         }
 
         .activity-badge.pending {
-            background: #fef3c7;
-            color: var(--warning-orange);
+            background: #fefce8;
+            color: var(--warning);
         }
 
         .activity-badge.draft {
-            background: var(--neutral-100);
-            color: var(--neutral-600);
+            background: var(--gray-100);
+            color: var(--gray-600);
         }
 
         /* Buttons */
         .btn-primary {
-            background: var(--primary-blue);
-            border: 1px solid var(--primary-blue);
+            background: var(--primary);
+            border: 1px solid var(--primary);
             color: white;
-            font-weight: 600;
-            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
             border-radius: 6px;
-            transition: all 0.2s ease;
+            transition: background 0.15s ease;
         }
 
         .btn-primary:hover {
-            background: var(--primary-dark);
-            border-color: var(--primary-dark);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            background: var(--primary-hover);
+            border-color: var(--primary-hover);
+            color: white;
         }
 
         .btn-outline-primary {
             background: white;
-            border: 1px solid var(--neutral-300);
-            color: var(--neutral-700);
-            font-weight: 600;
-            padding: 0.625rem 1.25rem;
+            border: 1px solid var(--gray-200);
+            color: var(--gray-700);
+            font-weight: 500;
+            font-size: 0.8125rem;
+            padding: 0.375rem 0.75rem;
             border-radius: 6px;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
             text-decoration: none;
         }
 
         .btn-outline-primary:hover {
-            background: var(--neutral-50);
-            border-color: var(--neutral-400);
-            color: var(--neutral-900);
+            background: var(--gray-50);
+            border-color: var(--gray-300);
+            color: var(--gray-900);
         }
 
         /* Section Titles */
         .section-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--neutral-900);
-            margin-bottom: 1.5rem;
-            letter-spacing: -0.025em;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 1rem;
+            letter-spacing: -0.01em;
         }
 
         /* Empty State */
         .empty-state {
             text-align: center;
-            padding: 3rem 1rem;
+            padding: 2.5rem 1rem;
         }
 
         .empty-state-icon {
-            width: 80px;
-            height: 80px;
-            background: var(--neutral-100);
-            border-radius: 50%;
+            width: 56px;
+            height: 56px;
+            background: var(--gray-100);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
-            color: var(--neutral-400);
-            margin: 0 auto 1.5rem;
+            font-size: 1.5rem;
+            color: var(--gray-400);
+            margin: 0 auto 1rem;
         }
 
         .empty-state-title {
-            font-size: 1.25rem;
+            font-size: 0.9375rem;
             font-weight: 600;
-            color: var(--neutral-900);
-            margin-bottom: 0.5rem;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
         }
 
         .empty-state-description {
-            font-size: 1rem;
-            color: var(--neutral-500);
-            margin-bottom: 1.5rem;
+            font-size: 0.8125rem;
+            color: var(--gray-500);
+            margin-bottom: 1rem;
+            max-width: 280px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         /* Chart Container */
         .chart-card {
             background: white;
-            border: 1px solid var(--neutral-200);
-            border-radius: 8px;
-            padding: 1.5rem;
+            border: 1px solid var(--gray-200);
+            border-radius: 6px;
+            padding: 1.25rem;
             height: 100%;
         }
 
@@ -505,176 +535,177 @@ for ($i = 11; $i >= 0; $i--) {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--neutral-200);
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--gray-100);
         }
 
         .chart-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--neutral-900);
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-900);
             margin: 0;
         }
 
         .chart-subtitle {
-            font-size: 0.875rem;
-            color: var(--neutral-500);
-            margin-top: 0.25rem;
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-top: 0.125rem;
         }
 
         .chart-container {
             position: relative;
-            height: 300px;
+            height: 280px;
         }
 
         .chart-container.pie {
-            height: 280px;
+            height: 260px;
         }
 
         /* Analytics Cards */
         .analytics-card {
             background: white;
-            border: 1px solid var(--neutral-200);
-            border-radius: 8px;
-            padding: 1.25rem;
+            border: 1px solid var(--gray-200);
+            border-radius: 6px;
+            padding: 1rem;
             height: 100%;
         }
 
         .analytics-header {
             display: flex;
             align-items: center;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
 
         .analytics-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
-            margin-right: 1rem;
+            font-size: 1rem;
+            margin-right: 0.75rem;
         }
 
         .analytics-title {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--neutral-500);
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--gray-500);
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
 
         .analytics-value {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--neutral-900);
-            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+            font-variant-numeric: tabular-nums;
         }
 
         .analytics-description {
-            font-size: 0.875rem;
-            color: var(--neutral-500);
+            font-size: 0.75rem;
+            color: var(--gray-500);
         }
 
         .trend-indicator {
             display: inline-flex;
             align-items: center;
-            font-size: 0.875rem;
-            font-weight: 600;
-            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.125rem 0.375rem;
             border-radius: 4px;
         }
 
         .trend-indicator.up {
-            background: #d1fae5;
-            color: var(--success-green);
+            background: #f0fdf4;
+            color: var(--success);
         }
 
         .trend-indicator.down {
-            background: #fee2e2;
-            color: var(--danger-red);
+            background: #fef2f2;
+            color: var(--danger);
         }
 
         .trend-indicator.neutral {
-            background: var(--neutral-100);
-            color: var(--neutral-600);
+            background: var(--gray-100);
+            color: var(--gray-600);
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .page-header {
-                padding: 1.5rem 0;
-                margin-bottom: 1.5rem;
+            .page-header-inline {
+                margin-bottom: 1.25rem;
+                padding-bottom: 1rem;
             }
 
             .page-title {
-                font-size: 1.5rem;
+                font-size: 1rem;
             }
 
             .page-subtitle {
-                font-size: 0.875rem;
+                font-size: 0.75rem;
             }
 
             .stat-card {
-                padding: 1.25rem;
+                padding: 1rem;
             }
 
             .stat-value {
-                font-size: 1.75rem;
+                font-size: 1.5rem;
             }
 
             .stat-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 1.25rem;
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
             }
 
             .section-title {
-                font-size: 1.25rem;
+                font-size: 0.8125rem;
             }
 
             .activity-card, .chart-card {
-                padding: 1.25rem;
+                padding: 1rem;
             }
 
             .chart-container {
-                height: 250px;
+                height: 240px;
             }
 
             .chart-container.pie {
-                height: 230px;
+                height: 220px;
             }
         }
 
         @media (max-width: 576px) {
             .stat-card {
-                padding: 1rem;
+                padding: 0.875rem;
             }
 
             .stat-value {
-                font-size: 1.5rem;
+                font-size: 1.25rem;
             }
 
             .stat-label {
-                font-size: 0.75rem;
+                font-size: 0.6875rem;
             }
 
             .activity-item {
-                padding: 0.75rem;
+                padding: 0.625rem;
             }
 
             .chart-card {
-                padding: 1rem;
+                padding: 0.875rem;
             }
 
             .chart-container {
-                height: 220px;
+                height: 200px;
             }
 
             .chart-container.pie {
-                height: 200px;
+                height: 180px;
             }
         }
     </style>
@@ -688,18 +719,14 @@ for ($i = 11; $i >= 0; $i--) {
             <?php show_flash(); ?>
 
             <!-- Page Header -->
-            <div class="page-header">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h1 class="page-title">Welcome back, <?php echo e($current_user['full_name']); ?></h1>
-                        <p class="page-subtitle">Here's what's happening with your pre-hospital care records</p>
-                    </div>
-                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                        <a href="prehospital_form.php" class="btn btn-primary">
-                            <i class="bi bi-plus-circle me-2"></i>Create New Form
-                        </a>
-                    </div>
+            <div class="page-header-inline">
+                <div>
+                    <h1 class="page-title">Dashboard</h1>
+                    <p class="page-subtitle">Welcome back, <?php echo e($current_user['full_name']); ?></p>
                 </div>
+                <a href="prehospital_form.php" class="btn btn-primary">
+                    <i class="bi bi-plus me-1"></i>New Form
+                </a>
             </div>
 
             <!-- Statistics Grid -->
@@ -936,8 +963,9 @@ for ($i = 11; $i >= 0; $i--) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Chart.js Global Configuration
-        Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, "Helvetica Neue", Arial, sans-serif';
-        Chart.defaults.color = '#6b7280';
+        Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", system-ui, sans-serif';
+        Chart.defaults.color = '#71717a';
+        Chart.defaults.font.size = 11;
 
         // Weekly Activity Chart (Bar Chart)
         const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
@@ -948,11 +976,10 @@ for ($i = 11; $i >= 0; $i--) {
                 datasets: [{
                     label: 'Forms Created',
                     data: <?php echo json_encode($last_7_days_data); ?>,
-                    backgroundColor: '#3b82f6',
-                    borderColor: '#1e40af',
-                    borderWidth: 1,
-                    borderRadius: 6,
-                    barThickness: 40
+                    backgroundColor: '#2563eb',
+                    borderWidth: 0,
+                    borderRadius: 4,
+                    barThickness: 32
                 }]
             },
             options: {
@@ -963,17 +990,18 @@ for ($i = 11; $i >= 0; $i--) {
                         display: false
                     },
                     tooltip: {
-                        backgroundColor: '#1f2937',
-                        padding: 12,
+                        backgroundColor: '#18181b',
+                        padding: 10,
                         titleFont: {
-                            size: 14,
-                            weight: 'bold'
+                            size: 12,
+                            weight: '600'
                         },
                         bodyFont: {
-                            size: 13
+                            size: 11
                         },
-                        borderColor: '#374151',
+                        borderColor: '#27272a',
                         borderWidth: 1,
+                        cornerRadius: 4,
                         displayColors: false,
                         callbacks: {
                             label: function(context) {
@@ -988,22 +1016,27 @@ for ($i = 11; $i >= 0; $i--) {
                         ticks: {
                             stepSize: 1,
                             font: {
-                                size: 12
+                                size: 11
                             }
                         },
                         grid: {
-                            color: '#f3f4f6',
+                            color: '#f4f4f5',
                             drawBorder: false
+                        },
+                        border: {
+                            display: false
                         }
                     },
                     x: {
                         grid: {
-                            display: false,
-                            drawBorder: false
+                            display: false
+                        },
+                        border: {
+                            display: false
                         },
                         ticks: {
                             font: {
-                                size: 12
+                                size: 11
                             }
                         }
                     }
@@ -1024,43 +1057,44 @@ for ($i = 11; $i >= 0; $i--) {
                         <?php echo $archived_count; ?>
                     ],
                     backgroundColor: [
-                        '#059669',
-                        '#d97706',
-                        '#dc2626'
+                        '#16a34a',
+                        '#ca8a04',
+                        '#a1a1aa'
                     ],
                     borderWidth: 0,
-                    spacing: 2
+                    spacing: 1
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '65%',
+                cutout: '70%',
                 plugins: {
                     legend: {
                         position: 'bottom',
                         labels: {
-                            padding: 15,
+                            padding: 12,
                             font: {
-                                size: 12,
-                                weight: '600'
+                                size: 11,
+                                weight: '500'
                             },
                             usePointStyle: true,
                             pointStyle: 'circle'
                         }
                     },
                     tooltip: {
-                        backgroundColor: '#1f2937',
-                        padding: 12,
+                        backgroundColor: '#18181b',
+                        padding: 10,
                         titleFont: {
-                            size: 14,
-                            weight: 'bold'
+                            size: 12,
+                            weight: '600'
                         },
                         bodyFont: {
-                            size: 13
+                            size: 11
                         },
-                        borderColor: '#374151',
+                        borderColor: '#27272a',
                         borderWidth: 1,
+                        cornerRadius: 4,
                         callbacks: {
                             label: function(context) {
                                 const label = context.label || '';
@@ -1084,18 +1118,18 @@ for ($i = 11; $i >= 0; $i--) {
                 datasets: [{
                     label: 'Forms Created',
                     data: <?php echo json_encode($monthly_data); ?>,
-                    borderColor: '#1e40af',
-                    backgroundColor: 'rgba(30, 64, 175, 0.1)',
-                    borderWidth: 3,
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.04)',
+                    borderWidth: 2,
                     fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: '#1e40af',
+                    tension: 0.3,
+                    pointBackgroundColor: '#2563eb',
                     pointBorderColor: '#ffffff',
                     pointBorderWidth: 2,
-                    pointRadius: 5,
-                    pointHoverRadius: 7,
-                    pointHoverBackgroundColor: '#1e40af',
-                    pointHoverBorderWidth: 3
+                    pointRadius: 4,
+                    pointHoverRadius: 5,
+                    pointHoverBackgroundColor: '#2563eb',
+                    pointHoverBorderWidth: 2
                 }]
             },
             options: {
@@ -1106,17 +1140,18 @@ for ($i = 11; $i >= 0; $i--) {
                         display: false
                     },
                     tooltip: {
-                        backgroundColor: '#1f2937',
-                        padding: 12,
+                        backgroundColor: '#18181b',
+                        padding: 10,
                         titleFont: {
-                            size: 14,
-                            weight: 'bold'
+                            size: 12,
+                            weight: '600'
                         },
                         bodyFont: {
-                            size: 13
+                            size: 11
                         },
-                        borderColor: '#374151',
+                        borderColor: '#27272a',
                         borderWidth: 1,
+                        cornerRadius: 4,
                         displayColors: false,
                         callbacks: {
                             label: function(context) {
@@ -1131,22 +1166,27 @@ for ($i = 11; $i >= 0; $i--) {
                         ticks: {
                             stepSize: 1,
                             font: {
-                                size: 12
+                                size: 11
                             }
                         },
                         grid: {
-                            color: '#f3f4f6',
+                            color: '#f4f4f5',
                             drawBorder: false
+                        },
+                        border: {
+                            display: false
                         }
                     },
                     x: {
                         grid: {
-                            display: false,
-                            drawBorder: false
+                            display: false
+                        },
+                        border: {
+                            display: false
                         },
                         ticks: {
                             font: {
-                                size: 11
+                                size: 10
                             },
                             maxRotation: 45,
                             minRotation: 45
