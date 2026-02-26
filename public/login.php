@@ -1,6 +1,6 @@
 <?php
 /**
- * Login Page
+ * Login Page - Enhanced Corporate Design
  */
 
 define('APP_ACCESS', true);
@@ -10,7 +10,11 @@ require_once '../includes/auth.php';
 
 // Redirect if already logged in
 if (is_logged_in()) {
-    redirect('dashboard.php');
+    if (is_admin()) {
+        redirect('../admin/dashboard.php');
+    } else {
+        redirect('dashboard.php');
+    }
 }
 
 // Check if user is restricted (to disable form)
@@ -26,11 +30,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_token($_POST['csrf_token'] ?? '')) {
         set_flash('Invalid security token', 'error');
     } else {
-        // reCAPTCHA verification is handled inside login_user() to avoid double verification
+        // reCAPTCHA verification is handled inside login_user()
         $result = login_user($username, $password, $recaptcha_response);
 
         if ($result['success']) {
-            redirect('dashboard.php');
+            if (is_admin()) {
+                redirect('../admin/dashboard.php');
+            } else {
+                redirect('dashboard.php');
+            }
         } else {
             set_flash($result['message'], 'error');
 
@@ -49,367 +57,634 @@ $csrf_token = generate_token();
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Pre-Hospital Care System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sign In - Baggao Rescue 116</title>
+    
+    <!-- CSS Dependencies -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
+    
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --brand-primary: #0284c7; /* Medical Blue */
+            --brand-primary-hover: #0369a1;
+            --brand-dark: #0f172a;    /* Navy */
+            --brand-surface: #ffffff;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --input-focus: rgba(2, 132, 199, 0.15);
         }
 
         body {
-            background: #ffffff;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f8fafc; /* Very light slate for mobile background */
             min-height: 100vh;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            padding: 20px;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
         }
 
-        .login-wrapper {
-            display: flex;
-            max-width: 1000px;
-            width: 100%;
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 2px 40px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
-            border: 1px solid #e5e7eb;
-        }
-
-        .login-left {
+        /* --- LEFT SIDE: Brand Visual --- */
+        .brand-section {
             flex: 1;
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            padding: 60px 50px;
+            background-color: var(--brand-dark);
+            position: relative;
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
+            padding: 60px 80px;
+            overflow: hidden;
+            color: white;
+            /* Force hardware acceleration for smoother animation */
+            transform: translateZ(0);
+        }
+
+        /* Static Background Image */
+        .brand-bg-image {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('https://images.unsplash.com/photo-1516574187841-693083f049ce?ixlib=rb-4.0.3&auto=format&fit=crop&w=1800&q=80');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.2;
+            mix-blend-mode: luminosity;
+            z-index: 0;
+        }
+
+        /* Gradient Overlay */
+        .brand-gradient {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(2, 132, 199, 0.85) 100%);
+            z-index: 1;
+        }
+
+        /* Particles Container */
+        #tsparticles {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 2;
+        }
+
+        .brand-content {
+            position: relative;
+            z-index: 10;
+            max-width: 600px;
+        }
+
+        .logo-wrapper {
+            display: flex;
             align-items: center;
-            justify-content: center;
-            border-right: 1px solid #e5e7eb;
-        }
-
-        .logo-container {
-            text-align: center;
+            gap: 16px;
             margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease-out;
         }
 
-        .logo-container img {
-            width: 180px;
-            height: 180px;
-            object-fit: contain;
-            margin-bottom: 30px;
-            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
+        .logo-img {
+            height: 48px;
+            width: auto;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
         }
 
         .brand-title {
-            font-size: 26px;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 12px;
-            line-height: 1.2;
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            letter-spacing: -0.03em;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: fadeInLeft 0.8s ease-out 0.2s backwards;
         }
 
-        .brand-subtitle {
-            font-size: 15px;
-            color: #64748b;
+        .brand-desc {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.6;
+            margin-bottom: 56px;
             font-weight: 400;
+            animation: fadeIn 1s ease-out 0.4s backwards;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            animation: fadeInUp 0.8s ease-out 0.6s backwards;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 24px;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .feature-card i {
+            font-size: 1.75rem;
+            color: #7dd3fc;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .feature-card h5 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: 0.01em;
+        }
+
+        .feature-card p {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin: 0;
             line-height: 1.5;
         }
 
-        .login-right {
-            flex: 1;
-            padding: 60px 50px;
+        .brand-footer {
+            position: relative;
+            z-index: 10;
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* --- RIGHT SIDE: Login Form --- */
+        .form-section {
+            width: 520px;
+            min-width: 520px;
+            background: #ffffff;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            padding: 60px;
+            position: relative;
+            z-index: 20;
+            box-shadow: -20px 0 50px rgba(0,0,0,0.05);
+            overflow-y: auto; /* Handle vertical overflow on small screens */
         }
 
-        .login-header {
-            margin-bottom: 40px;
+        .mobile-branding {
+            display: none;
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .mobile-branding img {
+            height: 64px;
+            margin-bottom: 16px;
         }
 
-        .login-header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 8px;
+        .form-header {
+            margin-bottom: 36px;
         }
 
-        .login-header p {
-            font-size: 14px;
-            color: #64748b;
-            font-weight: 400;
+        .form-header h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--brand-dark);
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+        }
+
+        .form-header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
         }
 
         .form-label {
+            display: block;
+            font-size: 0.875rem;
             font-weight: 600;
-            color: #334155;
+            color: var(--text-main);
             margin-bottom: 8px;
-            font-size: 14px;
         }
 
-        .form-control {
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 12px 16px;
-            font-size: 15px;
-            transition: all 0.2s ease;
-            background: #ffffff;
-        }
-
-        .form-control:focus {
-            border-color: #0066cc;
-            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.08);
-            outline: none;
-        }
-
-        .form-control::placeholder {
-            color: #94a3b8;
-        }
-
-        .form-control:disabled {
-            background-color: #f1f5f9;
-            color: #94a3b8;
-            cursor: not-allowed;
-            border-color: #e2e8f0;
-        }
-
-        .alert-danger {
-            background-color: #fee;
-            border: 1px solid #fcc;
-            border-left: 4px solid #dc3545;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .alert-danger i {
-            font-size: 20px;
-            vertical-align: middle;
-            margin-right: 5px;
-        }
-
-        .btn-login {
-            background: #0066cc;
-            border: none;
-            color: white;
-            padding: 13px 24px;
-            font-size: 15px;
-            font-weight: 600;
-            border-radius: 8px;
-            width: 100%;
-            transition: all 0.2s ease;
-            margin-top: 8px;
-        }
-
-        .btn-login:hover {
-            background: #0052a3;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.2);
-        }
-
-        .btn-login:active {
-            transform: translateY(0);
-        }
-
-        .login-footer {
-            text-align: center;
-            margin-top: 32px;
-            padding-top: 24px;
-            border-top: 1px solid #e5e7eb;
-        }
-
-        .login-footer p {
-            color: #94a3b8;
-            font-size: 13px;
-            margin: 0;
-        }
-
-        .input-icon {
+        .input-group {
             position: relative;
         }
 
-        .input-icon i {
+        .form-control {
+            height: 54px;
+            padding: 10px 16px;
+            padding-left: 48px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.25s ease;
+            background-color: #ffffff;
+            color: var(--brand-dark);
+            width: 100%;
+        }
+
+        .form-control:focus {
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 4px var(--input-focus);
+            outline: none;
+        }
+
+        .input-icon {
             position: absolute;
             left: 16px;
             top: 50%;
             transform: translateY(-50%);
-            color: #94a3b8;
-            font-size: 16px;
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            pointer-events: none;
+            transition: color 0.2s;
         }
 
-        .input-icon .form-control {
-            padding-left: 45px;
+        .form-control:focus ~ .input-icon {
+            color: var(--brand-primary);
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .login-wrapper {
+        .btn-primary {
+            width: 100%;
+            height: 54px;
+            background-color: var(--brand-primary);
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: white;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: var(--brand-primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(2, 132, 199, 0.4);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            background-color: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .alert-custom {
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            line-height: 1.5;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        .alert-error {
+            background-color: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .recaptcha-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 24px;
+            /* Prevent reCAPTCHA from breaking layout on very small screens */
+            transform-origin: center;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: #e2e8f0;
+            margin: 40px 0 32px 0;
+            position: relative;
+        }
+
+        .divider span {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 0 12px;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .sys-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- RESPONSIVE DESIGN --- */
+        
+        /* 1. Tablet & Small Desktop (Hide Left Panel, Center Form) */
+        @media (max-width: 1200px) {
+            .brand-section {
+                padding: 40px;
+            }
+            .brand-title { font-size: 2.5rem; }
+            .form-section { min-width: 480px; width: 480px; }
+        }
+
+        /* 2. Tablets and Large Phones */
+        @media (max-width: 992px) {
+            body {
                 flex-direction: column;
-                max-width: 450px;
+                justify-content: center;
+                align-items: center;
+                background-color: #f1f5f9; /* Light gray bg for card effect */
             }
 
-            .login-left {
-                padding: 40px 30px;
-                border-right: none;
-                border-bottom: 1px solid #e5e7eb;
+            .brand-section {
+                display: none; /* Hide brand section on mobile/tablet */
             }
 
-            .logo-container img {
-                width: 140px;
-                height: 140px;
+            .form-section {
+                width: 100%;
+                max-width: 480px;
+                min-width: auto;
+                height: auto;
+                min-height: auto;
+                border-radius: 20px;
+                padding: 40px;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+                margin: 20px;
             }
 
-            .brand-title {
-                font-size: 22px;
-            }
-
-            .brand-subtitle {
-                font-size: 14px;
-            }
-
-            .login-right {
-                padding: 40px 30px;
-            }
-
-            .login-header h1 {
-                font-size: 24px;
+            .mobile-branding {
+                display: block;
             }
         }
 
-        /* reCAPTCHA responsive fix */
-        .recaptcha-wrapper {
-            transform: scale(0.95);
-            transform-origin: 0 0;
-            margin-bottom: 16px;
+        /* 3. Mobile Phones */
+        @media (max-width: 576px) {
+            body {
+                background-color: #ffffff; /* White bg for full screen mobile */
+                align-items: flex-start; /* Stick to top */
+            }
+
+            .form-section {
+                box-shadow: none;
+                padding: 24px;
+                margin: 0;
+                border-radius: 0;
+                max-width: 100%;
+                height: 100vh; /* Full height */
+                justify-content: flex-start; /* Start from top */
+                overflow-y: auto;
+            }
+
+            .mobile-branding { margin-top: 20px; }
+
+            .form-header h2 { font-size: 1.75rem; }
+            
+            .recaptcha-container {
+                transform: scale(0.9); /* Scale down reCAPTCHA slightly */
+            }
         }
 
-        @media (max-width: 400px) {
-            .recaptcha-wrapper {
-                transform: scale(0.85);
+        /* 4. Landscape Mobile (Short Screens) */
+        @media (max-height: 700px) and (orientation: landscape) {
+            body {
+                align-items: flex-start;
+                padding: 20px 0;
+                background-color: #f1f5f9;
+            }
+            
+            .form-section {
+                margin: 0 auto;
+                padding: 30px;
+                height: auto;
             }
         }
     </style>
 </head>
 <body>
-    <div class="login-wrapper">
-        <!-- Left Side - Branding -->
-        <div class="login-left">
-            <div class="logo-container">
-                <img src="uploads/logo.png" alt="Baggao Rescue Logo">
-                <h2 class="brand-title">Baggao Rescue</h2>
-                <p class="brand-subtitle">Pre-Hospital Care Records System</p>
+
+    <!-- LEFT PANEL: Visual & Branding -->
+    <div class="brand-section">
+        <!-- 1. Static BG -->
+        <div class="brand-bg-image"></div>
+        <!-- 2. Gradient Overlay -->
+        <div class="brand-gradient"></div>
+        <!-- 3. Particles -->
+        <div id="tsparticles"></div>
+        
+        <div class="brand-content">
+            <div class="logo-wrapper">
+                <img src="uploads/logo.png" alt="Logo" class="logo-img">
+                <span style="font-weight: 700; font-size: 1.25rem; letter-spacing: 0.5px;">BAGGAO RESCUE</span>
+            </div>
+            
+            <h1 class="brand-title">Rescue 116<br>Operations</h1>
+            <p class="brand-desc">
+                Advanced Pre-Hospital Care & Emergency Response Management System.
+            </p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <i class="bi bi-shield-check"></i>
+                    <h5>Secure Access</h5>
+                    <p>Encrypted data transmission</p>
+                </div>
+                <div class="feature-card">
+                    <i class="bi bi-activity"></i>
+                    <h5>Real-time Vitals</h5>
+                    <p>Live patient monitoring logs</p>
+                </div>
             </div>
         </div>
 
-        <!-- Right Side - Login Form -->
-        <div class="login-right">
-            <div class="login-header">
-                <h1>Welcome Back</h1>
-                <?php if ($is_restricted): ?>
-                    <p style="color: #dc3545; font-weight: 600;">
-                        <i class="bi bi-ban"></i> Account Restricted - Contact Administrator
-                    </p>
-                <?php else: ?>
-                    <p>Please sign in to your account to continue</p>
-                <?php endif; ?>
-            </div>
-
-            <?php // Flash messages handled by Notiflix ?>
-
-            <form method="POST" action="" id="loginForm">
-                <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
-
-                <div class="mb-3">
-                    <label for="username" class="form-label">Username</label>
-                    <div class="input-icon">
-                        <i class="bi bi-person-circle"></i>
-                        <input type="text" class="form-control" id="username" name="username"
-                               placeholder="Enter your username"
-                               value="<?php echo htmlspecialchars($restricted_username); ?>"
-                               <?php echo $is_restricted ? 'disabled' : 'required autofocus'; ?>>
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <label for="password" class="form-label">Password</label>
-                    <div class="input-icon">
-                        <i class="bi bi-lock-fill"></i>
-                        <input type="password" class="form-control" id="password" name="password"
-                               placeholder="Enter your password"
-                               <?php echo $is_restricted ? 'disabled' : 'required'; ?>>
-                    </div>
-                </div>
-
-                <?php if (!$is_restricted): ?>
-                    <div class="recaptcha-wrapper">
-                        <div class="g-recaptcha" data-sitekey="<?php echo RECAPTCHA_SITE_KEY; ?>"></div>
-                    </div>
-
-                    <button type="submit" class="btn btn-login">
-                        Sign In
-                    </button>
-                <?php else: ?>
-                    <div class="alert alert-danger" style="margin-top: 20px;">
-                        <i class="bi bi-exclamation-triangle-fill"></i>
-                        <strong>Account Restricted</strong><br>
-                        Your account has been restricted due to multiple failed login attempts.<br>
-                        Please contact the system administrator to regain access.
-                    </div>
-                    <button type="button" class="btn btn-login" disabled style="opacity: 0.5; cursor: not-allowed;">
-                        <i class="bi bi-lock-fill"></i> Account Restricted
-                    </button>
-                <?php endif; ?>
-            </form>
-
-            <div class="login-footer">
-                <p>&copy; <?php echo date('Y'); ?> Baggao Rescue. All rights reserved.</p>
-            </div>
+        <div class="brand-footer">
+            &copy; <?php echo date('Y'); ?> Municipality of Baggao. Authorized Personnel Only.
         </div>
     </div>
 
+    <!-- RIGHT PANEL: Login Form -->
+    <div class="form-section">
+        
+        <!-- Mobile Branding (Logo on Top for Small Screens) -->
+        <div class="mobile-branding">
+            <img src="uploads/logo.png" alt="Logo">
+            <h3 style="font-weight: 800; color: var(--brand-dark); margin:0;">Rescue 116</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Official Operations Portal</p>
+        </div>
+
+        <div class="form-header">
+            <h2>Welcome Back</h2>
+            <?php if ($is_restricted): ?>
+                <p class="text-danger fw-bold"><i class="bi bi-lock-fill"></i> Account Access Restricted</p>
+            <?php else: ?>
+                <p>Sign in to access your dashboard.</p>
+            <?php endif; ?>
+        </div>
+
+        <!-- Restricted Alert -->
+        <?php if ($is_restricted): ?>
+            <div class="alert-custom alert-error">
+                <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+                <div>
+                    <strong>Security Lockout</strong><br>
+                    Your account has been temporarily restricted due to excessive failed attempts. Please contact the IT administrator.
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <form method="POST" action="" id="loginForm">
+            <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="username" name="username" 
+                           placeholder="Enter your username"
+                           value="<?php echo htmlspecialchars($restricted_username); ?>"
+                           <?php echo $is_restricted ? 'disabled' : 'required autofocus'; ?>>
+                    <i class="bi bi-person input-icon"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-group">
+                    <input type="password" class="form-control" id="password" name="password" 
+                           placeholder="••••••••"
+                           <?php echo $is_restricted ? 'disabled' : 'required'; ?>>
+                    <i class="bi bi-key input-icon"></i>
+                </div>
+            </div>
+
+            <?php if (!$is_restricted): ?>
+                <div class="recaptcha-container">
+                    <div class="g-recaptcha" data-sitekey="<?php echo RECAPTCHA_SITE_KEY; ?>"></div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <span>Sign In</span>
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+            <?php else: ?>
+                <button type="button" class="btn btn-primary" disabled>
+                    <i class="bi bi-lock"></i> Account Locked
+                </button>
+            <?php endif; ?>
+        </form>
+
+        <div class="divider">
+            <span>SECURE SYSTEM</span>
+        </div>
+
+        <div class="sys-info">
+            <i class="bi bi-shield-lock-fill text-success"></i>
+            <span>256-bit SSL Encrypted</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    
+    <!-- TSParticles Library -->
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles-slim@2.0.6/tsparticles.slim.bundle.min.js"></script>
+    
     <script>
-        // Configure Notiflix
+        // 1. Initialize Particles (The "Medical Connections" effect)
+        (async () => {
+            await tsParticles.load("tsparticles", {
+                particles: {
+                    number: { value: 60, density: { enable: true, value_area: 800 } },
+                    color: { value: "#ffffff" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.3, random: true },
+                    size: { value: 3, random: true },
+                    move: {
+                        enable: true,
+                        speed: 1.5, // Slow movement
+                        direction: "none",
+                        random: false,
+                        straight: false,
+                        out_mode: "out",
+                        bounce: false,
+                    },
+                    links: {
+                        enable: true,
+                        distance: 150,
+                        color: "#ffffff",
+                        opacity: 0.2, // Subtle connecting lines
+                        width: 1
+                    },
+                },
+                interactivity: {
+                    detect_on: "canvas",
+                    events: {
+                        onhover: { enable: true, mode: "grab" },
+                        onclick: { enable: true, mode: "push" },
+                        resize: true
+                    },
+                    modes: {
+                        grab: { distance: 140, line_linked: { opacity: 0.5 } },
+                        push: { particles_nb: 4 }
+                    }
+                },
+                retina_detect: true
+            });
+        })();
+
+        // 2. Configure Notifications
         Notiflix.Notify.init({
-            width: '320px',
+            width: '380px',
             position: 'right-top',
-            distance: '15px',
-            timeout: 4000,
-            fontSize: '15px',
-            cssAnimationStyle: 'from-right',
-            success: {
-                background: '#10b981',
-                textColor: '#fff',
-                notiflixIconColor: '#fff',
-            },
-            failure: {
-                background: '#ef4444',
-                textColor: '#fff',
-                notiflixIconColor: '#fff',
-            },
-            warning: {
-                background: '#f59e0b',
-                textColor: '#fff',
-                notiflixIconColor: '#fff',
-            },
-            info: {
-                background: '#0066cc',
-                textColor: '#fff',
-                notiflixIconColor: '#fff',
-            },
+            distance: '20px',
+            borderRadius: '10px',
+            fontFamily: 'Plus Jakarta Sans',
+            fontSize: '14px',
+            cssAnimationStyle: 'zoom',
+            success: { background: '#10b981', textColor: '#fff', notiflixIconColor: '#fff' },
+            failure: { background: '#ef4444', textColor: '#fff', notiflixIconColor: '#fff' },
+            warning: { background: '#f59e0b', textColor: '#fff', notiflixIconColor: '#fff' },
+            info:    { background: '#0ea5e9', textColor: '#fff', notiflixIconColor: '#fff' }
         });
 
-        // Show flash messages with Notiflix
+        // 3. Handle Flash Messages
         document.addEventListener('DOMContentLoaded', function() {
             <?php if (isset($_SESSION['flash_message'])): ?>
                 <?php
@@ -419,13 +694,13 @@ $csrf_token = generate_token();
                 unset($_SESSION['flash_message']);
                 ?>
                 <?php if ($type === 'success'): ?>
-                    Notiflix.Notify.success('<?php echo $message; ?>', { timeout: 3000 });
+                    Notiflix.Notify.success('<?php echo $message; ?>');
                 <?php elseif ($type === 'error'): ?>
-                    Notiflix.Notify.failure('<?php echo $message; ?>', { timeout: 4000 });
+                    Notiflix.Notify.failure('<?php echo $message; ?>');
                 <?php elseif ($type === 'warning'): ?>
-                    Notiflix.Notify.warning('<?php echo $message; ?>', { timeout: 3500 });
+                    Notiflix.Notify.warning('<?php echo $message; ?>');
                 <?php else: ?>
-                    Notiflix.Notify.info('<?php echo $message; ?>', { timeout: 3000 });
+                    Notiflix.Notify.info('<?php echo $message; ?>');
                 <?php endif; ?>
             <?php endif; ?>
         });

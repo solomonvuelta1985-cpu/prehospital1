@@ -239,15 +239,62 @@ document.querySelectorAll('.nav-tabs .nav-link').forEach((tab, index) => {
 document.getElementById('dateOfBirth')?.addEventListener('change', function() {
     const dob = new Date(this.value);
     const today = new Date();
-    let age = today.getFullYear() - dob.getFullYear();
-    const monthDiff = today.getMonth() - dob.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-        age--;
+
+    // Calculate total months
+    const totalMonths = (today.getFullYear() - dob.getFullYear()) * 12 + (today.getMonth() - dob.getMonth());
+
+    const ageElement = document.getElementById('age');
+    const ageUnitElement = document.getElementById('ageUnit');
+
+    if (totalMonths < 24) {
+        // Less than 2 years - show in months
+        if (ageElement) ageElement.value = totalMonths;
+        if (ageUnitElement) ageUnitElement.value = 'months';
+    } else {
+        // Show in years
+        let age = today.getFullYear() - dob.getFullYear();
+        const monthDiff = today.getMonth() - dob.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+            age--;
+        }
+        if (ageElement) ageElement.value = age;
+        if (ageUnitElement) ageUnitElement.value = 'years';
     }
-    
-    document.getElementById('age').value = age;
+
+    // Auto-select growth status
+    updateGrowthStatus();
 });
+
+// Auto-select growth status based on age and age unit
+function updateGrowthStatus() {
+    const ageElement = document.getElementById('age');
+    const ageUnitElement = document.getElementById('ageUnit');
+    const growthStatusEl = document.getElementById('growthStatus');
+
+    if (!growthStatusEl || !ageElement || !ageElement.value) return;
+
+    const age = parseInt(ageElement.value);
+    const ageUnit = ageUnitElement ? ageUnitElement.value : 'years';
+
+    if (isNaN(age)) return;
+
+    // Convert to years for comparison
+    const ageInYears = ageUnit === 'months' ? age / 12 : age;
+
+    if (ageInYears < 2) {
+        growthStatusEl.value = 'infant';
+    } else if (ageInYears < 13) {
+        growthStatusEl.value = 'child';
+    } else if (ageInYears < 60) {
+        growthStatusEl.value = 'adult';
+    } else {
+        growthStatusEl.value = 'senior';
+    }
+}
+
+// Trigger on age or age_unit change
+document.getElementById('age')?.addEventListener('change', updateGrowthStatus);
+document.getElementById('ageUnit')?.addEventListener('change', updateGrowthStatus);
 
 // ============================================
 // FORM SUMMARY
@@ -255,9 +302,9 @@ document.getElementById('dateOfBirth')?.addEventListener('change', function() {
 
 function generateFormSummary() {
     console.log('generateFormSummary() called');
-    const summaryContainer = document.getElementById('formSummary');
+    const summaryContainer = document.getElementById('summaryModalBody');
     if (!summaryContainer) {
-        console.error('Summary container not found!');
+        console.error('Summary modal body not found!');
         return;
     }
     console.log('Summary container found, generating summary...');
@@ -299,8 +346,12 @@ function generateFormSummary() {
     summaryHTML += `<tr><td><strong>Civil Status:</strong></td><td>${civilStatus ? civilStatus.value : 'Not specified'}</td></tr>`;
 
     summaryHTML += `<tr><td><strong>Address:</strong></td><td>${document.getElementById('address').value || 'Not specified'}</td></tr>`;
+    summaryHTML += `<tr><td><strong>Zone:</strong></td><td>${document.getElementById('zone').value || 'Not specified'}</td></tr>`;
     summaryHTML += `<tr><td><strong>Occupation:</strong></td><td>${document.getElementById('occupation').value || 'Not specified'}</td></tr>`;
     summaryHTML += `<tr><td><strong>Place of Incident:</strong></td><td>${document.getElementById('placeOfIncident').value || 'Not specified'}</td></tr>`;
+    summaryHTML += `<tr><td><strong>Zone/Landmark:</strong></td><td>${document.getElementById('zoneLandmark').value || 'Not specified'}</td></tr>`;
+    summaryHTML += `<tr><td><strong>Incident Time:</strong></td><td>${document.getElementById('incidentTime').value || 'Not specified'}</td></tr>`;
+    summaryHTML += `<tr><td><strong>Call Arrival Time:</strong></td><td>${document.getElementById('callArrTime').value || 'Not specified'}</td></tr>`;
     summaryHTML += '</tbody></table>';
     summaryHTML += '</div>';
 
@@ -335,8 +386,17 @@ function generateFormSummary() {
     summaryHTML += `<tr><td><strong>Pain Score:</strong></td><td>${document.getElementById('initialPainScore').value || 'Not specified'}</td></tr>`;
     summaryHTML += `<tr><td><strong>SPO2:</strong></td><td>${document.getElementById('initialSPO2').value || 'Not specified'}%</td></tr>`;
 
-    const initialConsciousness = Array.from(document.querySelectorAll('input[name="initial_consciousness[]"]:checked')).map(cb => cb.value);
+    const initialConsciousness = Array.from(document.querySelectorAll('input[name="initial_consciousness[]"]:checked')).map(cb => {
+        const labels = { 'alert': 'Alert', 'verbal': 'Verbal', 'pain': 'Pain', 'unconscious': 'Unconscious' };
+        return labels[cb.value] || cb.value;
+    });
     summaryHTML += `<tr><td><strong>Level of Consciousness:</strong></td><td>${initialConsciousness.length > 0 ? initialConsciousness.join(', ') : 'Not specified'}</td></tr>`;
+
+    const initialHelmet = Array.from(document.querySelectorAll('input[name="initial_helmet[]"]:checked')).map(cb => {
+        const labels = { 'ab': '+ AB', 'none': 'No Helmet' };
+        return labels[cb.value] || cb.value;
+    });
+    summaryHTML += `<tr><td><strong>Helmet Status:</strong></td><td>${initialHelmet.length > 0 ? initialHelmet.join(', ') : 'Not specified'}</td></tr>`;
     summaryHTML += '</tbody></table>';
 
     summaryHTML += '<h7>Follow-up:</h7>';
@@ -350,7 +410,10 @@ function generateFormSummary() {
     summaryHTML += `<tr><td><strong>Pain Score:</strong></td><td>${document.getElementById('followupPainScore').value || 'Not specified'}</td></tr>`;
     summaryHTML += `<tr><td><strong>SPO2:</strong></td><td>${document.getElementById('followupSPO2').value || 'Not specified'}%</td></tr>`;
 
-    const followupConsciousness = Array.from(document.querySelectorAll('input[name="followup_consciousness[]"]:checked')).map(cb => cb.value);
+    const followupConsciousness = Array.from(document.querySelectorAll('input[name="followup_consciousness[]"]:checked')).map(cb => {
+        const labels = { 'alert': 'Alert', 'verbal': 'Verbal', 'pain': 'Pain', 'unconscious': 'Unconscious' };
+        return labels[cb.value] || cb.value;
+    });
     summaryHTML += `<tr><td><strong>Level of Consciousness:</strong></td><td>${followupConsciousness.length > 0 ? followupConsciousness.join(', ') : 'Not specified'}</td></tr>`;
     summaryHTML += '</tbody></table>';
     summaryHTML += '</div>';
@@ -411,23 +474,121 @@ function generateFormSummary() {
     summaryHTML += '<h6>🏥 Hospital Endorsement</h6>';
     summaryHTML += '<table class="summary-table">';
     summaryHTML += '<tbody>';
-    summaryHTML += `<tr><td><strong>Endorsement:</strong></td><td>${document.getElementById('endorsement').value || 'Not specified'}</td></tr>`;
-    summaryHTML += `<tr><td><strong>Hospital Name:</strong></td><td>${document.getElementById('hospital').value || 'Not specified'}</td></tr>`;
-    summaryHTML += `<tr><td><strong>Date & Time:</strong></td><td>${document.getElementById('dateTime').value || 'Not specified'}</td></tr>`;
+    summaryHTML += `<tr><td><strong>Hospital Name:</strong></td><td>${document.getElementById('hospital')?.value || 'Not specified'}</td></tr>`;
+    summaryHTML += `<tr><td><strong>Date & Time:</strong></td><td>${document.getElementById('dateTime')?.value || 'Not specified'}</td></tr>`;
     summaryHTML += '</tbody></table>';
     summaryHTML += '</div>';
 
     summaryHTML += '</div>';
     summaryContainer.innerHTML = summaryHTML;
 
-    // Ensure the container is visible
-    summaryContainer.style.display = 'block';
-    summaryContainer.style.visibility = 'visible';
-    summaryContainer.style.opacity = '1';
-
     console.log('Summary generated successfully!');
     console.log('Summary HTML length:', summaryHTML.length);
-    console.log('Summary container display:', window.getComputedStyle(summaryContainer).display);
+}
+
+// Open Summary Modal
+function openSummaryModal() {
+    console.log('Opening summary modal...');
+
+    // Generate the summary first
+    generateFormSummary();
+
+    // Show the modal using Bootstrap
+    const summaryModal = new bootstrap.Modal(document.getElementById('formSummaryModal'));
+    summaryModal.show();
+}
+
+// Print Summary
+function printSummary() {
+    const summaryContent = document.getElementById('summaryModalBody').innerHTML;
+
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Pre-Hospital Care Form Summary</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+            <style>
+                body { padding: 20px; font-family: Arial, sans-serif; }
+                .summary-section { margin-bottom: 30px; page-break-inside: avoid; }
+                .summary-section h6 {
+                    color: #0066cc;
+                    border-bottom: 2px solid #0066cc;
+                    padding-bottom: 8px;
+                    margin-bottom: 15px;
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                }
+                .summary-table { width: 100%; border-collapse: collapse; }
+                .summary-table td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+                .summary-table td:first-child { font-weight: 600; width: 30%; color: #666; }
+                @media print {
+                    body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+                    .summary-section { page-break-inside: avoid; }
+                }
+            </style>
+        </head>
+        <body>
+            <h2 style="text-align: center; color: #0066cc; margin-bottom: 30px;">
+                📋 Pre-Hospital Care Form Summary
+            </h2>
+            ${summaryContent}
+            <script>
+                window.onload = function() {
+                    window.print();
+                    setTimeout(function() { window.close(); }, 100);
+                }
+            </script>
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+}
+
+// Copy Summary to Clipboard
+function copySummaryToClipboard() {
+    const summaryContent = document.getElementById('summaryModalBody');
+
+    // Create a temporary element to extract text
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = summaryContent.innerHTML;
+
+    // Format the text nicely
+    let textContent = 'PRE-HOSPITAL CARE FORM SUMMARY\n';
+    textContent += '='.repeat(50) + '\n\n';
+
+    // Extract sections
+    const sections = tempDiv.querySelectorAll('.summary-section');
+    sections.forEach(section => {
+        const title = section.querySelector('h6')?.textContent || '';
+        textContent += title + '\n';
+        textContent += '-'.repeat(title.length) + '\n';
+
+        const rows = section.querySelectorAll('tr');
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 2) {
+                const label = cells[0].textContent.trim();
+                const value = cells[1].textContent.trim();
+                textContent += `${label} ${value}\n`;
+            }
+        });
+
+        textContent += '\n';
+    });
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(textContent).then(() => {
+        // Show success message using Bootstrap toast or alert
+        alert('✅ Summary copied to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        alert('❌ Failed to copy summary to clipboard');
+    });
 }
 
 // ============================================
@@ -451,10 +612,20 @@ function submitForm() {
         }
     }
 
-    // Check age is greater than 0
+    // Validate age based on unit
     const ageElement = document.getElementById('age');
-    if (ageElement && parseInt(ageElement.value) <= 0) {
-        missingFields.push('Age (must be greater than 0)');
+    const ageUnitElement = document.getElementById('ageUnit');
+    if (ageElement) {
+        const ageValue = parseInt(ageElement.value);
+        const ageUnit = ageUnitElement ? ageUnitElement.value : 'years';
+
+        if (ageValue < 0) {
+            missingFields.push('Age (cannot be negative)');
+        } else if (ageUnit === 'months' && ageValue > 24) {
+            missingFields.push('Age (use years for age > 24 months)');
+        } else if (ageValue === 0 && ageUnit === 'years') {
+            missingFields.push('Age (use months for infants under 1 year)');
+        }
     }
 
     // Check gender radio buttons
@@ -1706,3 +1877,327 @@ function serializeInjuriesToField() {
         injuriesDataField.value = JSON.stringify(injuries);
     }
 }
+
+// ============================================
+// 12-HOUR TIME INPUT FORMATTING
+// ============================================
+
+/**
+ * Initialize 12-hour time input fields with auto-formatting
+ * Call this after DOM is ready
+ */
+function initialize12HourTimeInputs() {
+    const timeInputs = document.querySelectorAll('.time-input-12hr, input[data-time-field="true"]');
+
+    timeInputs.forEach(input => {
+        // Format on input (real-time)
+        input.addEventListener('input', handleTimeInput);
+
+        // Validate and clean up on blur
+        input.addEventListener('blur', handleTimeBlur);
+
+        // Convert to 24-hour format before form submission
+        const form = input.closest('form');
+        if (form && !form.hasAttribute('data-time-conversion-attached')) {
+            form.setAttribute('data-time-conversion-attached', 'true');
+            form.addEventListener('submit', handleFormSubmit);
+        }
+    });
+}
+
+/**
+ * Handle real-time input formatting
+ * Supports: "735p" → "7:35 PM", "1130a" → "11:30 AM"
+ */
+function handleTimeInput(event) {
+    const input = event.target;
+    let value = input.value.toUpperCase();
+
+    // Remove any non-digit, non-colon, non-space, non-A, non-P, non-M characters
+    value = value.replace(/[^0-9:APM\s]/g, '');
+
+    // Handle continuous digit entry (e.g., "735" → "7:35", "1130" → "11:30")
+    if (!value.includes(':') && !value.includes('A') && !value.includes('P')) {
+        // 3 digits: "735" → "7:35"
+        if (value.length === 3) {
+            const hour = value[0];
+            const minutes = value.substring(1);
+            value = hour + ':' + minutes;
+        }
+        // 4 digits: "1130" → "11:30"
+        else if (value.length === 4) {
+            const hour = value.substring(0, 2);
+            const minutes = value.substring(2);
+            // Validate hour is 10-12
+            if (parseInt(hour) >= 10 && parseInt(hour) <= 12) {
+                value = hour + ':' + minutes;
+            }
+        }
+        // 1 digit > 1: "2" → "2:"
+        else if (value.length === 1 && parseInt(value) > 1) {
+            value = value + ':';
+        }
+        // 2 digits (hour 1-12): "12" → "12:"
+        else if (value.length === 2) {
+            const hour = parseInt(value);
+            if (hour >= 1 && hour <= 12) {
+                value = value + ':';
+            }
+        }
+    }
+
+    // Handle AM/PM after digits (e.g., "7:35P" → "7:35 P")
+    if (value.match(/\d[AP]/)) {
+        value = value.replace(/(\d)([AP])/, '$1 $2');
+    }
+
+    // Limit hour part to 12
+    const parts = value.split(':');
+    if (parts[0]) {
+        let hour = parseInt(parts[0]) || 0;
+        if (hour > 12) {
+            parts[0] = '12';
+            value = parts.join(':');
+        } else if (hour === 0) {
+            parts[0] = '';
+            value = parts.join(':');
+        }
+    }
+
+    // Validate minutes don't exceed 59
+    if (parts.length > 1 && parts[1]) {
+        // Extract just the minute digits (before any AM/PM)
+        const minuteMatch = parts[1].match(/^(\d+)/);
+        if (minuteMatch) {
+            let minutes = parseInt(minuteMatch[1]);
+            if (minutes > 59) {
+                parts[1] = parts[1].replace(/^\d+/, '59');
+                value = parts.join(':');
+            }
+        }
+    }
+
+    input.value = value;
+}
+
+/**
+ * Validate and clean up time input on blur
+ */
+function handleTimeBlur(event) {
+    const input = event.target;
+    let value = input.value.trim().toUpperCase();
+
+    if (!value) {
+        input.classList.remove('is-invalid');
+        removeTimeInputError(input);
+        return; // Empty is OK for optional fields
+    }
+
+    // Try to parse and validate
+    const timeRegex = /^(0?[1-9]|1[0-2]):([0-5][0-9])\s?(AM|PM)$/;
+    const match = value.match(timeRegex);
+
+    if (match) {
+        // Valid format - normalize it
+        const hour = match[1].padStart(2, '0');
+        const minute = match[2];
+        const period = match[3];
+        input.value = `${hour}:${minute} ${period}`;
+        input.classList.remove('is-invalid');
+        removeTimeInputError(input);
+
+        // Store 24-hour format in a hidden data attribute for easy access
+        input.dataset.time24 = convert12to24Hour(input.value);
+    } else {
+        // Invalid format - show error
+        input.classList.add('is-invalid');
+        showTimeInputError(input, 'Invalid time format. Use: HH:MM AM/PM (e.g., 2:30 PM)');
+    }
+}
+
+/**
+ * Convert 12-hour format to 24-hour format
+ */
+function convert12to24Hour(time12h) {
+    if (!time12h) return '';
+
+    const timeRegex = /^(0?[1-9]|1[0-2]):([0-5][0-9])\s?(AM|PM)$/i;
+    const match = time12h.trim().match(timeRegex);
+
+    if (!match) return ''; // Invalid format
+
+    let hour = parseInt(match[1]);
+    const minute = match[2];
+    const period = match[3].toUpperCase();
+
+    // Convert to 24-hour
+    if (period === 'AM') {
+        if (hour === 12) hour = 0; // 12:00 AM = 00:00
+    } else { // PM
+        if (hour !== 12) hour += 12; // 1:00 PM = 13:00, but 12:00 PM = 12:00
+    }
+
+    return `${String(hour).padStart(2, '0')}:${minute}`;
+}
+
+/**
+ * Convert 24-hour format to 12-hour format (for loading existing data)
+ */
+function convert24to12Hour(time24h) {
+    if (!time24h) return '';
+
+    const parts = time24h.split(':');
+    if (parts.length < 2) return '';
+
+    let hour = parseInt(parts[0]);
+    const minute = parts[1];
+
+    let period = 'AM';
+
+    if (hour === 0) {
+        hour = 12; // Midnight
+    } else if (hour === 12) {
+        period = 'PM'; // Noon
+    } else if (hour > 12) {
+        hour -= 12;
+        period = 'PM';
+    }
+
+    return `${String(hour).padStart(2, '0')}:${minute} ${period}`;
+}
+
+/**
+ * Show inline error message for time input
+ */
+function showTimeInputError(input, message) {
+    // Remove existing error message
+    removeTimeInputError(input);
+
+    // Create error element
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'time-input-error invalid-feedback d-block';
+    errorDiv.style.fontSize = '0.875rem';
+    errorDiv.style.color = '#dc3545';
+    errorDiv.style.marginTop = '0.25rem';
+    errorDiv.textContent = message;
+
+    input.parentElement.appendChild(errorDiv);
+}
+
+/**
+ * Remove error message for time input
+ */
+function removeTimeInputError(input) {
+    const existingError = input.parentElement.querySelector('.time-input-error');
+    if (existingError) {
+        existingError.remove();
+    }
+}
+
+/**
+ * Handle form submission - convert all 12-hour times to 24-hour format
+ */
+function handleFormSubmit(event) {
+    const form = event.target;
+    const timeInputs = form.querySelectorAll('.time-input-12hr, input[data-time-field="true"]');
+
+    let hasError = false;
+
+    timeInputs.forEach(input => {
+        const value = input.value.trim();
+
+        if (!value) {
+            // Empty is OK for optional fields
+            if (input.hasAttribute('required')) {
+                input.classList.add('is-invalid');
+                showTimeInputError(input, 'This field is required.');
+                hasError = true;
+            }
+            return;
+        }
+
+        // Validate format
+        const timeRegex = /^(0?[1-9]|1[0-2]):([0-5][0-9])\s?(AM|PM)$/i;
+        if (!timeRegex.test(value)) {
+            input.classList.add('is-invalid');
+            showTimeInputError(input, 'Invalid time format. Use: HH:MM AM/PM (e.g., 2:30 PM)');
+            hasError = true;
+            return;
+        }
+
+        // Convert to 24-hour format
+        const time24h = convert12to24Hour(value);
+        if (!time24h) {
+            input.classList.add('is-invalid');
+            showTimeInputError(input, 'Invalid time value.');
+            hasError = true;
+            return;
+        }
+
+        // Store 24-hour format in the input (server expects this)
+        input.value = time24h;
+        input.classList.remove('is-invalid');
+        removeTimeInputError(input);
+    });
+
+    if (hasError) {
+        event.preventDefault();
+        // Scroll to first error
+        const firstError = form.querySelector('.is-invalid');
+        if (firstError) {
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            firstError.focus();
+        }
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Initialize time fields with existing values (for edit form)
+ * Convert 24-hour format from database to 12-hour format for display
+ */
+function loadExistingTimeValues() {
+    const timeInputs = document.querySelectorAll('.time-input-12hr, input[data-time-field="true"]');
+
+    timeInputs.forEach(input => {
+        const value = input.value.trim();
+
+        if (value && value.includes(':')) {
+            // Check if it's in 24-hour format (no AM/PM)
+            if (!value.match(/AM|PM/i)) {
+                // Convert to 12-hour format
+                input.value = convert24to12Hour(value);
+            }
+        }
+    });
+}
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait a bit to ensure page is fully loaded
+    setTimeout(function() {
+        initialize12HourTimeInputs();
+        loadExistingTimeValues();
+    }, 100);
+
+    // Live duplicate Arrival at Scene Location → Departure from Scene Location
+    const arrSceneLocation = document.getElementById('arrSceneLocation');
+    const depSceneLocation = document.getElementById('depSceneLocation');
+    if (arrSceneLocation && depSceneLocation) {
+        arrSceneLocation.addEventListener('input', function() {
+            // Only auto-fill if departure is still empty or matches previous arrival value
+            if (!depSceneLocation.value || depSceneLocation.dataset.autoFilled === 'true') {
+                depSceneLocation.value = arrSceneLocation.value;
+                depSceneLocation.dataset.autoFilled = 'true';
+            }
+        });
+        // Stop auto-filling if user manually edits departure field
+        depSceneLocation.addEventListener('input', function() {
+            if (depSceneLocation.value !== arrSceneLocation.value) {
+                depSceneLocation.dataset.autoFilled = 'false';
+            }
+        });
+    }
+});

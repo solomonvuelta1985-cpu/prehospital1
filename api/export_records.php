@@ -48,7 +48,7 @@ $where_sql = !empty($where_conditions) ? "WHERE " . implode(" AND ", $where_cond
 
 // Get records
 $sql = "SELECT
-    form_number, form_date, patient_name, age, gender, civil_status,
+    form_number, form_date, patient_name, age, age_unit, growth_status, gender, civil_status,
     address, occupation, place_of_incident, incident_time,
     vehicle_used, driver_name, arrival_hospital_name,
     emergency_medical, emergency_medical_details,
@@ -56,7 +56,7 @@ $sql = "SELECT
     emergency_ob, emergency_ob_details,
     emergency_general, emergency_general_details,
     care_management,
-    initial_bp, initial_temp, initial_pulse, initial_spo2,
+    initial_bp, initial_temp, initial_pulse, initial_spo2, initial_consciousness, initial_helmet,
     team_leader, narrative_report, status, created_at
     FROM prehospital_forms
     $where_sql
@@ -82,6 +82,8 @@ fputcsv($output, [
     'Form Date',
     'Patient Name',
     'Age',
+    'Age Unit',
+    'Growth Status',
     'Gender',
     'Civil Status',
     'Address',
@@ -95,6 +97,8 @@ fputcsv($output, [
     'Initial Temp',
     'Initial Pulse',
     'Initial SPO2',
+    'Consciousness',
+    'Helmet Status',
     'Team Leader',
     'Narrative Report',
     'Status',
@@ -133,11 +137,31 @@ foreach ($records as $record) {
     }
     $careManagementStr = $careItems ? implode(', ', $careItems) : '';
 
+    // Build consciousness string
+    $consciousnessStr = '';
+    if (!empty($record['initial_consciousness'])) {
+        $decoded = json_decode($record['initial_consciousness'], true);
+        if (is_array($decoded)) {
+            $consciousnessStr = implode(', ', array_map('ucfirst', $decoded));
+        }
+    }
+
+    // Build helmet string
+    $helmetStr = '';
+    if (!empty($record['initial_helmet'])) {
+        $decoded = json_decode($record['initial_helmet'], true);
+        if (is_array($decoded)) {
+            $helmetStr = implode(', ', array_map('ucfirst', $decoded));
+        }
+    }
+
     fputcsv($output, [
         $record['form_number'],
         $record['form_date'],
         $record['patient_name'],
         $record['age'],
+        ucfirst($record['age_unit'] ?? 'years'),
+        ucfirst($record['growth_status'] ?? ''),
         ucfirst($record['gender']),
         ucfirst($record['civil_status'] ?: ''),
         $record['address'],
@@ -151,6 +175,8 @@ foreach ($records as $record) {
         $record['initial_temp'],
         $record['initial_pulse'],
         $record['initial_spo2'],
+        $consciousnessStr,
+        $helmetStr,
         $record['team_leader'],
         $record['narrative_report'],
         ucfirst($record['status']),

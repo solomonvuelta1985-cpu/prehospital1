@@ -113,6 +113,13 @@ if (!is_array($followup_consciousness)) {
     // Handle legacy single ENUM value by wrapping in array
     $followup_consciousness = !empty($record['followup_consciousness']) ? [strtolower($record['followup_consciousness'])] : [];
 }
+
+// Decode helmet status (multi-select)
+$initial_helmet = json_decode($record['initial_helmet'] ?? '[]', true);
+if (!is_array($initial_helmet)) {
+    // Fallback for old single-value format
+    $initial_helmet = !empty($record['initial_helmet']) ? [strtolower($record['initial_helmet'])] : [];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -734,13 +741,13 @@ if (!is_array($followup_consciousness)) {
                             </div>
                             <div>
                                 <label for="depTime" class="form-label required-field">Departure Time</label>
-                                <input type="time" class="form-control" id="depTime" name="departure_time" 
-                                       value="<?php echo e($record['departure_time']); ?>" required>
+                                <input type="text" class="form-control time-input-12hr" id="depTime" name="departure_time"
+                                       value="<?php echo e($record['departure_time']); ?>" placeholder="2:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true" required>
                             </div>
                             <div>
                                 <label for="arrTime" class="form-label">Arrival Time</label>
-                                <input type="time" class="form-control" id="arrTime" name="arrival_time" 
-                                       value="<?php echo e($record['arrival_time']); ?>">
+                                <input type="text" class="form-control time-input-12hr" id="arrTime" name="arrival_time"
+                                       value="<?php echo e($record['arrival_time']); ?>" placeholder="3:45 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
 
@@ -774,8 +781,8 @@ if (!is_array($followup_consciousness)) {
                             </div>
                             <div>
                                 <label for="arrSceneTime" class="form-label">Arrival at Scene - Time</label>
-                                <input type="time" class="form-control" id="arrSceneTime" name="arrival_scene_time"
-                                       value="<?php echo e($record['arrival_scene_time']); ?>">
+                                <input type="text" class="form-control time-input-12hr" id="arrSceneTime" name="arrival_scene_time"
+                                       value="<?php echo e($record['arrival_scene_time']); ?>" placeholder="4:15 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
 
@@ -787,8 +794,8 @@ if (!is_array($followup_consciousness)) {
                             </div>
                             <div>
                                 <label for="depSceneTime" class="form-label">Departure from Scene - Time</label>
-                                <input type="time" class="form-control" id="depSceneTime" name="departure_scene_time"
-                                       value="<?php echo e($record['departure_scene_time']); ?>">
+                                <input type="text" class="form-control time-input-12hr" id="depSceneTime" name="departure_scene_time"
+                                       value="<?php echo e($record['departure_scene_time']); ?>" placeholder="5:00 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
 
@@ -800,16 +807,16 @@ if (!is_array($followup_consciousness)) {
                             </div>
                             <div>
                                 <label for="arrHospTime" class="form-label">Arrival at Hospital - Time</label>
-                                <input type="time" class="form-control" id="arrHospTime" name="arrival_hospital_time"
-                                       value="<?php echo e($record['arrival_hospital_time']); ?>">
+                                <input type="text" class="form-control time-input-12hr" id="arrHospTime" name="arrival_hospital_time"
+                                       value="<?php echo e($record['arrival_hospital_time']); ?>" placeholder="5:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
 
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="depHospTime" class="form-label">Departure from Hospital - Time</label>
-                                <input type="time" class="form-control" id="depHospTime" name="departure_hospital_time"
-                                       value="<?php echo e($record['departure_hospital_time']); ?>">
+                                <input type="text" class="form-control time-input-12hr" id="depHospTime" name="departure_hospital_time"
+                                       value="<?php echo e($record['departure_hospital_time']); ?>" placeholder="6:00 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
 
@@ -821,8 +828,8 @@ if (!is_array($followup_consciousness)) {
                             </div>
                             <div>
                                 <label for="arrStation" class="form-label">Arrival at Station</label>
-                                <input type="time" class="form-control" id="arrStation" name="arrival_station_time"
-                                       value="<?php echo e($record['arrival_station_time']); ?>">
+                                <input type="text" class="form-control time-input-12hr" id="arrStation" name="arrival_station_time"
+                                       value="<?php echo e($record['arrival_station_time']); ?>" placeholder="6:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
 
@@ -879,8 +886,24 @@ if (!is_array($followup_consciousness)) {
                             </div>
                             <div>
                                 <label for="age" class="form-label required-field">Age</label>
-                                <input type="number" class="form-control" id="age" name="age"
-                                       value="<?php echo e($record['age']); ?>" placeholder="Enter age" required>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="age" name="age"
+                                           value="<?php echo e($record['age']); ?>" placeholder="Enter age" required>
+                                    <select class="form-select" id="ageUnit" name="age_unit" style="max-width: 110px;">
+                                        <option value="years" <?php echo ($record['age_unit'] ?? 'years') === 'years' ? 'selected' : ''; ?>>Years</option>
+                                        <option value="months" <?php echo ($record['age_unit'] ?? 'years') === 'months' ? 'selected' : ''; ?>>Months</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="growthStatus" class="form-label">Growth Status</label>
+                                <select class="form-select" id="growthStatus" name="growth_status">
+                                    <option value="">Select...</option>
+                                    <option value="infant" <?php echo ($record['growth_status'] ?? '') === 'infant' ? 'selected' : ''; ?>>Infant (0-1 year)</option>
+                                    <option value="child" <?php echo ($record['growth_status'] ?? '') === 'child' ? 'selected' : ''; ?>>Child (2-12 years)</option>
+                                    <option value="adult" <?php echo ($record['growth_status'] ?? '') === 'adult' ? 'selected' : ''; ?>>Adult (13-59 years)</option>
+                                    <option value="senior" <?php echo ($record['growth_status'] ?? '') === 'senior' ? 'selected' : ''; ?>>Senior (60+ years)</option>
+                                </select>
                             </div>
                         </div>
 
@@ -966,8 +989,8 @@ if (!is_array($followup_consciousness)) {
                             </div>
                             <div>
                                 <label for="incidentTime" class="form-label">Time of Incident</label>
-                                <input type="time" class="form-control" id="incidentTime" name="incident_time"
-                                       value="<?php echo e($record['incident_time']); ?>">
+                                <input type="text" class="form-control time-input-12hr" id="incidentTime" name="incident_time"
+                                       value="<?php echo e($record['incident_time']); ?>" placeholder="3:00 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
 
@@ -1006,8 +1029,8 @@ if (!is_array($followup_consciousness)) {
                             </div>
                             <div>
                                 <label for="callArrTime" class="form-label">Call/Arrival Time</label>
-                                <input type="time" class="form-control" id="callArrTime" name="call_arrival_time"
-                                       value="<?php echo e($record['call_arrival_time']); ?>">
+                                <input type="text" class="form-control time-input-12hr" id="callArrTime" name="call_arrival_time"
+                                       value="<?php echo e($record['call_arrival_time']); ?>" placeholder="2:45 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                             <div>
                                 <label for="cpNumber" class="form-label">Contact Number</label>
@@ -1298,8 +1321,8 @@ if (!is_array($followup_consciousness)) {
                         <div class="grid-4 mb-section">
                             <div>
                                 <label for="initialTime" class="form-label">Time</label>
-                                <input type="time" class="form-control" id="initialTime" name="initial_time"
-                                       value="<?php echo e($record['initial_time']); ?>">
+                                <input type="text" class="form-control time-input-12hr" id="initialTime" name="initial_time"
+                                       value="<?php echo e($record['initial_time']); ?>" placeholder="4:00 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                             <div>
                                 <label for="initialBP" class="form-label">Blood Pressure</label>
@@ -1381,13 +1404,13 @@ if (!is_array($followup_consciousness)) {
                                 <label class="form-label">Helmet Status</label>
                                 <div class="inline-group">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="initial_helmet" id="initialHelmetAB" value="ab"
-                                               <?php echo $record['initial_helmet'] === 'ab' ? 'checked' : ''; ?>>
+                                        <input class="form-check-input" type="checkbox" name="initial_helmet[]" id="initialHelmetAB" value="ab"
+                                               <?php echo in_array('ab', $initial_helmet) ? 'checked' : ''; ?>>
                                         <label class="form-check-label" for="initialHelmetAB">+ AB</label>
                                     </div>
                                     <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="initial_helmet" id="initialNoHelmet" value="none"
-                                               <?php echo $record['initial_helmet'] === 'none' ? 'checked' : ''; ?>>
+                                        <input class="form-check-input" type="checkbox" name="initial_helmet[]" id="initialNoHelmet" value="none"
+                                               <?php echo in_array('none', $initial_helmet) ? 'checked' : ''; ?>>
                                         <label class="form-check-label" for="initialNoHelmet">No Helmet</label>
                                     </div>
                                 </div>
@@ -1401,8 +1424,8 @@ if (!is_array($followup_consciousness)) {
                         <div class="grid-4 mb-section">
                             <div>
                                 <label for="followupTime" class="form-label">Time</label>
-                                <input type="time" class="form-control" id="followupTime" name="followup_time"
-                                       value="<?php echo e($record['followup_time']); ?>">
+                                <input type="text" class="form-control time-input-12hr" id="followupTime" name="followup_time"
+                                       value="<?php echo e($record['followup_time']); ?>" placeholder="4:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                             <div>
                                 <label for="followupBP" class="form-label">Blood Pressure</label>
@@ -1793,8 +1816,8 @@ if (!is_array($followup_consciousness)) {
                                 </div>
                                 <div>
                                     <label for="timeOfDelivery" class="form-label">Delivery Time</label>
-                                    <input type="time" class="form-control" id="timeOfDelivery" name="ob_delivery_time"
-                                           value="<?php echo e($record['ob_delivery_time']); ?>">
+                                    <input type="text" class="form-control time-input-12hr" id="timeOfDelivery" name="ob_delivery_time"
+                                           value="<?php echo e($record['ob_delivery_time']); ?>" placeholder="11:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                                 </div>
                                 <div>
                                     <label class="form-label">Placenta</label>
@@ -2063,8 +2086,8 @@ if (!is_array($followup_consciousness)) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
     <script src="js/prehospital-form.js?v=<?php echo asset_version(); ?>"></script>
-    <!-- Custom Date/Time Components - Load AFTER main form script -->
-    <script src="js/custom-datetime.js?v=<?php echo asset_version(); ?>"></script>
+    <!-- Custom Date Components - Month/Day/Year dropdowns -->
+    <script src="js/custom-date.js?v=<?php echo asset_version(); ?>"></script>
     <script>
         // Remove loading class after page loads - CRITICAL: Always remove skeleton
         window.addEventListener('load', function() {
@@ -2077,7 +2100,7 @@ if (!is_array($followup_consciousness)) {
                     // Force remove skeleton even if error
                     document.body.className = document.body.className.replace('loading', '');
                 }
-            }, 1000); // Increased to 1000ms to ensure custom-datetime.js finishes
+            }, 1000); // Wait for page to fully load before removing skeleton
         });
 
         // Failsafe: Remove skeleton after 3 seconds no matter what

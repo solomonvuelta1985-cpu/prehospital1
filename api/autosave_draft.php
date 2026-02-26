@@ -39,6 +39,12 @@ try {
             return null;
         }
 
+        // Convert 12-hour format to 24-hour if needed (safety fallback)
+        $converted = convert_12h_to_24h($value);
+        if ($converted !== false) {
+            $value = $converted;
+        }
+
         // Handle datetime-local format (YYYY-MM-DDTHH:MM) - convert to MySQL datetime format
         if (strpos($value, 'T') !== false) {
             // Convert ISO 8601 format to MySQL datetime format
@@ -97,6 +103,8 @@ try {
         'patient_name' => $data['patient_name'] ?? null,
         'date_of_birth' => clean_date_value($data['date_of_birth'] ?? null),
         'age' => isset($data['age']) && $data['age'] !== '' ? (int)$data['age'] : null,
+        'age_unit' => $data['age_unit'] ?? 'years',
+        'growth_status' => $data['growth_status'] ?? null,
         'gender' => $data['gender'] ?? null,
         'civil_status' => $data['civil_status'] ?? null,
         'address' => $data['address'] ?? null,
@@ -137,7 +145,7 @@ try {
         'initial_spo2' => isset($data['initial_spo2']) && $data['initial_spo2'] !== '' ? (int)$data['initial_spo2'] : null,
         'initial_spinal_injury' => $data['initial_spinal_injury'] ?? null,
         'initial_consciousness' => isset($data['initial_consciousness']) && is_array($data['initial_consciousness']) ? json_encode($data['initial_consciousness']) : ($data['initial_consciousness'] ?? null),
-        'initial_helmet' => $data['initial_helmet'] ?? null,
+        'initial_helmet' => isset($data['initial_helmet']) && is_array($data['initial_helmet']) ? json_encode($data['initial_helmet']) : ($data['initial_helmet'] ?? null),
 
         'followup_time' => clean_time_value($data['followup_time'] ?? null),
         'followup_bp' => $data['followup_bp'] ?? null,

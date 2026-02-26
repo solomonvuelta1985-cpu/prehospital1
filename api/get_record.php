@@ -335,7 +335,15 @@ try {
             </div>
             <div class="data-item">
                 <label>Age</label>
-                <div class="value"><?php echo e($record['age']); ?> years old</div>
+                <div class="value">
+                    <?php
+                    echo e($record['age']) . ' ';
+                    echo ($record['age_unit'] ?? 'years') === 'months' ? 'months old' : 'years old';
+                    if (!empty($record['growth_status'])) {
+                        echo ' (' . ucfirst($record['growth_status']) . ')';
+                    }
+                    ?>
+                </div>
             </div>
             <div class="data-item">
                 <label>Gender</label>
@@ -403,6 +411,23 @@ try {
                                     echo implode(', ', array_map('ucfirst', $consciousness));
                                 } else {
                                     echo ucfirst($record['initial_consciousness']);
+                                }
+                            } else {
+                                echo 'Not recorded';
+                            }
+                            ?>
+                        </div>
+                    </div>
+                    <div class="data-item">
+                        <label>Helmet Status</label>
+                        <div class="value<?php echo empty($record['initial_helmet']) ? ' empty' : ''; ?>">
+                            <?php
+                            if (!empty($record['initial_helmet'])) {
+                                $helmet = json_decode($record['initial_helmet'], true);
+                                if (is_array($helmet)) {
+                                    echo implode(', ', array_map('ucfirst', $helmet));
+                                } else {
+                                    echo ucfirst($record['initial_helmet']);
                                 }
                             } else {
                                 echo 'Not recorded';

@@ -69,6 +69,20 @@ try {
     $departure_time = $departure_time ? sanitize($departure_time, false) : null;
     $arrival_time = $arrival_time ? sanitize($arrival_time, false) : null;
 
+    // Convert 12-hour format to 24-hour if needed (safety fallback for server-side conversion)
+    if ($departure_time) {
+        $converted = convert_12h_to_24h($departure_time);
+        if ($converted !== false) {
+            $departure_time = $converted;
+        }
+    }
+    if ($arrival_time) {
+        $converted = convert_12h_to_24h($arrival_time);
+        if ($converted !== false) {
+            $arrival_time = $converted;
+        }
+    }
+
     $vehicle_used = !empty($_POST['vehicle_used']) ? sanitize($_POST['vehicle_used'], false) : null;
     // Don't sanitize vehicle_details as it contains JSON - validate and trim only
     $vehicle_details = !empty($_POST['vehicle_details']) ? trim($_POST['vehicle_details']) : null;
@@ -93,6 +107,28 @@ try {
     $arrival_hospital_time = !empty($_POST['arrival_hospital_time']) ? sanitize($_POST['arrival_hospital_time'], false) : null; // Don't uppercase time
     $departure_hospital_time = !empty($_POST['departure_hospital_time']) ? sanitize($_POST['departure_hospital_time'], false) : null; // Don't uppercase time
 
+    // Convert 12-hour time format to 24-hour if needed
+    if ($arrival_station) {
+        $converted = convert_12h_to_24h($arrival_station);
+        if ($converted !== false) $arrival_station = $converted;
+    }
+    if ($arrival_scene_time) {
+        $converted = convert_12h_to_24h($arrival_scene_time);
+        if ($converted !== false) $arrival_scene_time = $converted;
+    }
+    if ($departure_scene_time) {
+        $converted = convert_12h_to_24h($departure_scene_time);
+        if ($converted !== false) $departure_scene_time = $converted;
+    }
+    if ($arrival_hospital_time) {
+        $converted = convert_12h_to_24h($arrival_hospital_time);
+        if ($converted !== false) $arrival_hospital_time = $converted;
+    }
+    if ($departure_hospital_time) {
+        $converted = convert_12h_to_24h($departure_hospital_time);
+        if ($converted !== false) $departure_hospital_time = $converted;
+    }
+
     // Persons Present
     $persons_present = isset($_POST['persons_present']) ? $_POST['persons_present'] : [];
     if (!is_array($persons_present)) {
@@ -105,6 +141,8 @@ try {
     $patient_name = sanitize($_POST['patient_name'] ?? '');
     $date_of_birth = sanitize($_POST['date_of_birth'] ?? '', false); // Don't uppercase date
     $age = (int)($_POST['age'] ?? 0);
+    $age_unit = !empty($_POST['age_unit']) ? sanitize($_POST['age_unit'], false) : 'years'; // Don't uppercase enum
+    $growth_status = !empty($_POST['growth_status']) ? sanitize($_POST['growth_status'], false) : null; // Don't uppercase enum
     $gender = sanitize($_POST['gender'] ?? '', false); // Don't uppercase gender
     $civil_status = !empty($_POST['civil_status']) ? sanitize($_POST['civil_status'], false) : null; // Don't uppercase civil status
 
@@ -141,6 +179,16 @@ try {
     $call_arrival_time = !empty($_POST['call_arrival_time']) ? sanitize($_POST['call_arrival_time'], false) : null; // Don't uppercase time
     $contact_number = !empty($_POST['contact_number']) ? sanitize($_POST['contact_number']) : null;
     $relationship_victim = !empty($_POST['relationship_victim']) ? sanitize($_POST['relationship_victim']) : null;
+
+    // Convert 12-hour time format to 24-hour if needed
+    if ($incident_time) {
+        $converted = convert_12h_to_24h($incident_time);
+        if ($converted !== false) $incident_time = $converted;
+    }
+    if ($call_arrival_time) {
+        $converted = convert_12h_to_24h($call_arrival_time);
+        if ($converted !== false) $call_arrival_time = $converted;
+    }
 
     // Personal Belongings
     $personal_belongings = isset($_POST['personal_belongings']) ? $_POST['personal_belongings'] : [];
@@ -247,7 +295,13 @@ try {
     $initial_spo2 = (!empty($_POST['initial_spo2']) && $_POST['initial_spo2'] !== '') ? (int)$_POST['initial_spo2'] : null;
     $initial_spinal_injury = !empty($_POST['initial_spinal_injury']) ? sanitize($_POST['initial_spinal_injury'], false) : null; // Don't uppercase enum values
     $initial_consciousness = !empty($_POST['initial_consciousness']) ? json_encode(array_map(function($val) { return sanitize($val, false); }, $_POST['initial_consciousness'])) : null; // Don't uppercase enum values
-    $initial_helmet = !empty($_POST['initial_helmet']) ? sanitize($_POST['initial_helmet'], false) : null; // Don't uppercase enum values
+    $initial_helmet = !empty($_POST['initial_helmet']) ? json_encode(array_map(function($val) { return sanitize($val, false); }, $_POST['initial_helmet'])) : null; // Multi-select - don't uppercase enum values
+
+    // Convert 12-hour time format to 24-hour if needed
+    if ($initial_time) {
+        $converted = convert_12h_to_24h($initial_time);
+        if ($converted !== false) $initial_time = $converted;
+    }
 
     // Follow-up Vitals
     $followup_time = !empty($_POST['followup_time']) ? sanitize($_POST['followup_time'], false) : null; // Don't uppercase time
@@ -259,6 +313,12 @@ try {
     $followup_spo2 = (!empty($_POST['followup_spo2']) && $_POST['followup_spo2'] !== '') ? (int)$_POST['followup_spo2'] : null;
     $followup_spinal_injury = !empty($_POST['followup_spinal_injury']) ? sanitize($_POST['followup_spinal_injury'], false) : null; // Don't uppercase enum values
     $followup_consciousness = !empty($_POST['followup_consciousness']) ? json_encode(array_map(function($val) { return sanitize($val, false); }, $_POST['followup_consciousness'])) : null; // Don't uppercase enum values
+
+    // Convert 12-hour time format to 24-hour if needed
+    if ($followup_time) {
+        $converted = convert_12h_to_24h($followup_time);
+        if ($converted !== false) $followup_time = $converted;
+    }
 
     // Chief Complaints
     $chief_complaints = isset($_POST['chief_complaints']) ? $_POST['chief_complaints'] : [];
@@ -296,6 +356,12 @@ try {
     $ob_lmp = !empty($_POST['lmp']) ? sanitize($_POST['lmp'], false) : null; // Don't uppercase date
     $ob_aog = !empty($_POST['aog']) ? sanitize($_POST['aog']) : null;
     $ob_edc = !empty($_POST['edc']) ? sanitize($_POST['edc'], false) : null; // Don't uppercase date
+
+    // Convert 12-hour time format to 24-hour if needed
+    if ($ob_delivery_time) {
+        $converted = convert_12h_to_24h($ob_delivery_time);
+        if ($converted !== false) $ob_delivery_time = $converted;
+    }
 
     // Team Information
     $team_leader_notes = !empty($_POST['team_leader_notes']) ? sanitize($_POST['team_leader_notes']) : null;
@@ -426,6 +492,8 @@ try {
         patient_name = ?,
         date_of_birth = ?,
         age = ?,
+        age_unit = ?,
+        growth_status = ?,
         gender = ?,
         civil_status = ?,
         address = ?,
@@ -520,6 +588,8 @@ try {
         $patient_name,
         $date_of_birth,
         $age,
+        $age_unit,
+        $growth_status,
         $gender,
         $civil_status,
         $address,

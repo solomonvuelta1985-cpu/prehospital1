@@ -472,6 +472,264 @@ $current_user = get_auth_user();
         textarea::placeholder {
             text-transform: none !important;
         }
+
+        /* Form Summary Modal Styles */
+        #formSummaryModal .modal-xl {
+            max-width: 1200px;
+        }
+
+        #formSummaryModal .summary-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #formSummaryModal .summary-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        #formSummaryModal .summary-section h6 {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        #formSummaryModal .summary-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        #formSummaryModal .summary-table tr {
+            transition: background-color 0.15s;
+        }
+
+        #formSummaryModal .summary-table tr:hover {
+            background-color: #f8f9fe;
+        }
+
+        #formSummaryModal .summary-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: top;
+        }
+
+        #formSummaryModal .summary-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        #formSummaryModal .summary-table td:first-child {
+            font-weight: 600;
+            color: #495057;
+            width: 35%;
+            background-color: #f8f9fa;
+        }
+
+        #formSummaryModal .summary-table td:last-child {
+            color: #212529;
+            background-color: white;
+        }
+
+        #formSummaryModal h7 {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #6c757d;
+            margin: 1rem 0 0.5rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* View Summary Button - Responsive */
+        .summary-button-container {
+            padding: 1.5rem 1rem;
+        }
+
+        #viewSummaryBtn {
+            padding: 0.45rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 5px;
+            transition: all 0.2s ease;
+        }
+
+        #viewSummaryBtn i {
+            font-size: 0.95rem;
+            margin-right: 0.35rem;
+        }
+
+        #viewSummaryBtn:hover {
+            box-shadow: 0 2px 6px rgba(0, 102, 204, 0.25);
+        }
+
+        .summary-help-text {
+            font-size: 0.9rem;
+        }
+
+        /* Mobile Responsive - Tablets and below */
+        @media (max-width: 768px) {
+            .summary-button-container {
+                padding: 1.25rem 0.5rem;
+            }
+
+            #viewSummaryBtn {
+                padding: 0.4rem 1.1rem;
+                font-size: 0.85rem;
+            }
+
+            #viewSummaryBtn i {
+                font-size: 0.9rem;
+                margin-right: 0.3rem;
+            }
+
+            .summary-help-text {
+                font-size: 0.85rem;
+                padding: 0 1rem;
+            }
+
+            /* Modal adjustments for tablets */
+            #formSummaryModal .modal-dialog {
+                margin: 0.5rem;
+            }
+
+            #formSummaryModal .modal-body {
+                padding: 1rem !important;
+            }
+
+            #formSummaryModal .summary-section {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            #formSummaryModal .summary-section h6 {
+                font-size: 1rem;
+            }
+
+            #formSummaryModal .summary-table td {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.9rem;
+            }
+
+            #formSummaryModal .modal-footer {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            #formSummaryModal .modal-footer .btn {
+                width: 100%;
+            }
+        }
+
+        /* Mobile Responsive - Phones */
+        @media (max-width: 576px) {
+            .summary-button-container {
+                padding: 1rem 0.5rem;
+            }
+
+            #viewSummaryBtn {
+                padding: 0.4rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            #viewSummaryBtn i {
+                font-size: 0.85rem;
+            }
+
+            #viewSummaryBtn span {
+                font-size: 0.8rem;
+            }
+
+            .summary-help-text {
+                font-size: 0.8rem;
+            }
+
+            /* Modal full screen on phones */
+            #formSummaryModal .modal-dialog {
+                margin: 0;
+                max-width: 100%;
+                height: 100vh;
+            }
+
+            #formSummaryModal .modal-content {
+                height: 100vh;
+                border-radius: 0;
+            }
+
+            #formSummaryModal .modal-header {
+                padding: 1rem;
+            }
+
+            #formSummaryModal .modal-header h5 {
+                font-size: 1.1rem;
+            }
+
+            #formSummaryModal .modal-body {
+                padding: 0.75rem !important;
+            }
+
+            #formSummaryModal .summary-section {
+                padding: 0.75rem;
+                margin-bottom: 0.75rem;
+                border-radius: 8px;
+            }
+
+            #formSummaryModal .summary-section h6 {
+                font-size: 0.95rem;
+                margin-bottom: 0.75rem;
+            }
+
+            #formSummaryModal .summary-table td {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.85rem;
+                display: block;
+                width: 100% !important;
+                border-bottom: none;
+            }
+
+            #formSummaryModal .summary-table tr {
+                display: block;
+                margin-bottom: 0.5rem;
+                border: 1px solid #e9ecef;
+                border-radius: 6px;
+                overflow: hidden;
+            }
+
+            #formSummaryModal .summary-table td:first-child {
+                background-color: #f8f9fa;
+                border-bottom: 1px solid #dee2e6;
+                font-size: 0.8rem;
+                padding: 0.4rem 0.6rem;
+            }
+
+            #formSummaryModal .summary-table td:last-child {
+                padding: 0.5rem 0.6rem;
+                font-weight: 500;
+            }
+
+            #formSummaryModal h7 {
+                font-size: 0.85rem;
+                margin: 0.75rem 0 0.4rem 0;
+            }
+
+            #formSummaryModal .modal-footer {
+                padding: 0.75rem;
+            }
+
+            #formSummaryModal .modal-footer .btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body class="loading">
@@ -566,11 +824,11 @@ $current_user = get_auth_user();
                             </div>
                             <div>
                                 <label for="depTime" class="form-label required-field">Departure Time</label>
-                                <input type="time" class="form-control" id="depTime" name="departure_time" required>
+                                <input type="text" class="form-control time-input-12hr" id="depTime" name="departure_time" placeholder="2:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true" required>
                             </div>
                             <div>
                                 <label for="arrTime" class="form-label">Arrival Time</label>
-                                <input type="time" class="form-control" id="arrTime" name="arrival_time">
+                                <input type="text" class="form-control time-input-12hr" id="arrTime" name="arrival_time" placeholder="3:45 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
 
@@ -622,7 +880,7 @@ $current_user = get_auth_user();
                             </div>
                             <div>
                                 <label for="arrSceneTime" class="form-label">Arrival at Scene - Time</label>
-                                <input type="time" class="form-control" id="arrSceneTime" name="arrival_scene_time">
+                                <input type="text" class="form-control time-input-12hr" id="arrSceneTime" name="arrival_scene_time" placeholder="4:15 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
 
@@ -633,7 +891,7 @@ $current_user = get_auth_user();
                             </div>
                             <div>
                                 <label for="depSceneTime" class="form-label">Departure from Scene - Time</label>
-                                <input type="time" class="form-control" id="depSceneTime" name="departure_scene_time">
+                                <input type="text" class="form-control time-input-12hr" id="depSceneTime" name="departure_scene_time" placeholder="5:00 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
 
@@ -650,20 +908,20 @@ $current_user = get_auth_user();
                             </div>
                             <div>
                                 <label for="arrHospTime" class="form-label">Arrival at Hospital - Time</label>
-                                <input type="time" class="form-control" id="arrHospTime" name="arrival_hospital_time">
+                                <input type="text" class="form-control time-input-12hr" id="arrHospTime" name="arrival_hospital_time" placeholder="5:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
 
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="depHospTime" class="form-label">Departure from Hospital - Time</label>
-                                <input type="time" class="form-control" id="depHospTime" name="departure_hospital_time">
+                                <input type="text" class="form-control time-input-12hr" id="depHospTime" name="departure_hospital_time" placeholder="6:00 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
 
                         <div class="mb-section">
                             <label for="arrStation" class="form-label">Arrival at Station (Walk-in)</label>
-                            <input type="time" class="form-control" id="arrStation" name="arrival_station_time">
+                            <input type="text" class="form-control time-input-12hr" id="arrStation" name="arrival_station_time" placeholder="6:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                         </div>
 
                         <hr class="section-divider-light">
@@ -722,7 +980,23 @@ $current_user = get_auth_user();
                             </div>
                             <div>
                                 <label for="age" class="form-label required-field">Age</label>
-                                <input type="number" class="form-control" id="age" name="age" min="0" max="150" placeholder="Enter age" required>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="age" name="age" min="0" max="150" placeholder="Enter age" required>
+                                    <select class="form-select" id="ageUnit" name="age_unit" style="max-width: 110px;">
+                                        <option value="years" selected>Years</option>
+                                        <option value="months">Months</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="growthStatus" class="form-label">Growth Status</label>
+                                <select class="form-select" id="growthStatus" name="growth_status">
+                                    <option value="">Select...</option>
+                                    <option value="infant">Infant (0-1 year)</option>
+                                    <option value="child">Child (2-12 years)</option>
+                                    <option value="adult">Adult (13-59 years)</option>
+                                    <option value="senior">Senior (60+ years)</option>
+                                </select>
                             </div>
                         </div>
 
@@ -804,7 +1078,7 @@ $current_user = get_auth_user();
                             </div>
                             <div>
                                 <label for="incidentTime" class="form-label">Time of Incident</label>
-                                <input type="time" class="form-control" id="incidentTime" name="incident_time">
+                                <input type="text" class="form-control time-input-12hr" id="incidentTime" name="incident_time" placeholder="3:00 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
 
@@ -841,7 +1115,7 @@ $current_user = get_auth_user();
                             </div>
                             <div>
                                 <label for="callArrTime" class="form-label">Call/Arrival Time</label>
-                                <input type="time" class="form-control" id="callArrTime" name="call_arrival_time">
+                                <input type="text" class="form-control time-input-12hr" id="callArrTime" name="call_arrival_time" placeholder="2:45 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                             <div>
                                 <label for="cpNumber" class="form-label">Contact Number</label>
@@ -1087,7 +1361,7 @@ $current_user = get_auth_user();
                         <div class="grid-4 mb-section">
                             <div>
                                 <label for="initialTime" class="form-label">Time</label>
-                                <input type="time" class="form-control" id="initialTime" name="initial_time">
+                                <input type="text" class="form-control time-input-12hr" id="initialTime" name="initial_time" placeholder="4:00 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                             <div>
                                 <label for="initialBP" class="form-label">Blood Pressure</label>
@@ -1159,11 +1433,11 @@ $current_user = get_auth_user();
                                 <label class="form-label">Helmet Status</label>
                                 <div class="inline-group">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="initial_helmet" id="initialHelmetAB" value="ab">
+                                        <input class="form-check-input" type="checkbox" name="initial_helmet[]" id="initialHelmetAB" value="ab">
                                         <label class="form-check-label" for="initialHelmetAB">+ AB</label>
                                     </div>
                                     <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="initial_helmet" id="initialNoHelmet" value="none">
+                                        <input class="form-check-input" type="checkbox" name="initial_helmet[]" id="initialNoHelmet" value="none">
                                         <label class="form-check-label" for="initialNoHelmet">No Helmet</label>
                                     </div>
                                 </div>
@@ -1179,7 +1453,7 @@ $current_user = get_auth_user();
                         <div class="grid-4 mb-section">
                             <div>
                                 <label for="followupTime" class="form-label">Time</label>
-                                <input type="time" class="form-control" id="followupTime" name="followup_time">
+                                <input type="text" class="form-control time-input-12hr" id="followupTime" name="followup_time" placeholder="4:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                             <div>
                                 <label for="followupBP" class="form-label">Blood Pressure</label>
@@ -1552,7 +1826,7 @@ $current_user = get_auth_user();
                                 </div>
                                 <div>
                                     <label for="timeOfDelivery" class="form-label">Delivery Time</label>
-                                    <input type="time" class="form-control" id="timeOfDelivery" name="ob_delivery_time">
+                                    <input type="text" class="form-control time-input-12hr" id="timeOfDelivery" name="ob_delivery_time" placeholder="11:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                                 </div>
                                 <div>
                                     <label class="form-label">Placenta</label>
@@ -1756,8 +2030,17 @@ $current_user = get_auth_user();
                             <i class="bi bi-check-circle"></i> Form Summary
                         </div>
 
-                        <div class="summary-container" id="formSummary">
-                            <!-- Summary will be populated by JavaScript -->
+                        <!-- View Summary Button -->
+                        <div class="text-center summary-button-container">
+                            <button type="button" class="btn btn-primary" id="viewSummaryBtn" onclick="openSummaryModal()">
+                                <i class="bi bi-list-check"></i>
+                                <span>View Form Summary</span>
+                            </button>
+                            <p class="text-muted mt-3 summary-help-text">
+                                <i class="bi bi-info-circle"></i>
+                                <span class="d-none d-sm-inline">Click to view a comprehensive summary of all entered data</span>
+                                <span class="d-inline d-sm-none">View all entered data</span>
+                            </p>
                         </div>
 
                         <!-- NARRATIVE REPORT SECTION -->
@@ -1812,6 +2095,46 @@ $current_user = get_auth_user();
                 </div>
             </div>
         </form>
+
+        <!-- Form Summary Modal -->
+        <div class="modal fade" id="formSummaryModal" tabindex="-1" aria-labelledby="formSummaryModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <!-- Modal Header -->
+                    <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-bottom: none;">
+                        <h5 class="modal-title" id="formSummaryModalLabel" style="font-weight: 600; font-size: 1.4rem;">
+                            <i class="bi bi-clipboard-check-fill me-2"></i>
+                            Pre-Hospital Care Form Summary
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <!-- Modal Body -->
+                    <div class="modal-body" id="summaryModalBody" style="padding: 2rem; background-color: #f8f9fa;">
+                        <!-- Summary content will be populated by JavaScript -->
+                        <div class="text-center text-muted py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3">Generating summary...</p>
+                        </div>
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <div class="modal-footer" style="background-color: #fff; border-top: 2px solid #e9ecef; padding: 1rem 1.5rem;">
+                        <button type="button" class="btn btn-outline-secondary" onclick="copySummaryToClipboard()">
+                            <i class="bi bi-clipboard"></i> Copy to Clipboard
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" onclick="printSummary()">
+                            <i class="bi bi-printer"></i> Print Summary
+                        </button>
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle"></i> Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="navigation-buttons">
             <button type="button" class="btn btn-outline-primary" id="prevBtn" onclick="navigateTab(-1)">
@@ -1880,8 +2203,8 @@ $current_user = get_auth_user();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
     <script src="js/prehospital-form.js?v=<?php echo asset_version(); ?>"></script>
-    <!-- Custom Date/Time Components - Load AFTER main form script -->
-    <script src="js/custom-datetime.js?v=<?php echo asset_version(); ?>"></script>
+    <!-- Custom Date Components - Month/Day/Year dropdowns -->
+    <script src="js/custom-date.js?v=<?php echo asset_version(); ?>"></script>
     <script>
         // Configure Notiflix
         Notiflix.Notify.init({
@@ -2219,6 +2542,30 @@ $current_user = get_auth_user();
         let isFormDirty = false;
         let autosaveEnabled = false; // Prevent autosave on page load
 
+        // Reset form to a completely fresh state (no draft association)
+        function resetFormCompletely(reason) {
+            currentDraftId = null;
+            document.getElementById('draftIdField').value = '';
+
+            const form = document.getElementById('preHospitalForm');
+            if (form) {
+                form.reset();
+                // Also reset custom date/datetime dropdowns (Month/Day/Year selects)
+                form.querySelectorAll('.custom-date-input select').forEach(function(sel) {
+                    sel.selectedIndex = 0;
+                });
+            }
+
+            // Reset autosave state
+            isFormDirty = false;
+            autosaveEnabled = false;
+            if (autosaveTimer) {
+                clearTimeout(autosaveTimer);
+                autosaveTimer = null;
+            }
+            console.log('Form reset (' + reason + '): starting fresh, no draft association');
+        }
+
         // Check URL for draft_id parameter
         const urlParams = new URLSearchParams(window.location.search);
         const resumeDraftId = urlParams.get('draft_id');
@@ -2229,7 +2576,21 @@ $current_user = get_auth_user();
             console.log('Draft ID from URL:', resumeDraftId);
             console.log('Hidden field set to:', document.getElementById('draftIdField').value);
             loadDraft(resumeDraftId);
+        } else {
+            // No draft_id in URL — ensure we start completely fresh
+            resetFormCompletely('no draft_id in URL');
         }
+
+        // Handle bfcache restoration (back/forward navigation)
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                // Page was restored from bfcache — check if we should be on a fresh form
+                const freshParams = new URLSearchParams(window.location.search);
+                if (!freshParams.get('draft_id')) {
+                    resetFormCompletely('bfcache restore without draft_id');
+                }
+            }
+        });
 
         // Function to combine individual SAMPLE fields into hidden field
         function combineSampleFields() {
@@ -2891,10 +3252,9 @@ $current_user = get_auth_user();
             initializeAutosave();
         }
 
-        // Re-initialize after custom-datetime.js replaces date/time inputs with custom dropdowns.
-        // custom-datetime.js runs on window.load + 500ms, so we re-run after 800ms to pick up the
-        // newly created select and hidden input elements. The data-autosave-init attribute prevents
-        // double-attaching listeners to elements that were already initialized above.
+        // Re-initialize autosave after page load to ensure all dynamic elements are captured.
+        // The data-autosave-init attribute prevents double-attaching listeners to elements
+        // that were already initialized above.
         window.addEventListener('load', function() {
             setTimeout(function() {
                 console.log('Re-initializing autosave for custom datetime elements...');
@@ -3189,8 +3549,8 @@ $current_user = get_auth_user();
                 generalSpecify: getFieldValue('general_specify'),
 
                 // Assessment
-                helmetStatus: getRadioValue('initial_helmet'),
-                consciousness: getRadioValue('initial_consciousness'),
+                helmetStatus: getCheckboxValues('initial_helmet[]'),
+                consciousness: getCheckboxValues('initial_consciousness[]'),
                 chiefComplaints: getCheckboxValues('chief_complaints[]'),
                 otherComplaints: getFieldValue('other_complaints'),
 
@@ -3200,6 +3560,14 @@ $current_user = get_auth_user();
                 initialPulse: getFieldValue('initial_pulse'),
                 initialResp: getFieldValue('initial_resp'),
                 initialSPO2: getFieldValue('initial_spo2'),
+
+                // Follow-up Vitals
+                followupBP: getFieldValue('followup_bp'),
+                followupTemp: getFieldValue('followup_temp'),
+                followupPulse: getFieldValue('followup_pulse'),
+                followupResp: getFieldValue('followup_resp'),
+                followupSPO2: getFieldValue('followup_spo2'),
+                followupConsciousness: getCheckboxValues('followup_consciousness[]'),
 
                 // Injuries
                 injuriesData: getFieldValue('injuries_data'),
@@ -3353,11 +3721,11 @@ $current_user = get_auth_user();
             const consciousness = formatConsciousness(data.consciousness);
             assessment += `Upon arrival at the scene, the patient was found ${consciousness}. `;
 
-            // Helmet status
-            if (data.helmetStatus) {
-                if (data.helmetStatus === 'none') {
+            // Helmet status (handle array from checkbox)
+            if (data.helmetStatus && Array.isArray(data.helmetStatus) && data.helmetStatus.length > 0) {
+                if (data.helmetStatus.includes('none')) {
                     assessment += `The patient was noted to be without a helmet at the time of the incident. `;
-                } else if (data.helmetStatus === 'ab') {
+                } else if (data.helmetStatus.includes('ab')) {
                     assessment += `Helmet was present and properly worn. `;
                 }
             }
@@ -3385,12 +3753,33 @@ $current_user = get_auth_user();
 
             // Vitals summary
             if (data.initialBP || data.initialTemp || data.initialPulse) {
-                assessment += `\nVital Signs:\n`;
+                assessment += `\nInitial Vital Signs:\n`;
                 if (data.initialBP) assessment += `- Blood Pressure: ${data.initialBP}\n`;
                 if (data.initialTemp) assessment += `- Temperature: ${data.initialTemp}°C\n`;
                 if (data.initialPulse) assessment += `- Pulse: ${data.initialPulse} BPM\n`;
                 if (data.initialResp) assessment += `- Respiratory Rate: ${data.initialResp}\n`;
                 if (data.initialSPO2) assessment += `- SPO2: ${data.initialSPO2}%\n`;
+            }
+
+            // Follow-up Assessment
+            if (data.followupBP || data.followupTemp || data.followupPulse || (data.followupConsciousness && data.followupConsciousness.length > 0)) {
+                assessment += `\nFollow-up Assessment:\n`;
+
+                // Follow-up consciousness
+                if (data.followupConsciousness && data.followupConsciousness.length > 0) {
+                    const followupConsciousness = formatConsciousness(data.followupConsciousness);
+                    assessment += `Patient condition: ${followupConsciousness}. `;
+                }
+
+                // Follow-up vitals
+                if (data.followupBP || data.followupTemp || data.followupPulse) {
+                    assessment += `\n`;
+                    if (data.followupBP) assessment += `- Blood Pressure: ${data.followupBP}\n`;
+                    if (data.followupTemp) assessment += `- Temperature: ${data.followupTemp}°C\n`;
+                    if (data.followupPulse) assessment += `- Pulse: ${data.followupPulse} BPM\n`;
+                    if (data.followupResp) assessment += `- Respiratory Rate: ${data.followupResp}\n`;
+                    if (data.followupSPO2) assessment += `- SPO2: ${data.followupSPO2}%\n`;
+                }
             }
 
             return assessment;
@@ -3431,8 +3820,8 @@ $current_user = get_auth_user();
         function formatConciseAssessment(data) {
             let assessment = '';
 
-            // Helmet
-            if (data.helmetStatus === 'none') {
+            // Helmet (handle array from checkbox)
+            if (Array.isArray(data.helmetStatus) && data.helmetStatus.includes('none')) {
                 assessment += `-NO HELMET\n`;
             }
 
@@ -3485,6 +3874,15 @@ $current_user = get_auth_user();
                 'pain': 'responsive to pain stimuli only',
                 'unconscious': 'unresponsive'
             };
+
+            // Handle array of consciousness levels (from checkbox)
+            if (Array.isArray(level)) {
+                if (level.length === 0) return 'under assessment';
+                const formatted = level.map(l => map[l] || l).join(', ');
+                return formatted;
+            }
+
+            // Handle single value (legacy support)
             return map[level] || 'under assessment';
         }
 
@@ -3688,8 +4086,8 @@ $current_user = get_auth_user();
             });
         }
 
-        // Generate form summary
-        function generateFormSummary() {
+        // Generate form summary - DISABLED (using external js/prehospital-form.js version instead)
+        function generateFormSummary_OLD_DISABLED() {
             const summaryContainer = document.getElementById('formSummary');
 
             // Helper function to get radio button value
@@ -3830,13 +4228,10 @@ $current_user = get_auth_user();
             summaryContainer.innerHTML = summaryHTML;
         }
 
-        // Auto-generate narrative and summary when entering Section 7
+        // Auto-generate narrative when entering Section 7
         document.getElementById('tab7').addEventListener('click', function() {
             setTimeout(() => {
-                // Generate summary
-                generateFormSummary();
-
-                // Generate narrative
+                // Generate narrative (summary is now shown via modal button)
                 const narrativeContent = document.getElementById('narrativeContent');
                 if (narrativeContent.querySelector('.narrative-placeholder')) {
                     generateNarrative();

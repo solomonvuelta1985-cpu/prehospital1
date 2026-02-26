@@ -152,6 +152,50 @@ function validate_time($time) {
 }
 
 /**
+ * Convert 12-hour time format to 24-hour format
+ * Handles: "2:30 PM" → "14:30"
+ *
+ * @param string $time_12h Time in 12-hour format (e.g., "2:30 PM")
+ * @return string|false Time in 24-hour format (HH:MM) or false on error
+ */
+function convert_12h_to_24h($time_12h) {
+    if (empty($time_12h) || !is_string($time_12h)) {
+        return false;
+    }
+
+    // Trim and normalize
+    $time_12h = trim($time_12h);
+
+    // Check if already in 24-hour format (no AM/PM)
+    if (preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $time_12h)) {
+        return $time_12h; // Already 24-hour format
+    }
+
+    // Parse 12-hour format
+    $pattern = '/^(0?[1-9]|1[0-2]):([0-5][0-9])\s?(AM|PM)$/i';
+    if (!preg_match($pattern, $time_12h, $matches)) {
+        return false; // Invalid format
+    }
+
+    $hour = (int)$matches[1];
+    $minute = $matches[2];
+    $period = strtoupper($matches[3]);
+
+    // Convert to 24-hour
+    if ($period === 'AM') {
+        if ($hour === 12) {
+            $hour = 0; // 12:00 AM = 00:00
+        }
+    } else { // PM
+        if ($hour !== 12) {
+            $hour += 12; // 1:00 PM = 13:00, but 12:00 PM stays 12:00
+        }
+    }
+
+    return sprintf('%02d:%s', $hour, $minute);
+}
+
+/**
  * Validate datetime format
  */
 function validate_datetime($datetime) {

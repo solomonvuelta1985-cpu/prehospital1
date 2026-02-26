@@ -11,9 +11,23 @@ if (session_status() === PHP_SESSION_NONE) {
 
 $current_page = basename($_SERVER['PHP_SELF']);
 
-// Detect if we're in admin subdirectory
+// Detect current directory and build correct paths for all sidebar links
 $is_admin_page = strpos($_SERVER['REQUEST_URI'], '/admin/') !== false;
-$base_path = $is_admin_page ? '../' : '';
+$script_dir = dirname($_SERVER['PHP_SELF']);
+
+if (strpos($script_dir, '/public/admin') !== false) {
+    // From /public/admin/ (e.g. users.php)
+    $base_path = '../';
+    $admin_path = '../../admin/';
+} elseif (strpos($script_dir, '/admin') !== false && strpos($script_dir, '/public/admin') === false) {
+    // From /admin/ (e.g. admin dashboard)
+    $base_path = '../public/';
+    $admin_path = '';
+} else {
+    // From /public/ (e.g. records, forms, etc.)
+    $base_path = '';
+    $admin_path = '../admin/';
+}
 
 // Get user info from session via auth function
 $current_user = get_auth_user();
@@ -93,7 +107,7 @@ if (count($name_parts) >= 2) {
         <!-- Main Section -->
         <li class="sidebar-heading">Overview</li>
         <li>
-            <a href="<?= $base_path ?>dashboard.php"
+            <a href="<?= ($user_role === 'admin') ? ($admin_path . 'dashboard.php') : ($base_path . 'dashboard.php') ?>"
                class="<?php echo ($current_page === 'dashboard.php' || $current_page === 'index.php') ? 'active' : ''; ?>"
                title="Dashboard">
                 <span class="material-icons">home</span>
@@ -160,7 +174,7 @@ if (count($name_parts) >= 2) {
         <li class="sidebar-heading">Administration</li>
         <li>
             <a href="<?= $base_path ?>admin/users.php"
-               class="<?php echo ($current_page === 'users.php' || ($current_page === 'dashboard.php' && $is_admin_page)) ? 'active' : ''; ?>"
+               class="<?php echo ($current_page === 'users.php') ? 'active' : ''; ?>"
                title="User Management">
                 <span class="material-icons">admin_panel_settings</span>
                 <span>User Management</span>
@@ -929,6 +943,17 @@ if (count($name_parts) >= 2) {
     margin: 0 auto;
 }
 
+/* Page transition animation */
+@keyframes pageFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes pageSlideUp {
+    from { transform: translateY(8px); }
+    to { transform: translateY(0); }
+}
+
 /* Main Content */
 .content {
     margin-left: var(--sidebar-width);
@@ -937,7 +962,30 @@ if (count($name_parts) >= 2) {
     min-height: 100vh;
     background: #f8fafc;
     transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: pageFadeIn 0.25s ease-out, pageSlideUp 0.3s cubic-bezier(0, 0, 0.2, 1);
 }
+
+/* Stagger child elements for a polished feel */
+.content .stat-card,
+.content .chart-card,
+.content .action-card,
+.content .table-card,
+.content .activity-card,
+.content .table-container {
+    animation: pageFadeIn 0.3s ease-out both, pageSlideUp 0.35s cubic-bezier(0, 0, 0.2, 1) both;
+}
+
+.content .row:nth-child(2) .stat-card,
+.content .row:nth-child(2) .chart-card { animation-delay: 0.03s; }
+.content .row:nth-child(3) .stat-card,
+.content .row:nth-child(3) .chart-card { animation-delay: 0.06s; }
+.content .row:nth-child(4) .chart-card,
+.content .row:nth-child(4) .table-card,
+.content .row:nth-child(4) .table-container { animation-delay: 0.09s; }
+.content .row:nth-child(5) .table-card,
+.content .row:nth-child(5) .action-card,
+.content .row:nth-child(5) .table-container { animation-delay: 0.12s; }
+.content .row:nth-child(6) .action-card { animation-delay: 0.15s; }
 
 .sidebar-collapsed .content {
     margin-left: var(--sidebar-collapsed-width);

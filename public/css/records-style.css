@@ -406,6 +406,30 @@ a.btn-table:hover {
     background-color: var(--bg-white);
     box-shadow: var(--shadow-elevated);
     border: 1px solid var(--border-color);
+    /* Sticky header: allow thead to stick within this scrollable container */
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    /* Thin subtle scrollbars */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,0.15) transparent;
+}
+
+.table-container::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.12);
+    border-radius: 3px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,0,0,0.25);
 }
 
 .custom-table {
@@ -417,6 +441,9 @@ a.btn-table:hover {
 
 .custom-table thead {
     background-color: #0052CC !important;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .custom-table th {
