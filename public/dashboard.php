@@ -38,7 +38,10 @@ if ($is_admin) {
     $stats_stmt = db_query($stats_sql . " WHERE created_by = ?", [$week_start, $month_start, $user_id]);
 }
 
-$stats = $stats_stmt->fetch();
+$stats = $stats_stmt ? $stats_stmt->fetch() : false;
+if (!$stats) {
+    $stats = ['total_forms' => 0, 'today_forms' => 0, 'draft_forms' => 0, 'completed_forms' => 0, 'archived_count' => 0, 'week_forms' => 0, 'month_forms' => 0];
+}
 $total_forms = (int)$stats['total_forms'];
 $today_forms = (int)$stats['today_forms'];
 $draft_forms = (int)$stats['draft_forms'];
@@ -58,7 +61,7 @@ if ($is_admin) {
 } else {
     $recent_activity_stmt = db_query($recent_sql . " WHERE pf.created_by = ? ORDER BY pf.created_at DESC LIMIT 5", [$user_id]);
 }
-$recent_activity = $recent_activity_stmt->fetchAll();
+$recent_activity = $recent_activity_stmt ? $recent_activity_stmt->fetchAll() : [];
 
 // Optimized: Get data for charts - Last 7 days in a single query
 $seven_days_ago = date('Y-m-d', strtotime('-6 days'));
@@ -81,8 +84,10 @@ if ($is_admin) {
 }
 
 $daily_counts = [];
-while ($row = $daily_stats_stmt->fetch()) {
-    $daily_counts[$row['date']] = (int)$row['count'];
+if ($daily_stats_stmt) {
+    while ($row = $daily_stats_stmt->fetch()) {
+        $daily_counts[$row['date']] = (int)$row['count'];
+    }
 }
 
 // Build 7-day chart data
@@ -116,8 +121,10 @@ if ($is_admin) {
 }
 
 $monthly_counts = [];
-while ($row = $monthly_stats_stmt->fetch()) {
-    $monthly_counts[$row['month']] = (int)$row['count'];
+if ($monthly_stats_stmt) {
+    while ($row = $monthly_stats_stmt->fetch()) {
+        $monthly_counts[$row['month']] = (int)$row['count'];
+    }
 }
 
 // Build 12-month chart data

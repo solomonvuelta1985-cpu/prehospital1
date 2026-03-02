@@ -17,9 +17,9 @@ $current_user = get_auth_user();
 $user_id = $current_user['id'];
 $is_admin = is_admin();
 
-// Get filter parameters
-$date_from = isset($_GET['date_from']) ? $_GET['date_from'] : date('Y-m-01'); // First day of current month
-$date_to = isset($_GET['date_to']) ? $_GET['date_to'] : date('Y-m-d'); // Today
+// Get filter parameters - Default to last 3 months for meaningful data
+$date_from = isset($_GET['date_from']) ? $_GET['date_from'] : date('Y-m-01', strtotime('-2 months'));
+$date_to = isset($_GET['date_to']) ? $_GET['date_to'] : date('Y-m-d');
 $status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
 $user_filter = isset($_GET['user_id']) ? (int)$_GET['user_id'] : 0;
 
@@ -66,7 +66,10 @@ $summary_sql = "
     WHERE $where_clause
 ";
 $summary_stmt = db_query($summary_sql, $params);
-$summary = $summary_stmt->fetch();
+$summary = $summary_stmt ? $summary_stmt->fetch() : false;
+if (!$summary) {
+    $summary = ['total_forms' => 0, 'completed_forms' => 0, 'draft_forms' => 0, 'archived_forms' => 0, 'today_forms' => 0, 'week_forms' => 0];
+}
 
 // Get forms by emergency type
 $emergency_sql = "
@@ -79,7 +82,10 @@ $emergency_sql = "
     WHERE $where_clause
 ";
 $emergency_stmt = db_query($emergency_sql, $params);
-$emergency_data = $emergency_stmt->fetch();
+$emergency_data = $emergency_stmt ? $emergency_stmt->fetch() : false;
+if (!$emergency_data) {
+    $emergency_data = ['medical' => 0, 'trauma' => 0, 'obstetric' => 0, 'general' => 0];
+}
 
 // Get forms by vehicle type
 $vehicle_sql = "
@@ -92,7 +98,7 @@ $vehicle_sql = "
     ORDER BY count DESC
 ";
 $vehicle_stmt = db_query($vehicle_sql, $params);
-$vehicle_data = $vehicle_stmt->fetchAll();
+$vehicle_data = $vehicle_stmt ? $vehicle_stmt->fetchAll() : [];
 
 // Get patient demographics
 $age_sql = "
@@ -111,7 +117,7 @@ $age_sql = "
     ORDER BY age_group
 ";
 $age_stmt = db_query($age_sql, $params);
-$age_data = $age_stmt->fetchAll();
+$age_data = $age_stmt ? $age_stmt->fetchAll() : [];
 
 $gender_sql = "
     SELECT
@@ -122,7 +128,7 @@ $gender_sql = "
     GROUP BY gender
 ";
 $gender_stmt = db_query($gender_sql, $params);
-$gender_data = $gender_stmt->fetchAll();
+$gender_data = $gender_stmt ? $gender_stmt->fetchAll() : [];
 
 // Get injury statistics
 $injury_sql = "
@@ -136,7 +142,7 @@ $injury_sql = "
     ORDER BY count DESC
 ";
 $injury_stmt = db_query($injury_sql, $params);
-$injury_data = $injury_stmt->fetchAll();
+$injury_data = $injury_stmt ? $injury_stmt->fetchAll() : [];
 
 // Get forms by hospital
 $hospital_sql = "
@@ -150,7 +156,7 @@ $hospital_sql = "
     LIMIT 10
 ";
 $hospital_stmt = db_query($hospital_sql, $params);
-$hospital_data = $hospital_stmt->fetchAll();
+$hospital_data = $hospital_stmt ? $hospital_stmt->fetchAll() : [];
 
 // Get daily trends (last 30 days or filtered range)
 $trend_sql = "
@@ -163,7 +169,7 @@ $trend_sql = "
     ORDER BY DATE(form_date)
 ";
 $trend_stmt = db_query($trend_sql, $params);
-$trend_data = $trend_stmt->fetchAll();
+$trend_data = $trend_stmt ? $trend_stmt->fetchAll() : [];
 
 // Get top performing users
 if ($is_admin) {
@@ -183,7 +189,7 @@ if ($is_admin) {
         LIMIT 10
     ";
     $user_perf_stmt = db_query($user_perf_sql, $params);
-    $user_performance = $user_perf_stmt->fetchAll();
+    $user_performance = $user_perf_stmt ? $user_perf_stmt->fetchAll() : [];
 }
 
 // Get all users for filter dropdown (admin only)
@@ -205,24 +211,24 @@ if ($is_admin) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         :root {
-            --primary: #1e3a5f;
-            --primary-light: #2d5a8a;
-            --accent: #2563eb;
-            --text-primary: #1e3a5f;
-            --text-secondary: #475569;
-            --text-muted: #64748b;
-            --bg-body: #f8fafc;
-            --bg-white: #ffffff;
-            --border: #e2e8f0;
-            --border-light: #f1f5f9;
+            --rpt-primary: #1e3a5f;
+            --rpt-primary-light: #2d5a8a;
+            --rpt-accent: #2563eb;
+            --rpt-text: #1e3a5f;
+            --rpt-text-secondary: #475569;
+            --rpt-text-muted: #64748b;
+            --rpt-bg-body: #f8fafc;
+            --rpt-bg-white: #ffffff;
+            --rpt-border: #e2e8f0;
+            --rpt-border-light: #f1f5f9;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            background: var(--bg-body);
+            background: var(--rpt-bg-body);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: var(--text-primary);
+            color: var(--rpt-text);
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
         }
@@ -233,22 +239,22 @@ if ($is_admin) {
 
         /* Page Header */
         .page-header {
-            background: var(--bg-white);
+            background: var(--rpt-bg-white);
             padding: 1.5rem 0;
             margin-bottom: 2rem;
-            border-bottom: 3px solid var(--accent);
+            border-bottom: 3px solid var(--rpt-accent);
         }
 
         .page-header h1 {
             font-size: 1.375rem;
             font-weight: 600;
-            color: var(--text-primary);
+            color: var(--rpt-text);
             margin: 0;
             letter-spacing: -0.02em;
         }
 
         .page-header p {
-            color: var(--text-muted);
+            color: var(--rpt-text-muted);
             margin: 0.25rem 0 0;
             font-size: 0.875rem;
             font-weight: 400;
@@ -256,15 +262,15 @@ if ($is_admin) {
 
         /* Section */
         .section {
-            background: var(--bg-white);
-            border: 1px solid var(--border);
+            background: var(--rpt-bg-white);
+            border: 1px solid var(--rpt-border);
             border-radius: 8px;
             margin-bottom: 1.5rem;
         }
 
         .section-header {
             padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border-light);
+            border-bottom: 1px solid var(--rpt-border-light);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -281,8 +287,8 @@ if ($is_admin) {
         .section-badge {
             font-size: 0.6875rem;
             font-weight: 500;
-            color: var(--text-muted);
-            background: var(--bg-body);
+            color: var(--rpt-text-muted);
+            background: var(--rpt-bg-body);
             padding: 0.25rem 0.625rem;
             border-radius: 4px;
         }
@@ -291,8 +297,8 @@ if ($is_admin) {
 
         /* Filter Bar */
         .filter-bar {
-            background: var(--bg-white);
-            border: 1px solid var(--border);
+            background: var(--rpt-bg-white);
+            border: 1px solid var(--rpt-border);
             border-radius: 8px;
             padding: 1rem 1.5rem;
             margin-bottom: 1.5rem;
@@ -301,7 +307,7 @@ if ($is_admin) {
         .filter-bar .form-label {
             font-size: 0.6875rem;
             font-weight: 500;
-            color: var(--text-muted);
+            color: var(--rpt-text-muted);
             text-transform: uppercase;
             letter-spacing: 0.04em;
             margin-bottom: 0.375rem;
@@ -309,18 +315,18 @@ if ($is_admin) {
 
         .filter-bar .form-control,
         .filter-bar .form-select {
-            border: 1px solid var(--border);
+            border: 1px solid var(--rpt-border);
             border-radius: 6px;
             padding: 0.5rem 0.75rem;
             font-size: 0.8125rem;
             font-weight: 500;
-            background: var(--bg-white);
-            color: var(--text-primary);
+            background: var(--rpt-bg-white);
+            color: var(--rpt-text);
         }
 
         .filter-bar .form-control:focus,
         .filter-bar .form-select:focus {
-            border-color: var(--accent);
+            border-color: var(--rpt-accent);
             box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
             outline: none;
         }
@@ -334,10 +340,10 @@ if ($is_admin) {
         }
 
         .stat-item {
-            background: var(--bg-white);
+            background: var(--rpt-bg-white);
             padding: 1rem 1.25rem;
             border-radius: 8px;
-            border: 1px solid var(--border);
+            border: 1px solid var(--rpt-border);
             display: flex;
             align-items: center;
             gap: 1rem;
@@ -392,27 +398,27 @@ if ($is_admin) {
             text-align: left;
             font-size: 0.6875rem;
             font-weight: 600;
-            color: var(--text-muted);
+            color: var(--rpt-text-muted);
             text-transform: uppercase;
             letter-spacing: 0.04em;
-            border-bottom: 1px solid var(--border);
-            background: var(--bg-body);
+            border-bottom: 1px solid var(--rpt-border);
+            background: var(--rpt-bg-body);
         }
 
         .data-table td {
             padding: 0.875rem 1rem;
-            border-bottom: 1px solid var(--border-light);
-            color: var(--text-secondary);
+            border-bottom: 1px solid var(--rpt-border-light);
+            color: var(--rpt-text-secondary);
         }
 
-        .data-table td:first-child { color: var(--text-primary); font-weight: 500; }
+        .data-table td:first-child { color: var(--rpt-text); font-weight: 500; }
         .data-table tbody tr:last-child td { border-bottom: none; }
-        .data-table tbody tr:hover { background: var(--bg-body); }
+        .data-table tbody tr:hover { background: var(--rpt-bg-body); }
 
         /* Progress Bars */
         .progress-bar-wrap {
             height: 4px;
-            background: var(--border-light);
+            background: var(--rpt-border-light);
             border-radius: 2px;
             overflow: hidden;
             min-width: 100px;
@@ -444,8 +450,8 @@ if ($is_admin) {
 
         .btn-outline {
             background: transparent;
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
+            color: var(--rpt-text-secondary);
+            border: 1px solid var(--rpt-border);
             padding: 0.5rem 1rem;
             border-radius: 6px;
             font-weight: 500;
@@ -458,9 +464,9 @@ if ($is_admin) {
         }
 
         .btn-outline:hover {
-            background: var(--bg-body);
-            border-color: var(--text-muted);
-            color: var(--text-primary);
+            background: var(--rpt-bg-body);
+            border-color: var(--rpt-text-muted);
+            color: var(--rpt-text);
         }
 
         /* Status Badges */
@@ -510,7 +516,7 @@ if ($is_admin) {
         /* Print */
         @media print {
             .filter-bar, .btn-primary-custom, .btn-outline { display: none !important; }
-            .section { border: 1px solid var(--border); box-shadow: none; }
+            .section { border: 1px solid var(--rpt-border); box-shadow: none; }
         }
     </style>
 </head>

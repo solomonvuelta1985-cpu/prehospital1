@@ -29,6 +29,22 @@ $search = isset($_GET['search']) ? sanitize($_GET['search']) : '';
 $status_filter = isset($_GET['status']) ? sanitize($_GET['status']) : '';
 $date_from = isset($_GET['date_from']) ? sanitize($_GET['date_from']) : '';
 $date_to = isset($_GET['date_to']) ? sanitize($_GET['date_to']) : '';
+$month_filter = isset($_GET['month']) ? (int)$_GET['month'] : 0;
+$year_filter = isset($_GET['year']) ? (int)$_GET['year'] : 0;
+$emergency_filter = isset($_GET['emergency']) ? sanitize($_GET['emergency']) : '';
+$vehicle_filter = isset($_GET['vehicle']) ? sanitize($_GET['vehicle']) : '';
+$sort_by = isset($_GET['sort']) ? sanitize($_GET['sort']) : 'newest';
+
+// Validate sort option
+$allowed_sorts = [
+    'newest' => 'pf.created_at DESC',
+    'oldest' => 'pf.created_at ASC',
+    'date_desc' => 'pf.form_date DESC',
+    'date_asc' => 'pf.form_date ASC',
+    'name_asc' => 'pf.patient_name ASC',
+    'name_desc' => 'pf.patient_name DESC',
+];
+$order_sql = $allowed_sorts[$sort_by] ?? 'pf.created_at DESC';
 
 // Build query - Filter by user unless admin
 $where_conditions = [];
@@ -63,13 +79,40 @@ if (!empty($date_to)) {
     $params[] = $date_to;
 }
 
+if ($month_filter >= 1 && $month_filter <= 12) {
+    $where_conditions[] = "MONTH(form_date) = ?";
+    $params[] = $month_filter;
+}
+
+if ($year_filter >= 2000 && $year_filter <= 2099) {
+    $where_conditions[] = "YEAR(form_date) = ?";
+    $params[] = $year_filter;
+}
+
+if (!empty($emergency_filter)) {
+    $valid_emergency = ['medical', 'trauma', 'ob', 'general'];
+    if (in_array($emergency_filter, $valid_emergency)) {
+        $where_conditions[] = "emergency_{$emergency_filter} = 1";
+    }
+}
+
+if (!empty($vehicle_filter)) {
+    $where_conditions[] = "vehicle_used = ?";
+    $params[] = $vehicle_filter;
+}
+
 $where_sql = !empty($where_conditions) ? "WHERE " . implode(" AND ", $where_conditions) : "";
 
 // Get total count
 $count_sql = "SELECT COUNT(*) as total FROM prehospital_forms $where_sql";
 $count_stmt = db_query($count_sql, $params);
-$total_records = $count_stmt->fetch()['total'];
-$total_pages = ceil($total_records / $per_page);
+$total_records = ($count_stmt) ? $count_stmt->fetch()['total'] : 0;
+$total_pages = ceil($total_records / max($per_page, 1));
+
+// Get available years for year filter dropdown
+$years_sql = "SELECT DISTINCT YEAR(form_date) as yr FROM prehospital_forms WHERE form_date IS NOT NULL AND form_date != '0000-00-00' ORDER BY yr DESC";
+$years_stmt = db_query($years_sql);
+$available_years = ($years_stmt) ? $years_stmt->fetchAll(PDO::FETCH_COLUMN) : [];
 
 // Get records with creator information
 $sql = "SELECT
@@ -85,14 +128,14 @@ $sql = "SELECT
     FROM prehospital_forms pf
     LEFT JOIN users u ON pf.created_by = u.id
     $where_sql
-    ORDER BY pf.created_at DESC
+    ORDER BY $order_sql
     LIMIT ? OFFSET ?";
 
 $params[] = $per_page;
 $params[] = $offset;
 
 $stmt = db_query($sql, $params);
-$records = $stmt->fetchAll();
+$records = ($stmt) ? $stmt->fetchAll() : [];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -161,7 +204,7 @@ $records = $stmt->fetchAll();
                         $completed_sql = "SELECT COUNT(*) as count FROM prehospital_forms WHERE status = 'completed' AND created_by = ?";
                         $completed_stmt = db_query($completed_sql, [$current_user['id']]);
                     }
-                    echo number_format($completed_stmt->fetch()['count']);
+                    echo number_format($completed_stmt ? $completed_stmt->fetch()['count'] : 0);
                     ?>
                 </h3>
                 <p><i class="fas fa-check-circle"></i> Completed</p>
@@ -176,7 +219,7 @@ $records = $stmt->fetchAll();
                         $today_sql = "SELECT COUNT(*) as count FROM prehospital_forms WHERE DATE(created_at) = CURDATE() AND created_by = ?";
                         $today_stmt = db_query($today_sql, [$current_user['id']]);
                     }
-                    echo number_format($today_stmt->fetch()['count']);
+                    echo number_format($today_stmt ? $today_stmt->fetch()['count'] : 0);
                     ?>
                 </h3>
                 <p><i class="fas fa-calendar-check"></i> Today</p>
@@ -191,7 +234,7 @@ $records = $stmt->fetchAll();
                         $week_sql = "SELECT COUNT(*) as count FROM prehospital_forms WHERE YEARWEEK(created_at) = YEARWEEK(NOW()) AND created_by = ?";
                         $week_stmt = db_query($week_sql, [$current_user['id']]);
                     }
-                    echo number_format($week_stmt->fetch()['count']);
+                    echo number_format($week_stmt ? $week_stmt->fetch()['count'] : 0);
                     ?>
                 </h3>
                 <p><i class="fas fa-calendar-week"></i> This Week</p>
@@ -219,7 +262,8 @@ $records = $stmt->fetchAll();
         <!-- Filters Section -->
         <div class="filters-card">
             <form method="GET" action="" class="row g-3">
-                <div class="col-md-3">
+                <!-- Row 1: Status, Month, Year, Sort -->
+                <div class="col-md-3 col-sm-6">
                     <label class="form-label">Status</label>
                     <select class="form-select" name="status">
                         <option value="">All Status</option>
@@ -228,22 +272,76 @@ $records = $stmt->fetchAll();
                         <option value="archived" <?php echo $status_filter === 'archived' ? 'selected' : ''; ?>>Archived</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 col-sm-6">
+                    <label class="form-label">Month</label>
+                    <select class="form-select" name="month">
+                        <option value="">All Months</option>
+                        <?php
+                        $months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                        foreach ($months as $i => $m): ?>
+                            <option value="<?php echo $i + 1; ?>" <?php echo $month_filter === ($i + 1) ? 'selected' : ''; ?>><?php echo $m; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <label class="form-label">Year</label>
+                    <select class="form-select" name="year">
+                        <option value="">All Years</option>
+                        <?php foreach ($available_years as $yr): ?>
+                            <option value="<?php echo $yr; ?>" <?php echo $year_filter === (int)$yr ? 'selected' : ''; ?>><?php echo $yr; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <label class="form-label">Sort By</label>
+                    <select class="form-select" name="sort">
+                        <option value="newest" <?php echo $sort_by === 'newest' ? 'selected' : ''; ?>>Newest First</option>
+                        <option value="oldest" <?php echo $sort_by === 'oldest' ? 'selected' : ''; ?>>Oldest First</option>
+                        <option value="date_desc" <?php echo $sort_by === 'date_desc' ? 'selected' : ''; ?>>Form Date (Newest)</option>
+                        <option value="date_asc" <?php echo $sort_by === 'date_asc' ? 'selected' : ''; ?>>Form Date (Oldest)</option>
+                        <option value="name_asc" <?php echo $sort_by === 'name_asc' ? 'selected' : ''; ?>>Patient Name (A-Z)</option>
+                        <option value="name_desc" <?php echo $sort_by === 'name_desc' ? 'selected' : ''; ?>>Patient Name (Z-A)</option>
+                    </select>
+                </div>
+
+                <!-- Row 2: Date Range, Emergency Type, Vehicle, Actions -->
+                <div class="col-md-3 col-sm-6">
                     <label class="form-label">Date From</label>
                     <input type="date" class="form-control" name="date_from"
                            value="<?php echo e($date_from); ?>">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 col-sm-6">
                     <label class="form-label">Date To</label>
                     <input type="date" class="form-control" name="date_to"
                            value="<?php echo e($date_to); ?>">
                 </div>
-                <div class="col-md-3 d-flex align-items-end gap-2">
+                <div class="col-md-3 col-sm-6">
+                    <label class="form-label">Emergency Type</label>
+                    <select class="form-select" name="emergency">
+                        <option value="">All Types</option>
+                        <option value="medical" <?php echo $emergency_filter === 'medical' ? 'selected' : ''; ?>>Medical</option>
+                        <option value="trauma" <?php echo $emergency_filter === 'trauma' ? 'selected' : ''; ?>>Trauma</option>
+                        <option value="ob" <?php echo $emergency_filter === 'ob' ? 'selected' : ''; ?>>OB</option>
+                        <option value="general" <?php echo $emergency_filter === 'general' ? 'selected' : ''; ?>>General</option>
+                    </select>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <label class="form-label">Vehicle Used</label>
+                    <select class="form-select" name="vehicle">
+                        <option value="">All Vehicles</option>
+                        <option value="ambulance" <?php echo $vehicle_filter === 'ambulance' ? 'selected' : ''; ?>>Ambulance</option>
+                        <option value="fireTruck" <?php echo $vehicle_filter === 'fireTruck' ? 'selected' : ''; ?>>Fire Truck</option>
+                        <option value="others" <?php echo $vehicle_filter === 'others' ? 'selected' : ''; ?>>Others</option>
+                    </select>
+                </div>
+
+                <!-- Row 3: Action buttons -->
+                <div class="col-12 d-flex align-items-end gap-2">
                     <button type="submit" class="btn-custom btn-primary-custom">
                         <i class="fas fa-filter"></i> Filter
                     </button>
                     <a href="records.php" class="btn-custom btn-secondary-custom">
-                        <i class="fas fa-times-circle"></i> Clear
+                        <i class="fas fa-times-circle"></i> Clear All
                     </a>
                 </div>
             </form>
@@ -254,7 +352,7 @@ $records = $stmt->fetchAll();
             <strong style="color: #212529;">
                 <i class="fas fa-list"></i>
                 Showing <?php echo number_format($total_records); ?> record<?php echo $total_records != 1 ? 's' : ''; ?>
-                <?php if (!empty($search) || !empty($status_filter) || !empty($date_from) || !empty($date_to)): ?>
+                <?php if (!empty($search) || !empty($status_filter) || !empty($date_from) || !empty($date_to) || $month_filter || $year_filter || !empty($emergency_filter) || !empty($vehicle_filter)): ?>
                     (filtered)
                 <?php endif; ?>
             </strong>
@@ -447,11 +545,25 @@ $records = $stmt->fetchAll();
         </div>
 
         <!-- Pagination -->
+        <?php
+        // Build filter query string for pagination links
+        $filter_params = http_build_query(array_filter([
+            'search' => $search,
+            'status' => $status_filter,
+            'date_from' => $date_from,
+            'date_to' => $date_to,
+            'month' => $month_filter ?: '',
+            'year' => $year_filter ?: '',
+            'emergency' => $emergency_filter,
+            'vehicle' => $vehicle_filter,
+            'sort' => $sort_by !== 'newest' ? $sort_by : '',
+        ]));
+        ?>
         <?php if ($total_pages > 1): ?>
             <nav aria-label="Page navigation" style="margin-top: clamp(20px, 4vw, 25px);">
                 <ul class="pagination justify-content-center">
                     <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
-                        <a class="page-link" href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>&status=<?php echo urlencode($status_filter); ?>&date_from=<?php echo urlencode($date_from); ?>&date_to=<?php echo urlencode($date_to); ?>">
+                        <a class="page-link" href="?page=<?php echo $page - 1; ?>&<?php echo $filter_params; ?>">
                             Previous
                         </a>
                     </li>
@@ -459,7 +571,7 @@ $records = $stmt->fetchAll();
                     <?php for ($i = 1; $i <= $total_pages; $i++): ?>
                         <?php if ($i == 1 || $i == $total_pages || abs($i - $page) <= 2): ?>
                             <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
-                                <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>&status=<?php echo urlencode($status_filter); ?>&date_from=<?php echo urlencode($date_from); ?>&date_to=<?php echo urlencode($date_to); ?>">
+                                <a class="page-link" href="?page=<?php echo $i; ?>&<?php echo $filter_params; ?>">
                                     <?php echo $i; ?>
                                 </a>
                             </li>
@@ -469,7 +581,7 @@ $records = $stmt->fetchAll();
                     <?php endfor; ?>
 
                     <li class="page-item <?php echo $page >= $total_pages ? 'disabled' : ''; ?>">
-                        <a class="page-link" href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>&status=<?php echo urlencode($status_filter); ?>&date_from=<?php echo urlencode($date_from); ?>&date_to=<?php echo urlencode($date_to); ?>">
+                        <a class="page-link" href="?page=<?php echo $page + 1; ?>&<?php echo $filter_params; ?>">
                             Next
                         </a>
                     </li>
@@ -630,7 +742,7 @@ $records = $stmt->fetchAll();
 
     // Export to CSV
     function exportToCSV() {
-        window.location.href = '../api/export_records.php?search=<?php echo urlencode($search); ?>&status=<?php echo urlencode($status_filter); ?>&date_from=<?php echo urlencode($date_from); ?>&date_to=<?php echo urlencode($date_to); ?>';
+        window.location.href = '../api/export_records.php?search=<?php echo urlencode($search); ?>&status=<?php echo urlencode($status_filter); ?>&date_from=<?php echo urlencode($date_from); ?>&date_to=<?php echo urlencode($date_to); ?>&month=<?php echo $month_filter; ?>&year=<?php echo $year_filter; ?>&emergency=<?php echo urlencode($emergency_filter); ?>&vehicle=<?php echo urlencode($vehicle_filter); ?>&sort=<?php echo urlencode($sort_by); ?>';
     }
 
     // View record in modal

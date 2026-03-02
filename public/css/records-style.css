@@ -761,6 +761,10 @@ a.btn-table:hover {
     display: none;
 }
 
+.table-content {
+    display: table-row-group;
+}
+
 .loading .skeleton-loader {
     display: table-row-group;
 }
