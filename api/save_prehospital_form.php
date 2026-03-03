@@ -222,8 +222,16 @@ try {
     $growth_status = !empty($_POST['growth_status']) ? sanitize($_POST['growth_status'], false) : null; // Don't uppercase enum
     $gender = sanitize($_POST['gender'] ?? '', false); // Don't uppercase gender
 
+    // Normalize date_of_birth: treat whitespace-only or invalid placeholders as empty
+    if ($date_of_birth !== null) {
+        $date_of_birth = trim($date_of_birth);
+        if ($date_of_birth === '' || $date_of_birth === '0000-00-00') {
+            $date_of_birth = null;
+        }
+    }
+
     // Debug logging
-    error_log("Patient validation - Name: '$patient_name', DOB: '$date_of_birth', Age: $age, Gender: '$gender'");
+    error_log("Patient validation - Name: '$patient_name', DOB: '" . ($date_of_birth ?? 'NULL') . "', Age: $age, Gender: '$gender'");
 
     // Detailed validation with specific error messages
     $missing_fields = [];
@@ -245,7 +253,7 @@ try {
 
     // Validate date of birth only if provided
     if (!empty($date_of_birth) && !validate_date($date_of_birth)) {
-        throw new Exception('Invalid date of birth');
+        throw new Exception('Invalid date of birth format. Please use the date picker or enter date as YYYY-MM-DD.');
     }
 
     // Convert empty DOB to null for database
@@ -653,8 +661,8 @@ try {
                 sanitize($injury['type'] ?? 'other'),
                 sanitize($injury['view'] ?? 'front'),
                 $body_part,
-                (int)($injury['x'] ?? 0),
-                (int)($injury['y'] ?? 0),
+                round((float)($injury['x'] ?? 0), 2),
+                round((float)($injury['y'] ?? 0), 2),
                 sanitize($injury['notes'] ?? '')
             ];
 

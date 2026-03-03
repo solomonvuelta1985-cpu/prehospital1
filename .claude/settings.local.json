@@ -3,7 +3,8 @@
     "allow": [
       "Bash(\"c:\\xampp\\htdocs\\123\\public\\records.temp.php\")",
       "Bash(c:/xampp/php/php.exe:*)",
-      "Bash(/c/xampp/php/php.exe:*)"
+      "Bash(/c/xampp/php/php.exe:*)",
+      "Bash(flutter create:*)"
     ],
     "deny": [],
     "ask": []

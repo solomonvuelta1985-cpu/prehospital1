@@ -186,8 +186,8 @@ CREATE TABLE IF NOT EXISTS injuries (
     injury_number INT NOT NULL,
     injury_type ENUM('laceration', 'fracture', 'burn', 'contusion', 'abrasion', 'other') NOT NULL,
     body_view ENUM('front', 'back') NOT NULL,
-    coordinate_x INT NOT NULL,
-    coordinate_y INT NOT NULL,
+    coordinate_x DECIMAL(6,2) NOT NULL,
+    coordinate_y DECIMAL(6,2) NOT NULL,
     notes TEXT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     

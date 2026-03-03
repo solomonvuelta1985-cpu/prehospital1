@@ -137,7 +137,12 @@ function validate_date($date, $format = 'Y-m-d') {
     if (empty($date) || $date === null || !is_string($date)) {
         return false;
     }
-    $d = DateTime::createFromFormat($format, (string)$date);
+    // Trim whitespace that might slip through from Flatpickr or manual input
+    $date = trim($date);
+    if (empty($date)) {
+        return false;
+    }
+    $d = DateTime::createFromFormat($format, $date);
     return $d && $d->format($format) === $date;
 }
 

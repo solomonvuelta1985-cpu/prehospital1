@@ -3033,7 +3033,9 @@ $current_user = get_auth_user();
                                 // Explicitly clear the field
                                 input.value = '';
                             }
-                        } else if (input.type === 'date' || input.type === 'datetime-local') {
+                        } else if (input.type === 'date' || input.type === 'datetime-local' ||
+                                   (input.name && (input.name.includes('date') || input.name === 'lmp' || input.name === 'edc' || input.name === 'form_date'))) {
+                            // Check by name too since Flatpickr changes type="date" to type="text"
                             const dateValue = data[key];
                             // Only set value if it's not null, empty, or 0000-00-00
                             if (dateValue &&
@@ -3041,10 +3043,19 @@ $current_user = get_auth_user();
                                 dateValue !== '0000-00-00 00:00:00' &&
                                 dateValue !== 'null' &&
                                 dateValue.trim() !== '') {
-                                input.value = dateValue;
+                                // Use Flatpickr API if available for proper date handling
+                                if (input._flatpickr) {
+                                    input._flatpickr.setDate(dateValue, true);
+                                } else {
+                                    input.value = dateValue;
+                                }
                             } else {
                                 // Explicitly clear the field
-                                input.value = '';
+                                if (input._flatpickr) {
+                                    input._flatpickr.clear();
+                                } else {
+                                    input.value = '';
+                                }
                             }
                         } else {
                             // Regular input - set value or empty string

@@ -679,6 +679,18 @@ function submitFormData() {
         narrativeField.value = narrativeTextEl.textContent.trim();
     }
 
+    // Clean date fields before submission - ensure empty/invalid values are cleared
+    const dateFieldNames = ['date_of_birth', 'form_date', 'lmp', 'edc'];
+    dateFieldNames.forEach(name => {
+        const input = document.querySelector(`[name="${name}"]`);
+        if (input) {
+            const val = input.value ? input.value.trim() : '';
+            if (val === '' || val === '0000-00-00') {
+                input.value = '';
+            }
+        }
+    });
+
     // Get the form element
     const form = document.getElementById('preHospitalForm');
     const formData = new FormData(form);
@@ -1805,15 +1817,59 @@ function loadExistingInjuries() {
             console.log('Loaded injuries:', injuries);
         };
 
-        // Wait for window load to ensure all images and layout are ready
+        // Wait for body diagram images to fully load before rendering markers
+        // Using getBoundingClientRect() requires images to have their final dimensions
+        const waitForImagesAndRender = () => {
+            const frontImg = document.querySelector('#frontContainer .body-image');
+            const backImg = document.querySelector('#backContainer .body-image');
+            const images = [frontImg, backImg].filter(Boolean);
+
+            if (images.length === 0) {
+                console.error('Body diagram images not found');
+                return;
+            }
+
+            // Check if all images are loaded and have valid dimensions
+            const allLoaded = images.every(img => img.complete && img.naturalHeight > 0);
+
+            if (allLoaded) {
+                // Images loaded - use requestAnimationFrame to ensure layout is settled
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        renderInjuries();
+                    });
+                });
+            } else {
+                // Wait for images to load
+                let loadedCount = 0;
+                const onImageReady = () => {
+                    loadedCount++;
+                    if (loadedCount >= images.filter(img => !img.complete || img.naturalHeight === 0).length) {
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                renderInjuries();
+                            });
+                        });
+                    }
+                };
+                images.forEach(img => {
+                    if (!img.complete || img.naturalHeight === 0) {
+                        img.addEventListener('load', onImageReady, { once: true });
+                    }
+                });
+                // Fallback timeout in case load events don't fire
+                setTimeout(() => {
+                    if (injuries.length === 0) {
+                        renderInjuries();
+                    }
+                }, 2000);
+            }
+        };
+
         if (document.readyState === 'complete') {
-            // Page already loaded, render immediately
-            setTimeout(renderInjuries, 100); // Small delay to ensure layout is settled
+            waitForImagesAndRender();
         } else {
-            // Wait for full page load including images
-            window.addEventListener('load', () => {
-                setTimeout(renderInjuries, 100); // Small delay to ensure layout is settled
-            });
+            window.addEventListener('load', waitForImagesAndRender);
         }
 
     } catch (error) {
