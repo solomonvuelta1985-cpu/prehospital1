@@ -148,7 +148,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'backup') {
         <div class="settings-card">
             <h5><i class="bi bi-database"></i> Database Backup</h5>
             <p class="text-muted small">Create a database backup manually. Backups are stored in the <code>/backups</code> directory with automatic rotation.</p>
-            <a href="settings.php?action=backup" class="btn btn-success" onclick="return confirm('Create a database backup now?')">
+            <a href="settings.php?action=backup" class="btn btn-success" id="btnBackup">
                 <i class="bi bi-download"></i> Backup Now
             </a>
         </div>
@@ -168,5 +168,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'backup') {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script nonce="<?php echo CSP_NONCE; ?>">
+    document.getElementById('btnBackup')?.addEventListener('click', function(e) {
+        if (!confirm('Create a database backup now?')) { e.preventDefault(); }
+    });
+    </script>
 </body>
 </html>

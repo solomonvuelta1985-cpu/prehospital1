@@ -754,13 +754,13 @@ if ($is_admin) {
                 </div>
                 <div class="section-body">
                     <div class="d-flex flex-wrap gap-2">
-                        <button onclick="window.print()" class="btn btn-outline">
+                        <button data-action="print" class="btn btn-outline">
                             <i class="bi bi-printer"></i> Print
                         </button>
-                        <button onclick="exportToCSV()" class="btn btn-outline">
+                        <button data-action="exportToCSV" class="btn btn-outline">
                             <i class="bi bi-file-earmark-spreadsheet"></i> CSV
                         </button>
-                        <button onclick="exportToPDF()" class="btn btn-outline">
+                        <button data-action="exportToPDF" class="btn btn-outline">
                             <i class="bi bi-file-earmark-pdf"></i> PDF
                         </button>
                     </div>
@@ -1003,6 +1003,17 @@ if ($is_admin) {
         function exportToPDF() {
             window.print();
         }
+
+        // CSP-compliant event delegation
+        document.addEventListener('click', function(e) {
+            var el = e.target.closest('[data-action]');
+            if (!el) return;
+            switch (el.getAttribute('data-action')) {
+                case 'print': window.print(); break;
+                case 'exportToCSV': exportToCSV(); break;
+                case 'exportToPDF': exportToPDF(); break;
+            }
+        });
     </script>
 </body>
 </html>

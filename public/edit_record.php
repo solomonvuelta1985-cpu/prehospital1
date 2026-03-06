@@ -1102,7 +1102,7 @@ if (!is_array($initial_helmet)) {
                                         <span>Current Patient Photo</span>
                                     </div>
                                     <div class="preview-card">
-                                        <div class="preview-image-wrapper" onclick="openExistingPatientImageModal('<?php echo e($record['patient_documentation']); ?>')">
+                                        <div class="preview-image-wrapper" data-action="openExistingPatientImageModal" data-arg="<?php echo e($record['patient_documentation']); ?>">
                                             <img src="<?php echo e($record['patient_documentation']); ?>" alt="Patient Documentation">
                                             <div class="preview-overlay">
                                                 <i class="bi bi-zoom-in"></i>
@@ -1158,7 +1158,7 @@ if (!is_array($initial_helmet)) {
                                 <!-- Camera Container -->
                                 <div id="patientCameraContainer" class="patient-camera-container">
                                     <div class="camera-top-bar">
-                                        <button type="button" class="camera-close-btn" onclick="closePatientCamera()">
+                                        <button type="button" class="camera-close-btn" data-action="closePatientCamera">
                                             <i class="bi bi-x-lg"></i>
                                         </button>
                                         <span class="camera-top-label">Patient Photo</span>
@@ -1170,10 +1170,10 @@ if (!is_array($initial_helmet)) {
                                     </div>
                                     <div class="camera-bottom-bar">
                                         <div class="camera-bottom-spacer"></div>
-                                        <button type="button" class="camera-shutter-btn" id="capturePatientBtn" onclick="capturePatientPhoto()">
+                                        <button type="button" class="camera-shutter-btn" id="capturePatientBtn" data-action="capturePatientPhoto">
                                             <span class="shutter-ring"><span class="shutter-inner"></span></span>
                                         </button>
-                                        <button type="button" class="camera-flip-btn" id="flipPatientCameraBtn" onclick="flipPatientCamera()">
+                                        <button type="button" class="camera-flip-btn" id="flipPatientCameraBtn" data-action="flipPatientCamera">
                                             <i class="bi bi-arrow-repeat"></i>
                                         </button>
                                     </div>
@@ -1186,7 +1186,7 @@ if (!is_array($initial_helmet)) {
                                         <span>New Photo Preview</span>
                                     </div>
                                     <div class="preview-card">
-                                        <div class="preview-image-wrapper" onclick="openPatientImageModal()">
+                                        <div class="preview-image-wrapper" data-action="openPatientImageModal">
                                             <img id="patientAttachmentPreview" src="" alt="Patient Documentation Preview">
                                             <div class="preview-overlay">
                                                 <i class="bi bi-zoom-in"></i>
@@ -1198,7 +1198,7 @@ if (!is_array($initial_helmet)) {
                                                 <i class="bi bi-check-circle-fill"></i>
                                                 New photo ready
                                             </span>
-                                            <button type="button" class="remove-preview-btn" id="removePatientAttachmentBtn" onclick="removePatientAttachment()">
+                                            <button type="button" class="remove-preview-btn" id="removePatientAttachmentBtn" data-action="removePatientAttachment">
                                                 <i class="bi bi-trash3"></i>
                                                 Remove
                                             </button>
@@ -1224,9 +1224,9 @@ if (!is_array($initial_helmet)) {
                         </div>
 
                         <!-- Image Preview Modal -->
-                        <div id="patientImageModal" class="image-preview-modal" onclick="closePatientImageModal()">
-                            <div class="modal-content-custom" onclick="event.stopPropagation()">
-                                <button type="button" class="modal-close-btn" onclick="closePatientImageModal()">
+                        <div id="patientImageModal" class="image-preview-modal" data-action="closePatientImageModal">
+                            <div class="modal-content-custom" data-action="stopPropagation">
+                                <button type="button" class="modal-close-btn" data-action="closePatientImageModal">
                                     <i class="bi bi-x-lg"></i>
                                 </button>
                                 <img id="patientModalImage" src="" alt="Patient Documentation">
@@ -1702,11 +1702,11 @@ if (!is_array($initial_helmet)) {
 
                                     <!-- Action Buttons - Redesigned -->
                                     <div class="diagram-actions">
-                                        <button type="button" class="action-btn btn-clear" onclick="clearAllInjuries()" title="Remove all marked injuries">
+                                        <button type="button" class="action-btn btn-clear" data-action="clearAllInjuries" title="Remove all marked injuries">
                                             <i class="bi bi-trash3"></i>
                                             <span>Clear All</span>
                                         </button>
-                                        <button type="button" class="action-btn btn-export" onclick="exportInjuryData()" title="Export injury data as JSON">
+                                        <button type="button" class="action-btn btn-export" data-action="exportInjuryData" title="Export injury data as JSON">
                                             <i class="bi bi-download"></i>
                                             <span>Export</span>
                                         </button>
@@ -1967,7 +1967,7 @@ if (!is_array($initial_helmet)) {
                             </div>
 
                             <div class="endorsement-doc-body">
-                                <?php if (!empty($record['endorsement_attachment'])): ?>
+                                <?php if (!empty($record['endorsement_attachment']) && file_exists(__DIR__ . '/' . $record['endorsement_attachment'])): ?>
                                 <!-- Existing Endorsement Display -->
                                 <div class="existing-patient-doc">
                                     <div class="existing-doc-label">
@@ -1975,7 +1975,7 @@ if (!is_array($initial_helmet)) {
                                         <span>Current Endorsement Document</span>
                                     </div>
                                     <div class="preview-card">
-                                        <div class="preview-image-wrapper" onclick="openExistingEndorsementImageModal('<?php echo e($record['endorsement_attachment']); ?>')">
+                                        <div class="preview-image-wrapper" data-action="openExistingEndorsementImageModal" data-arg="<?php echo e($record['endorsement_attachment']); ?>">
                                             <img src="<?php echo e($record['endorsement_attachment']); ?>" alt="Endorsement Attachment">
                                             <div class="preview-overlay">
                                                 <i class="bi bi-zoom-in"></i>
@@ -2031,7 +2031,7 @@ if (!is_array($initial_helmet)) {
                                 <!-- Camera Container -->
                                 <div id="cameraContainer" class="endorsement-camera-container">
                                     <div class="camera-top-bar">
-                                        <button type="button" class="camera-close-btn" onclick="closeCamera()">
+                                        <button type="button" class="camera-close-btn" data-action="closeCamera">
                                             <i class="bi bi-x-lg"></i>
                                         </button>
                                         <span class="camera-top-label">Endorsement Document</span>
@@ -2043,10 +2043,10 @@ if (!is_array($initial_helmet)) {
                                     </div>
                                     <div class="camera-bottom-bar">
                                         <div class="camera-bottom-spacer"></div>
-                                        <button type="button" class="camera-shutter-btn" id="captureBtn" onclick="capturePhoto()">
+                                        <button type="button" class="camera-shutter-btn" id="captureBtn" data-action="capturePhoto">
                                             <span class="shutter-ring"><span class="shutter-inner"></span></span>
                                         </button>
-                                        <button type="button" class="camera-flip-btn" id="flipEndorsementCameraBtn" onclick="flipEndorsementCamera()">
+                                        <button type="button" class="camera-flip-btn" id="flipEndorsementCameraBtn" data-action="flipEndorsementCamera">
                                             <i class="bi bi-arrow-repeat"></i>
                                         </button>
                                     </div>
@@ -2059,7 +2059,7 @@ if (!is_array($initial_helmet)) {
                                         <span>New Document Preview</span>
                                     </div>
                                     <div class="preview-card">
-                                        <div class="preview-image-wrapper" onclick="openEndorsementImageModal()">
+                                        <div class="preview-image-wrapper" data-action="openEndorsementImageModal">
                                             <img id="attachmentPreview" src="" alt="Endorsement Attachment Preview">
                                             <div class="preview-overlay">
                                                 <i class="bi bi-zoom-in"></i>
@@ -2071,7 +2071,7 @@ if (!is_array($initial_helmet)) {
                                                 <i class="bi bi-check-circle-fill"></i>
                                                 New document ready
                                             </span>
-                                            <button type="button" class="remove-preview-btn" id="removeAttachmentBtn" onclick="removeAttachment()">
+                                            <button type="button" class="remove-preview-btn" id="removeAttachmentBtn" data-action="removeAttachment">
                                                 <i class="bi bi-trash3"></i>
                                                 Remove
                                             </button>
@@ -2088,9 +2088,9 @@ if (!is_array($initial_helmet)) {
                         </div>
 
                         <!-- Endorsement Image Preview Modal -->
-                        <div id="endorsementImageModal" class="image-preview-modal" onclick="closeEndorsementImageModal()">
-                            <div class="modal-content-custom" onclick="event.stopPropagation()">
-                                <button type="button" class="modal-close-btn" onclick="closeEndorsementImageModal()">
+                        <div id="endorsementImageModal" class="image-preview-modal" data-action="closeEndorsementImageModal">
+                            <div class="modal-content-custom" data-action="stopPropagation">
+                                <button type="button" class="modal-close-btn" data-action="closeEndorsementImageModal">
                                     <i class="bi bi-x-lg"></i>
                                 </button>
                                 <img id="endorsementModalImage" src="" alt="Endorsement Attachment">
@@ -2111,17 +2111,17 @@ if (!is_array($initial_helmet)) {
         </form>
 
         <div class="navigation-buttons">
-            <button type="button" class="btn btn-outline-secondary" onclick="window.location.href='records.php'">
+            <button type="button" class="btn btn-outline-secondary" data-action="goToRecords">
                 <i class="bi bi-x-lg"></i> Cancel
             </button>
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-outline-primary" id="prevBtn" onclick="navigateTab(-1)">
+                <button type="button" class="btn btn-outline-primary" id="prevBtn" data-action="navigateTab" data-arg="-1">
                     <i class="bi bi-chevron-left"></i> Previous
                 </button>
-                <button type="button" class="btn btn-primary" id="nextBtn" onclick="navigateTab(1)">
+                <button type="button" class="btn btn-primary" id="nextBtn" data-action="navigateTab" data-arg="1">
                     Next <i class="bi bi-chevron-right"></i>
                 </button>
-                <button type="button" class="btn btn-success" id="updateBtn" onclick="updateRecord()" style="display: none;">
+                <button type="button" class="btn btn-success" id="updateBtn" data-action="updateRecord" style="display: none;">
                     <i class="bi bi-check2"></i> Update Record
                 </button>
             </div>
@@ -2553,6 +2553,35 @@ if (!is_array($initial_helmet)) {
             
             document.getElementById('age').value = age;
         });
+    // CSP-compliant event delegation for data-action attributes
+    document.addEventListener('click', function(e) {
+        var el = e.target.closest('[data-action]');
+        if (!el) return;
+        var action = el.getAttribute('data-action');
+        var arg = el.getAttribute('data-arg');
+        switch (action) {
+            case 'stopPropagation': e.stopPropagation(); return;
+            case 'closePatientCamera': closePatientCamera(); break;
+            case 'capturePatientPhoto': capturePatientPhoto(); break;
+            case 'flipPatientCamera': flipPatientCamera(); break;
+            case 'openPatientImageModal': openPatientImageModal(); break;
+            case 'removePatientAttachment': removePatientAttachment(); break;
+            case 'closePatientImageModal': closePatientImageModal(); break;
+            case 'openExistingPatientImageModal': openExistingPatientImageModal(arg); break;
+            case 'clearAllInjuries': clearAllInjuries(); break;
+            case 'exportInjuryData': exportInjuryData(); break;
+            case 'closeCamera': closeCamera(); break;
+            case 'capturePhoto': capturePhoto(); break;
+            case 'flipEndorsementCamera': flipEndorsementCamera(); break;
+            case 'openEndorsementImageModal': openEndorsementImageModal(); break;
+            case 'removeAttachment': removeAttachment(); break;
+            case 'closeEndorsementImageModal': closeEndorsementImageModal(); break;
+            case 'openExistingEndorsementImageModal': openExistingEndorsementImageModal(arg); break;
+            case 'navigateTab': navigateTab(parseInt(arg)); break;
+            case 'updateRecord': updateRecord(); break;
+            case 'goToRecords': window.location.href = 'records.php'; break;
+        }
+    });
     </script>
 </body>
 </html>

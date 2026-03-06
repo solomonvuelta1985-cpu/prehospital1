@@ -3,8 +3,8 @@
 // Handles tab switching, progress tracking, and summary generation
 // ============================================
 
-let currentTab = 0;
-let totalTabs = 7;
+var currentTab = 0;
+var totalTabs = 7;
 
 // Adjust for edit form which has 6 tabs
 if (document.getElementById('editForm')) {
@@ -408,17 +408,16 @@ function printSummary() {
                 Pre-Hospital Care Form Summary
             </h2>
             ${summaryContent}
-            <script>
-                window.onload = function() {
-                    window.print();
-                    setTimeout(function() { window.close(); }, 100);
-                }
-            </script>
         </body>
         </html>
     `);
 
     printWindow.document.close();
+    // Trigger print via JS after document loads (CSP blocks inline scripts in new windows)
+    printWindow.onload = function() {
+        printWindow.print();
+        setTimeout(function() { printWindow.close(); }, 100);
+    };
 }
 
 // Copy Summary to Clipboard

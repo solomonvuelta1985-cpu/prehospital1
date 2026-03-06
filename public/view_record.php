@@ -919,7 +919,7 @@ $current_user = get_auth_user();
                 <a href="records.php" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Back to Records
                 </a>
-                <button onclick="window.print()" class="btn btn-primary">
+                <button data-action="print" class="btn btn-primary">
                     <i class="bi bi-printer"></i> Print
                 </button>
                 <a href="../api/export_pdf.php?id=<?php echo $record['id']; ?>" class="btn btn-danger">
@@ -1323,7 +1323,7 @@ $current_user = get_auth_user();
                 <a href="records.php" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Back to Records
                 </a>
-                <button onclick="window.print()" class="btn btn-primary">
+                <button data-action="print" class="btn btn-primary">
                     <i class="bi bi-printer"></i> Print
                 </button>
                 <a href="../api/export_pdf.php?id=<?php echo $record['id']; ?>" class="btn btn-danger">
@@ -1390,6 +1390,13 @@ $current_user = get_auth_user();
                     Notiflix.Notify.info('<?php echo $message; ?>', { timeout: 3000 });
                 <?php endif; ?>
             <?php endif; ?>
+        });
+
+        // CSP-compliant event delegation
+        document.addEventListener('click', function(e) {
+            var el = e.target.closest('[data-action]');
+            if (!el) return;
+            if (el.getAttribute('data-action') === 'print') { window.print(); }
         });
     </script>
 </body>

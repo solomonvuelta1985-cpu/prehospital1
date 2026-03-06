@@ -15,12 +15,89 @@ require_admin();
 
 $current_user = get_auth_user();
 
-// Stats
-$total_records = db_query("SELECT COUNT(*) as c FROM prehospital_forms")->fetch()['c'] ?? 0;
-$today_records = db_query("SELECT COUNT(*) as c FROM prehospital_forms WHERE DATE(created_at) = CURDATE()")->fetch()['c'] ?? 0;
-$total_users = db_query("SELECT COUNT(*) as c FROM users")->fetch()['c'] ?? 0;
-$active_users = db_query("SELECT COUNT(*) as c FROM users WHERE status = 'active'")->fetch()['c'] ?? 0;
-$restricted_users = db_query("SELECT COUNT(*) as c FROM users WHERE is_restricted = 1")->fetch()['c'] ?? 0;
+// Stats - null-safe to prevent fatal errors if queries fail
+$stmt = db_query("SELECT COUNT(*) as c FROM prehospital_forms");
+$total_records = $stmt ? ($stmt->fetch()['c'] ?? 0) : 0;
+
+$stmt = db_query("SELECT COUNT(*) as c FROM prehospital_forms WHERE DATE(created_at) = CURDATE()");
+$today_records = $stmt ? ($stmt->fetch()['c'] ?? 0) : 0;
+
+$stmt = db_query("SELECT COUNT(*) as c FROM users");
+$total_users = $stmt ? ($stmt->fetch()['c'] ?? 0) : 0;
+
+$stmt = db_query("SELECT COUNT(*) as c FROM users WHERE status = 'active'");
+$active_users = $stmt ? ($stmt->fetch()['c'] ?? 0) : 0;
+
+$stmt = db_query("SELECT COUNT(*) as c FROM users WHERE is_restricted = 1");
+$restricted_users = $stmt ? ($stmt->fetch()['c'] ?? 0) : 0;
+
+// Monthly data for chart (last 12 months)
+$twelve_months_ago = date('Y-m-01', strtotime('-11 months'));
+$monthly_stmt = db_query("
+    SELECT DATE_FORMAT(form_date, '%Y-%m') as month, COUNT(*) as count
+    FROM prehospital_forms
+    WHERE form_date >= ?
+    GROUP BY DATE_FORMAT(form_date, '%Y-%m')
+    ORDER BY month ASC
+", [$twelve_months_ago]);
+
+$monthly_counts = [];
+if ($monthly_stmt) {
+    while ($row = $monthly_stmt->fetch()) {
+        $monthly_counts[$row['month']] = (int)$row['count'];
+    }
+}
+
+$monthly_labels = [];
+$monthly_data = [];
+for ($i = 11; $i >= 0; $i--) {
+    $month = date('Y-m', strtotime("-$i months"));
+    $label = date('M Y', strtotime("-$i months"));
+    $monthly_labels[] = $label;
+    $monthly_data[] = $monthly_counts[$month] ?? 0;
+}
+
+// Emergency type distribution for chart
+$emergency_stmt = db_query("
+    SELECT
+        SUM(emergency_medical) as medical,
+        SUM(emergency_trauma) as trauma,
+        SUM(emergency_ob) as ob,
+        SUM(emergency_general) as general_emergency
+    FROM prehospital_forms
+");
+$emergency_data = $emergency_stmt ? $emergency_stmt->fetch() : false;
+$emergency_counts = [
+    'Medical' => (int)($emergency_data['medical'] ?? 0),
+    'Trauma' => (int)($emergency_data['trauma'] ?? 0),
+    'OB/GYN' => (int)($emergency_data['ob'] ?? 0),
+    'General' => (int)($emergency_data['general_emergency'] ?? 0),
+];
+
+// Daily data for last 7 days
+$seven_days_ago = date('Y-m-d', strtotime('-6 days'));
+$daily_stmt = db_query("
+    SELECT DATE(form_date) as date, COUNT(*) as count
+    FROM prehospital_forms
+    WHERE form_date >= ? AND form_date <= CURDATE()
+    GROUP BY DATE(form_date)
+    ORDER BY DATE(form_date) ASC
+", [$seven_days_ago]);
+
+$daily_counts = [];
+if ($daily_stmt) {
+    while ($row = $daily_stmt->fetch()) {
+        $daily_counts[$row['date']] = (int)$row['count'];
+    }
+}
+
+$daily_labels = [];
+$daily_data = [];
+for ($i = 6; $i >= 0; $i--) {
+    $date = date('Y-m-d', strtotime("-$i days"));
+    $daily_labels[] = date('M d', strtotime("-$i days"));
+    $daily_data[] = $daily_counts[$date] ?? 0;
+}
 
 // Recent logins (last 15)
 $login_sql = "SELECT lh.*, u.username, u.full_name
@@ -46,6 +123,7 @@ $recent_activity = $activity_stmt ? $activity_stmt->fetchAll() : [];
     <title>Admin Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         body { background: #f5f5f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .page-header { background: #fff; border-bottom: 2px solid #dee2e6; padding: 1.5rem 0; margin-bottom: 2rem; }
@@ -65,6 +143,12 @@ $recent_activity = $activity_stmt ? $activity_stmt->fetchAll() : [];
         .table { margin-bottom: 0; font-size: 0.85rem; }
         .table th { font-weight: 600; background: #f8f9fa; }
         .nav-pills .nav-link.active { background-color: #0d6efd; }
+        .chart-panel { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; margin-bottom: 1.5rem; }
+        .chart-panel .panel-header { padding: 1rem 1.25rem; border-bottom: 1px solid #dee2e6; font-weight: 600; font-size: 0.95rem; }
+        .chart-panel .panel-header i { color: #0d6efd; margin-right: 0.5rem; }
+        .chart-panel .panel-body { padding: 1.25rem; }
+        .chart-container { position: relative; height: 300px; }
+        .chart-container.pie { height: 280px; }
     </style>
 </head>
 <body>
@@ -116,6 +200,47 @@ $recent_activity = $activity_stmt ? $activity_stmt->fetchAll() : [];
                 <div class="stat-card <?= $restricted_users > 0 ? 'danger' : 'success' ?>">
                     <h3><?= number_format($restricted_users) ?></h3>
                     <small>Restricted</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row g-3 mb-4">
+            <!-- Monthly Performance -->
+            <div class="col-lg-8">
+                <div class="chart-panel">
+                    <div class="panel-header"><i class="bi bi-graph-up"></i> Monthly Performance</div>
+                    <div class="panel-body">
+                        <div class="chart-container">
+                            <canvas id="monthlyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Types -->
+            <div class="col-lg-4">
+                <div class="chart-panel">
+                    <div class="panel-header"><i class="bi bi-pie-chart"></i> Emergency Types</div>
+                    <div class="panel-body">
+                        <div class="chart-container pie">
+                            <canvas id="emergencyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Activity -->
+        <div class="row g-3 mb-4">
+            <div class="col-12">
+                <div class="chart-panel">
+                    <div class="panel-header"><i class="bi bi-bar-chart"></i> Daily Activity (Last 7 Days)</div>
+                    <div class="panel-body">
+                        <div class="chart-container" style="height: 250px;">
+                            <canvas id="dailyChart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -173,6 +298,17 @@ $recent_activity = $activity_stmt ? $activity_stmt->fetchAll() : [];
         </div>
     </div>
 
+    <!-- Chart data passed via data attributes (CSP-safe, no inline script needed) -->
+    <div id="admin-chart-data" style="display:none"
+         data-monthly-labels="<?php echo htmlspecialchars(json_encode($monthly_labels), ENT_QUOTES, 'UTF-8'); ?>"
+         data-monthly-data="<?php echo htmlspecialchars(json_encode($monthly_data), ENT_QUOTES, 'UTF-8'); ?>"
+         data-emergency-labels="<?php echo htmlspecialchars(json_encode(array_keys($emergency_counts)), ENT_QUOTES, 'UTF-8'); ?>"
+         data-emergency-data="<?php echo htmlspecialchars(json_encode(array_values($emergency_counts)), ENT_QUOTES, 'UTF-8'); ?>"
+         data-daily-labels="<?php echo htmlspecialchars(json_encode($daily_labels), ENT_QUOTES, 'UTF-8'); ?>"
+         data-daily-data="<?php echo htmlspecialchars(json_encode($daily_data), ENT_QUOTES, 'UTF-8'); ?>">
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/admin-dashboard-charts.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>

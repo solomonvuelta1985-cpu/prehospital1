@@ -25,15 +25,15 @@ $per_page = 20;
 $offset = ($page - 1) * $per_page;
 
 // Search and filter
-$search = isset($_GET['search']) ? sanitize($_GET['search']) : '';
-$status_filter = isset($_GET['status']) ? sanitize($_GET['status']) : '';
-$date_from = isset($_GET['date_from']) ? sanitize($_GET['date_from']) : '';
-$date_to = isset($_GET['date_to']) ? sanitize($_GET['date_to']) : '';
+$search = isset($_GET['search']) ? (sanitize($_GET['search']) ?? '') : '';
+$status_filter = isset($_GET['status']) ? (sanitize($_GET['status']) ?? '') : '';
+$date_from = isset($_GET['date_from']) ? (sanitize($_GET['date_from']) ?? '') : '';
+$date_to = isset($_GET['date_to']) ? (sanitize($_GET['date_to']) ?? '') : '';
 $month_filter = isset($_GET['month']) ? (int)$_GET['month'] : 0;
 $year_filter = isset($_GET['year']) ? (int)$_GET['year'] : 0;
-$emergency_filter = isset($_GET['emergency']) ? sanitize($_GET['emergency']) : '';
-$vehicle_filter = isset($_GET['vehicle']) ? sanitize($_GET['vehicle']) : '';
-$sort_by = isset($_GET['sort']) ? sanitize($_GET['sort']) : 'newest';
+$emergency_filter = isset($_GET['emergency']) ? (sanitize($_GET['emergency']) ?? '') : '';
+$vehicle_filter = isset($_GET['vehicle']) ? (sanitize($_GET['vehicle']) ?? '') : '';
+$sort_by = isset($_GET['sort']) ? (sanitize($_GET['sort']) ?? 'newest') : 'newest';
 
 // Validate sort option
 $allowed_sorts = [
@@ -244,7 +244,7 @@ $records = ($stmt) ? $stmt->fetchAll() : [];
         <!-- Action Section with Search and Filters -->
         <div class="action-section">
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="🔍 Search records..." onkeyup="searchRecords()">
+                <input type="text" id="searchInput" name="search" form="filtersForm" placeholder="🔍 Search records..." value="<?php echo htmlspecialchars($search ?? ''); ?>" autocomplete="off">
             </div>
             <div class="action-buttons">
                 <a href="prehospital_form.php" class="btn-custom btn-primary-custom">
@@ -261,7 +261,7 @@ $records = ($stmt) ? $stmt->fetchAll() : [];
 
         <!-- Filters Section -->
         <div class="filters-card">
-            <form method="GET" action="" class="row g-3">
+            <form method="GET" action="" class="row g-3" id="filtersForm">
                 <!-- Row 1: Status, Month, Year, Sort -->
                 <div class="col-md-3 col-sm-6">
                     <label class="form-label">Status</label>
@@ -646,21 +646,118 @@ $records = ($stmt) ? $stmt->fetchAll() : [];
         }, 1500);
     });
 
-    // Search function
-    function searchRecords() {
-        const input = document.getElementById('searchInput');
-        const filter = input.value.toUpperCase();
-        const table = document.getElementById('recordsTable');
-        const tr = table.getElementsByTagName('tr');
+    // Search function - instant AJAX search as user types
+    let searchTimeout = null;
+    let originalTableHTML = document.getElementById('tableContent').innerHTML;
 
-        for (let i = 1; i < tr.length; i++) {
+    // Attach search event listener (CSP blocks inline onkeyup)
+    document.getElementById('searchInput').addEventListener('keyup', function(event) {
+        searchRecords(event);
+    });
+
+    function searchRecords(event) {
+        const input = document.getElementById('searchInput');
+        const filter = input.value.trim();
+        const tableContent = document.getElementById('tableContent');
+
+        // If search is empty, restore original table
+        if (filter.length === 0) {
+            tableContent.innerHTML = originalTableHTML;
+            // Show all rows
+            const tr = tableContent.getElementsByTagName('tr');
+            for (let i = 0; i < tr.length; i++) {
+                tr[i].style.display = '';
+            }
+            return;
+        }
+
+        // Instant client-side filter on visible rows
+        const tr = tableContent.getElementsByTagName('tr');
+        for (let i = 0; i < tr.length; i++) {
             let txtValue = tr[i].textContent || tr[i].innerText;
-            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+            if (txtValue.toUpperCase().indexOf(filter.toUpperCase()) > -1) {
                 tr[i].style.display = '';
             } else {
                 tr[i].style.display = 'none';
             }
         }
+
+        // Debounced AJAX server search (fetches ALL matching records without page reload)
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+            fetch('../api/search_records.php?search=' + encodeURIComponent(filter))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.records) {
+                        renderSearchResults(data.records);
+                    }
+                })
+                .catch(err => console.error('Search error:', err));
+        }, 400);
+    }
+
+    function renderSearchResults(records) {
+        const tableContent = document.getElementById('tableContent');
+
+        if (records.length === 0) {
+            tableContent.innerHTML = `
+                <tr>
+                    <td colspan="11" style="text-align: center; padding: 30px;">
+                        <div class="empty-state">
+                            <i class="fas fa-search"></i>
+                            <p style="color: #6c757d; margin-top: 15px;">No matching records found.</p>
+                        </div>
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        let html = '';
+        records.forEach(function(record, index) {
+            const statusClass = {
+                'draft': 'status-draft',
+                'completed': 'status-completed',
+                'archived': 'status-archived'
+            }[record.status] || 'status-draft';
+
+            const vehicleBadge = record.vehicle_used
+                ? `<span class="badge-custom status-pending">${record.vehicle_used}</span>`
+                : '<span class="text-muted">-</span>';
+
+            const draftResume = record.status === 'draft'
+                ? `<li><a class="dropdown-item" href="prehospital_form.php?draft_id=${record.id}"><i class="fas fa-play text-success"></i> Resume</a></li><li><hr class="dropdown-divider"></li>`
+                : '';
+
+            html += `
+                <tr>
+                    <td style="font-weight: 600; color: #6c757d;">${index + 1}</td>
+                    <td><strong>${record.form_number}</strong></td>
+                    <td>${record.form_date}</td>
+                    <td>${record.patient_name}</td>
+                    <td>${record.age} / ${record.gender}</td>
+                    <td>${record.emergency_types}</td>
+                    <td>${record.care_management}</td>
+                    <td>${vehicleBadge}</td>
+                    <td><i class="fas fa-user-circle" style="color: #6c757d; margin-right: 4px;"></i> ${record.created_by_name}</td>
+                    <td><span class="badge-custom ${statusClass}">${record.status.charAt(0).toUpperCase() + record.status.slice(1)}</span></td>
+                    <td>
+                        <div class="dropdown action-dropdown">
+                            <button class="btn btn-sm action-dropdown-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-cog"></i> Actions <i class="fas fa-chevron-down action-chevron"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end action-dropdown-menu">
+                                ${draftResume}
+                                <li><a class="dropdown-item" href="javascript:void(0)" data-view-record="${record.id}"><i class="fas fa-eye" style="color: #0065FF;"></i> View</a></li>
+                                <li><a class="dropdown-item" href="edit_record.php?id=${record.id}"><i class="fas fa-edit" style="color: #FF8B00;"></i> Edit</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item dropdown-item-danger" href="javascript:void(0)" data-delete-record="${record.id}"><i class="fas fa-trash"></i> Delete</a></li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>`;
+        });
+
+        tableContent.innerHTML = html;
     }
 
     // Back to top button
@@ -742,7 +839,7 @@ $records = ($stmt) ? $stmt->fetchAll() : [];
 
     // Export to CSV
     function exportToCSV() {
-        window.location.href = '../api/export_records.php?search=<?php echo urlencode($search); ?>&status=<?php echo urlencode($status_filter); ?>&date_from=<?php echo urlencode($date_from); ?>&date_to=<?php echo urlencode($date_to); ?>&month=<?php echo $month_filter; ?>&year=<?php echo $year_filter; ?>&emergency=<?php echo urlencode($emergency_filter); ?>&vehicle=<?php echo urlencode($vehicle_filter); ?>&sort=<?php echo urlencode($sort_by); ?>';
+        window.location.href = '../api/export_records.php?search=<?php echo urlencode($search ?? ''); ?>&status=<?php echo urlencode($status_filter ?? ''); ?>&date_from=<?php echo urlencode($date_from ?? ''); ?>&date_to=<?php echo urlencode($date_to ?? ''); ?>&month=<?php echo $month_filter; ?>&year=<?php echo $year_filter; ?>&emergency=<?php echo urlencode($emergency_filter ?? ''); ?>&vehicle=<?php echo urlencode($vehicle_filter ?? ''); ?>&sort=<?php echo urlencode($sort_by ?? ''); ?>';
     }
 
     // View record in modal

@@ -155,14 +155,14 @@ if (isset($_POST['clear_log'])) {
                 </div>
             </div>
             <div style="margin-top: 15px;">
-                <button onclick="location.reload()" class="btn-custom">
+                <button data-action="reload" class="btn-custom">
                     <i class="bi bi-arrow-clockwise"></i> Refresh
                 </button>
-                <button onclick="autoScroll()" class="btn-custom btn-success-custom" id="autoScrollBtn">
+                <button data-action="autoScroll" class="btn-custom btn-success-custom" id="autoScrollBtn">
                     <i class="bi bi-arrow-down-circle"></i> Auto-scroll: OFF
                 </button>
                 <form method="POST" style="display: inline;">
-                    <button type="submit" name="clear_log" class="btn-custom btn-danger-custom" onclick="return confirm('Are you sure you want to clear the log?')">
+                    <button type="submit" name="clear_log" class="btn-custom btn-danger-custom" data-action="confirmClearLog">
                         <i class="bi bi-trash"></i> Clear Log
                     </button>
                 </form>
@@ -230,6 +230,19 @@ if (isset($_POST['clear_log'])) {
         window.addEventListener('load', () => {
             const content = document.getElementById('logContent');
             content.scrollTop = content.scrollHeight;
+        });
+
+        // CSP-compliant event delegation
+        document.addEventListener('click', function(e) {
+            var el = e.target.closest('[data-action]');
+            if (!el) return;
+            switch (el.getAttribute('data-action')) {
+                case 'reload': location.reload(); break;
+                case 'autoScroll': autoScroll(); break;
+                case 'confirmClearLog':
+                    if (!confirm('Are you sure you want to clear the log?')) { e.preventDefault(); }
+                    break;
+            }
         });
     </script>
 </body>

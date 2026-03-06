@@ -531,30 +531,30 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </td>
                         <td><?= $user['last_login'] ? date('M d, Y', strtotime($user['last_login'])) : 'Never' ?></td>
                         <td>
-                            <button class="btn btn-sm btn-info btn-action" onclick="viewUser(<?= $user['id'] ?>)" title="View Details">
+                            <button class="btn btn-sm btn-info btn-action" data-action="viewUser" data-arg="<?= $user['id'] ?>" title="View Details">
                                 <i class="bi bi-eye"></i>
                             </button>
-                            <button class="btn btn-sm btn-primary btn-action" onclick="editUser(<?= $user['id'] ?>)" title="Edit User">
+                            <button class="btn btn-sm btn-primary btn-action" data-action="editUser" data-arg="<?= $user['id'] ?>" title="Edit User">
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <button class="btn btn-sm btn-warning btn-action" onclick="changePassword(<?= $user['id'] ?>, '<?= htmlspecialchars($user['username']) ?>')" title="Change Password">
+                            <button class="btn btn-sm btn-warning btn-action" data-action="changePassword" data-arg="<?= $user['id'] ?>" data-username="<?= htmlspecialchars($user['username']) ?>" title="Change Password">
                                 <i class="bi bi-key"></i>
                             </button>
                             <?php if ($user['is_restricted']): ?>
-                            <button class="btn btn-sm btn-success btn-action" onclick="toggleRestriction(<?= $user['id'] ?>, 0)" title="Unrestrict User">
+                            <button class="btn btn-sm btn-success btn-action" data-action="toggleRestriction" data-arg="<?= $user['id'] ?>" data-value="0" title="Unrestrict User">
                                 <i class="bi bi-unlock"></i>
                             </button>
                             <?php else: ?>
-                            <button class="btn btn-sm btn-secondary btn-action" onclick="toggleRestriction(<?= $user['id'] ?>, 1)" title="Restrict User">
+                            <button class="btn btn-sm btn-secondary btn-action" data-action="toggleRestriction" data-arg="<?= $user['id'] ?>" data-value="1" title="Restrict User">
                                 <i class="bi bi-lock"></i>
                             </button>
                             <?php endif; ?>
                             <?php if ($user['status'] === 'active'): ?>
-                            <button class="btn btn-sm btn-danger btn-action" onclick="toggleUserStatus(<?= $user['id'] ?>, 'inactive')" title="Deactivate">
+                            <button class="btn btn-sm btn-danger btn-action" data-action="toggleUserStatus" data-arg="<?= $user['id'] ?>" data-value="inactive" title="Deactivate">
                                 <i class="bi bi-x-circle"></i>
                             </button>
                             <?php else: ?>
-                            <button class="btn btn-sm btn-success btn-action" onclick="toggleUserStatus(<?= $user['id'] ?>, 'active')" title="Activate">
+                            <button class="btn btn-sm btn-success btn-action" data-action="toggleUserStatus" data-arg="<?= $user['id'] ?>" data-value="active" title="Activate">
                                 <i class="bi bi-check-circle"></i>
                             </button>
                             <?php endif; ?>
@@ -1063,6 +1063,20 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 }
             });
         });
+    // CSP-compliant event delegation for data-action attributes
+    document.addEventListener('click', function(e) {
+        var el = e.target.closest('[data-action]');
+        if (!el) return;
+        var action = el.getAttribute('data-action');
+        var id = parseInt(el.getAttribute('data-arg'));
+        switch (action) {
+            case 'viewUser': viewUser(id); break;
+            case 'editUser': editUser(id); break;
+            case 'changePassword': changePassword(id, el.getAttribute('data-username')); break;
+            case 'toggleRestriction': toggleRestriction(id, parseInt(el.getAttribute('data-value'))); break;
+            case 'toggleUserStatus': toggleUserStatus(id, el.getAttribute('data-value')); break;
+        }
+    });
     </script>
 </body>
 </html>
