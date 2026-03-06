@@ -12,7 +12,6 @@ require_once '../includes/auth.php';
 // Security headers
 header("X-Frame-Options: DENY");
 header("X-Content-Type-Options: nosniff");
-header("Content-Security-Policy: default-src 'self'");
 
 // Require authentication
 require_login();
@@ -42,6 +41,7 @@ if (!verify_token($_POST['csrf_token'] ?? '')) {
 
 // Handle file upload security - Patient Documentation
 $patient_documentation_path = null;
+try {
 if (isset($_FILES['patient_documentation']) && $_FILES['patient_documentation']['error'] !== UPLOAD_ERR_NO_FILE) {
     $file = $_FILES['patient_documentation'];
 
@@ -106,6 +106,11 @@ if (isset($_FILES['patient_documentation']) && $_FILES['patient_documentation'][
 
     // Add metadata comment for tracking
     // File saved with metadata: date, time, unique ID, original extension
+}
+} catch (Exception $e) {
+    error_log("File Upload Error: " . $e->getMessage());
+    set_flash('File upload error: ' . $e->getMessage(), 'error');
+    redirect('../public/prehospital_form.php');
 }
 
 // Start transaction
@@ -273,6 +278,10 @@ try {
     $zone_landmark = sanitize($_POST['zone_landmark'] ?? null);
     $incident_time = sanitize($_POST['incident_time'] ?? null, false); // Don't uppercase time
 
+    // Encrypt sensitive fields before storage
+    $patient_name = encrypt_field($patient_name);
+    $address = encrypt_field($address);
+
     // Informant Details
     $informant_name = sanitize($_POST['informant_name'] ?? null);
     $informant_address = sanitize($_POST['informant_address'] ?? null);
@@ -300,7 +309,21 @@ try {
     $personal_belongings_json = json_encode($personal_belongings);
     $other_belongings = sanitize($_POST['other_belongings'] ?? null);
     $patient_documentation = $patient_documentation_path; // Store the file path
-    
+
+    // Photo GPS Metadata
+    $photo_latitude = !empty($_POST['photo_latitude']) ? floatval($_POST['photo_latitude']) : null;
+    $photo_longitude = !empty($_POST['photo_longitude']) ? floatval($_POST['photo_longitude']) : null;
+    $photo_address = !empty($_POST['photo_address']) ? sanitize($_POST['photo_address']) : null;
+    $photo_datetime = !empty($_POST['photo_datetime']) ? sanitize($_POST['photo_datetime'], false) : null;
+
+    // Validate GPS coordinate ranges
+    if ($photo_latitude !== null && ($photo_latitude < -90 || $photo_latitude > 90)) {
+        $photo_latitude = null;
+    }
+    if ($photo_longitude !== null && ($photo_longitude < -180 || $photo_longitude > 180)) {
+        $photo_longitude = null;
+    }
+
     // Emergency Call Type
     $emergency_medical = isset($_POST['emergency_type']) && in_array('medical', $_POST['emergency_type']) ? 1 : 0;
     $emergency_medical_details = !empty($_POST['medical_specify']) ? sanitize($_POST['medical_specify']) : null;
@@ -510,7 +533,7 @@ try {
     if ($draft_id) {
         // Verify this draft belongs to the current user and is actually a draft
         $verify_sql = "SELECT id, form_number FROM prehospital_forms WHERE id = ? AND created_by = ? AND status = 'draft'";
-        $verify_stmt = db_query($verify_sql, [$draft_id, $created_by]);
+        $verify_stmt = db_query($verify_sql, [$draft_id, $created_by], true);
         $existing_draft = $verify_stmt->fetch();
 
         if ($existing_draft) {
@@ -535,6 +558,7 @@ try {
         $place_of_incident, $zone_landmark, $incident_time,
         $informant_name, $informant_address, $arrival_type, $call_arrival_time, $contact_number,
         $relationship_victim, $personal_belongings_json, $other_belongings, $patient_documentation,
+        $photo_latitude, $photo_longitude, $photo_address, $photo_datetime,
         $emergency_medical, $emergency_medical_details, $emergency_trauma, $emergency_trauma_details,
         $emergency_ob, $emergency_ob_details, $emergency_general, $emergency_general_details,
         $care_management_json, $oxygen_lpm, $other_care,
@@ -561,6 +585,7 @@ try {
             place_of_incident = ?, zone_landmark = ?, incident_time = ?,
             informant_name = ?, informant_address = ?, arrival_type = ?, call_arrival_time = ?, contact_number = ?,
             relationship_victim = ?, personal_belongings = ?, other_belongings = ?, patient_documentation = ?,
+            photo_latitude = ?, photo_longitude = ?, photo_address = ?, photo_datetime = ?,
             emergency_medical = ?, emergency_medical_details = ?, emergency_trauma = ?, emergency_trauma_details = ?,
             emergency_ob = ?, emergency_ob_details = ?, emergency_general = ?, emergency_general_details = ?,
             care_management = ?, oxygen_lpm = ?, other_care = ?,
@@ -579,11 +604,7 @@ try {
             WHERE id = ? AND created_by = ?";
 
         $params = array_merge($common_params, [$draft_id, $created_by]);
-        $stmt = db_query($sql, $params);
-
-        if (!$stmt) {
-            throw new Exception('Failed to update draft to completed');
-        }
+        $stmt = db_query($sql, $params, true);
 
         $form_id = $draft_id; // Use the existing draft ID
     } else {
@@ -597,6 +618,7 @@ try {
             place_of_incident, zone_landmark, incident_time,
             informant_name, informant_address, arrival_type, call_arrival_time, contact_number,
             relationship_victim, personal_belongings, other_belongings, patient_documentation,
+            photo_latitude, photo_longitude, photo_address, photo_datetime,
             emergency_medical, emergency_medical_details, emergency_trauma, emergency_trauma_details,
             emergency_ob, emergency_ob_details, emergency_general, emergency_general_details,
             care_management, oxygen_lpm, other_care,
@@ -622,6 +644,7 @@ try {
             ?, ?, ?, ?,
             ?, ?, ?, ?,
             ?, ?, ?, ?,
+            ?, ?, ?, ?,
             ?, ?, ?,
             ?, ?, ?, ?, ?, ?,
             ?, ?, ?, ?,
@@ -636,11 +659,7 @@ try {
         )";
 
         $params = array_merge($common_params, [$created_by]);
-        $stmt = db_query($sql, $params);
-
-        if (!$stmt) {
-            throw new Exception('Failed to save form data');
-        }
+        $stmt = db_query($sql, $params, true);
 
         $form_id = $pdo->lastInsertId();
     }
@@ -666,10 +685,7 @@ try {
                 sanitize($injury['notes'] ?? '')
             ];
 
-            $injury_stmt = db_query($injury_sql, $injury_params);
-            if (!$injury_stmt) {
-                throw new Exception('Failed to save injury data');
-            }
+            db_query($injury_sql, $injury_params, true);
         }
     }
     

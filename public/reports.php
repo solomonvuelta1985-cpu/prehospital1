@@ -162,7 +162,11 @@ $hospital_data = $hospital_stmt ? $hospital_stmt->fetchAll() : [];
 $trend_sql = "
     SELECT
         DATE(form_date) as date,
-        COUNT(*) as count
+        COUNT(*) as count,
+        SUM(CASE WHEN emergency_medical = 1 THEN 1 ELSE 0 END) as medical,
+        SUM(CASE WHEN emergency_trauma = 1 THEN 1 ELSE 0 END) as trauma,
+        SUM(CASE WHEN emergency_ob = 1 THEN 1 ELSE 0 END) as obstetric,
+        SUM(CASE WHEN emergency_general = 1 THEN 1 ELSE 0 END) as general
     FROM prehospital_forms pf
     WHERE $where_clause
     GROUP BY DATE(form_date)
@@ -767,7 +771,7 @@ if ($is_admin) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script>
+    <script nonce="<?php echo CSP_NONCE; ?>">
         // Professional blue color palette
         const colors = {
             blue: '#3b82f6',
@@ -802,6 +806,7 @@ if ($is_admin) {
 
         // Trend Chart
         const trendData = <?php echo json_encode($trend_data); ?> || [];
+        console.log('TREND DATA DEBUG:', JSON.stringify(trendData[0]));
         new Chart(document.getElementById('trendChart'), {
             type: 'line',
             data: {
@@ -822,7 +827,44 @@ if ($is_admin) {
                 }]
             },
             options: {
-                ...sharedOptions,
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        padding: 12,
+                        cornerRadius: 6,
+                        titleFont: { size: 12, weight: 600 },
+                        bodyFont: { size: 12, weight: 400 },
+                        footerFont: { size: 11, weight: 400 },
+                        footerColor: '#94a3b8',
+                        footerMarginTop: 8,
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                var idx = tooltipItems[0].dataIndex;
+                                return new Date(trendData[idx].date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                            },
+                            label: function(context) {
+                                return 'Forms: ' + context.parsed.y;
+                            },
+                            footer: function(tooltipItems) {
+                                var idx = tooltipItems[0].dataIndex;
+                                var d = trendData[idx];
+                                console.log('FOOTER CALLED, data:', d);
+                                var lines = [];
+                                if (Number(d.medical) > 0) lines.push('Medical: ' + d.medical);
+                                if (Number(d.trauma) > 0) lines.push('Trauma: ' + d.trauma);
+                                if (Number(d.obstetric) > 0) lines.push('Obstetric: ' + d.obstetric);
+                                if (Number(d.general) > 0) lines.push('General: ' + d.general);
+                                if (lines.length > 0) {
+                                    return ['Emergency Types:'].concat(lines);
+                                }
+                                return 'No emergency type';
+                            }
+                        }
+                    }
+                },
                 scales: {
                     y: {
                         beginAtZero: true,

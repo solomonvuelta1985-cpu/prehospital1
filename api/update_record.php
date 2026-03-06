@@ -33,16 +33,28 @@ try {
     if ($record_id <= 0) {
         throw new Exception('Invalid record ID');
     }
-    
-    // Check if record exists
-    $check_sql = "SELECT id, form_number FROM prehospital_forms WHERE id = ?";
+
+    // Ownership check - users can only update their own records, admins can update all
+    if (!can_access_record($record_id)) {
+        set_flash('Access denied. You can only edit your own records.', 'error');
+        redirect('../public/records.php');
+    }
+
+    // Get full current record state for version tracking
+    $check_sql = "SELECT * FROM prehospital_forms WHERE id = ?";
     $check_stmt = db_query($check_sql, [$record_id]);
+    if (!$check_stmt) {
+        throw new Exception('Database error while fetching record');
+    }
     $existing_record = $check_stmt->fetch();
-    
+
     if (!$existing_record) {
         throw new Exception('Record not found');
     }
-    
+
+    // Store old record state for diff computation after update
+    $old_record_state = $existing_record;
+
     // Start transaction
     $pdo->beginTransaction();
     
@@ -208,11 +220,8 @@ try {
     $other_belongings = !empty($_POST['other_belongings']) ? sanitize($_POST['other_belongings']) : null;
 
     // Handle file upload security - Patient Documentation
-    // Get existing patient documentation from database first
-    $existing_patient_doc_sql = "SELECT patient_documentation FROM prehospital_forms WHERE id = ?";
-    $existing_patient_doc_stmt = db_query($existing_patient_doc_sql, [$record_id]);
-    $existing_patient_doc_row = $existing_patient_doc_stmt->fetch();
-    $patient_documentation_path = $existing_patient_doc_row['patient_documentation'] ?? null;
+    // Use existing record data (already fetched above) instead of a redundant query
+    $patient_documentation_path = $existing_record['patient_documentation'] ?? null;
 
     // Only process upload if a new file is provided
     if (isset($_FILES['patient_documentation']) && $_FILES['patient_documentation']['error'] !== UPLOAD_ERR_NO_FILE) {
@@ -231,7 +240,9 @@ try {
 
         // Validate MIME type
         $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        $fileMimeType = mime_content_type($file['tmp_name']);
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $fileMimeType = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
         if (!in_array($fileMimeType, $allowedMimeTypes)) {
             throw new Exception('Invalid patient documentation file type. Only JPG, PNG, GIF, and WebP are allowed');
         }
@@ -271,6 +282,20 @@ try {
 
         // Store relative path for database (accessible via web)
         $patient_documentation_path = 'uploads/patient_docs/' . $dateFolder . '/' . $safeFileName;
+    }
+
+    // Photo GPS Metadata
+    $photo_latitude = !empty($_POST['photo_latitude']) ? floatval($_POST['photo_latitude']) : null;
+    $photo_longitude = !empty($_POST['photo_longitude']) ? floatval($_POST['photo_longitude']) : null;
+    $photo_address = !empty($_POST['photo_address']) ? sanitize($_POST['photo_address']) : null;
+    $photo_datetime = !empty($_POST['photo_datetime']) ? sanitize($_POST['photo_datetime'], false) : null;
+
+    // Validate GPS coordinate ranges
+    if ($photo_latitude !== null && ($photo_latitude < -90 || $photo_latitude > 90)) {
+        $photo_latitude = null;
+    }
+    if ($photo_longitude !== null && ($photo_longitude < -180 || $photo_longitude > 180)) {
+        $photo_longitude = null;
     }
 
     // Emergency Call Types
@@ -395,11 +420,8 @@ try {
     $endorsement_datetime = $endorsement_datetime_raw ? sanitize($endorsement_datetime_raw, false) : null; // Don't uppercase datetime
 
     // Handle file upload security - Endorsement Attachment
-    // Get existing endorsement attachment from database first
-    $existing_endorsement_sql = "SELECT endorsement_attachment FROM prehospital_forms WHERE id = ?";
-    $existing_endorsement_stmt = db_query($existing_endorsement_sql, [$record_id]);
-    $existing_endorsement_row = $existing_endorsement_stmt->fetch();
-    $endorsement_attachment_path = $existing_endorsement_row['endorsement_attachment'] ?? null;
+    // Use existing record data (already fetched above) instead of a redundant query
+    $endorsement_attachment_path = $existing_record['endorsement_attachment'] ?? null;
 
     // Only process upload if a new file is provided
     if (isset($_FILES['endorsement_attachment']) && $_FILES['endorsement_attachment']['error'] !== UPLOAD_ERR_NO_FILE) {
@@ -418,7 +440,9 @@ try {
 
         // Validate MIME type
         $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        $fileMimeType = mime_content_type($file['tmp_name']);
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $fileMimeType = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
         if (!in_array($fileMimeType, $allowedMimeTypes)) {
             throw new Exception('Invalid endorsement attachment file type. Only JPG, PNG, GIF, and WebP are allowed');
         }
@@ -459,6 +483,10 @@ try {
         // Store relative path for database (accessible via web)
         $endorsement_attachment_path = 'uploads/endorsements/' . $dateFolder . '/' . $safeFileName;
     }
+
+    // Encrypt sensitive fields (must match save_prehospital_form.php)
+    $patient_name = encrypt_field($patient_name);
+    $address = !empty($address) ? encrypt_field($address) : $address;
 
     // Narrative Report
     $narrative_report = !empty($_POST['narrative_report']) ? trim($_POST['narrative_report']) : null;
@@ -519,6 +547,10 @@ try {
         personal_belongings = ?,
         other_belongings = ?,
         patient_documentation = ?,
+        photo_latitude = ?,
+        photo_longitude = ?,
+        photo_address = ?,
+        photo_datetime = ?,
         emergency_medical = ?,
         emergency_medical_details = ?,
         emergency_trauma = ?,
@@ -615,6 +647,10 @@ try {
         $personal_belongings_json,
         $other_belongings,
         $patient_documentation_path,
+        $photo_latitude,
+        $photo_longitude,
+        $photo_address,
+        $photo_datetime,
         $emergency_medical,
         $emergency_medical_details,
         $emergency_trauma,
@@ -673,20 +709,12 @@ try {
         $record_id
     ];
 
-    $stmt = db_query($sql, $params);
-
-    if (!$stmt) {
-        throw new Exception('Failed to update record');
-    }
+    $stmt = db_query($sql, $params, true);
 
     // Update injuries - delete old ones and insert new ones
     // First, delete all existing injuries for this form
     $delete_injuries_sql = "DELETE FROM injuries WHERE form_id = ?";
-    $delete_stmt = db_query($delete_injuries_sql, [$record_id]);
-
-    if (!$delete_stmt) {
-        throw new Exception('Failed to delete old injury data');
-    }
+    db_query($delete_injuries_sql, [$record_id], true);
 
     // Insert new injuries if any
     if (!empty($injuries_data) && is_array($injuries_data)) {
@@ -709,16 +737,22 @@ try {
                 sanitize($injury['notes'] ?? '')
             ];
 
-            $injury_stmt = db_query($injury_sql, $injury_params);
-            if (!$injury_stmt) {
-                throw new Exception('Failed to save injury data');
-            }
+            db_query($injury_sql, $injury_params, true);
         }
+    }
+
+    // Save version history (compute diff between old and new)
+    $new_record_sql = "SELECT * FROM prehospital_forms WHERE id = ?";
+    $new_record_stmt = db_query($new_record_sql, [$record_id], true);
+    $new_record_state = $new_record_stmt->fetch();
+    $changes = compute_record_diff($old_record_state, $new_record_state);
+    if (!empty($changes)) {
+        save_record_version($record_id, $changes);
     }
 
     // Commit transaction
     $pdo->commit();
-    
+
     // Log activity
     log_activity('form_updated', "Updated form: {$existing_record['form_number']} for patient: $patient_name");
     
@@ -734,6 +768,6 @@ try {
     
     error_log("Update Record Error: " . $e->getMessage());
     
-    set_flash('Error updating record: ' . $e->getMessage(), 'error');
+    set_flash('Error updating record. Please try again or contact administrator.', 'error');
     redirect('../public/records.php');
 }

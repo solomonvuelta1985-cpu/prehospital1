@@ -27,9 +27,22 @@ if ($record_id <= 0) {
 }
 
 try {
+    // Ownership check - users can only view their own records, admins can view all
+    if (!can_access_record($record_id)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Access denied'
+        ]);
+        exit;
+    }
+
     // Get record details
     $sql = "SELECT * FROM prehospital_forms WHERE id = ?";
     $stmt = db_query($sql, [$record_id]);
+    if (!$stmt) {
+        echo json_encode(['success' => false, 'message' => 'Database error']);
+        exit;
+    }
     $record = $stmt->fetch();
 
     if (!$record) {
@@ -40,10 +53,13 @@ try {
         exit;
     }
 
+    // Decrypt sensitive fields
+    decrypt_record_fields($record);
+
     // Get injuries for this record
     $injury_sql = "SELECT * FROM injuries WHERE form_id = ? ORDER BY injury_number";
     $injury_stmt = db_query($injury_sql, [$record_id]);
-    $injuries = $injury_stmt->fetchAll();
+    $injuries = $injury_stmt ? $injury_stmt->fetchAll() : [];
 
     // Clean up date and time fields
     $dateTimeFields = [

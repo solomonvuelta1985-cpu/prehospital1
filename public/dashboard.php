@@ -993,7 +993,7 @@ for ($i = 11; $i >= 0; $i--) {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+    <script nonce="<?php echo CSP_NONCE; ?>">
         // Chart.js Global Configuration
         Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", system-ui, sans-serif';
         Chart.defaults.color = '#71717a';

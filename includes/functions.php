@@ -34,8 +34,12 @@ function sanitize($data, $uppercase = true) {
 
 /**
  * Execute safe database query with prepared statements
+ * @param string $sql SQL query with ? placeholders
+ * @param array $params Parameters to bind
+ * @param bool $throw If true, re-throws PDOException instead of returning false (use inside transactions)
+ * @return PDOStatement|false
  */
-function db_query($sql, $params = []) {
+function db_query($sql, $params = [], $throw = false) {
     global $pdo;
     try {
         $stmt = $pdo->prepare($sql);
@@ -44,6 +48,9 @@ function db_query($sql, $params = []) {
     } catch (PDOException $e) {
         error_log("Database Query Error: " . $e->getMessage());
         error_log("SQL: " . $sql);
+        if ($throw) {
+            throw $e;
+        }
         return false;
     }
 }
@@ -385,12 +392,18 @@ function check_ip_rate_limit($action, $max_attempts = 5, $time_window = 300) {
                       SET attempt_count = attempt_count + 1
                       WHERE ip_address = ? AND action = ?";
         db_query($update_sql, [$ip_address, $action_key]);
+
+        // Probabilistic cleanup: 1% chance per request to clean old records
+        if (mt_rand(1, 100) === 1) {
+            cleanup_rate_limits();
+        }
+
         return true;
 
     } catch (Exception $e) {
         error_log("Rate limit check failed: " . $e->getMessage());
-        // Fail open - allow request if rate limiting fails
-        return true;
+        // Fail closed - deny request if rate limiting fails (security-first)
+        return false;
     }
 }
 
@@ -591,6 +604,157 @@ function verify_recaptcha($response) {
     }
 
     return $result['success'];
+}
+
+/**
+ * Check if current user can access a specific record
+ * Admins can access all records, regular users can only access their own
+ */
+function can_access_record($record_id) {
+    if (is_admin()) {
+        return true;
+    }
+    $user_id = $_SESSION['user_id'] ?? 0;
+    $sql = "SELECT id FROM prehospital_forms WHERE id = ? AND created_by = ?";
+    $stmt = db_query($sql, [$record_id, $user_id]);
+    return $stmt && $stmt->fetch() !== false;
+}
+
+/**
+ * Encrypt a field value using AES-256-CBC
+ * Returns base64-encoded string with IV prepended, or original value if encryption key not set
+ */
+function encrypt_field($plaintext) {
+    if (empty($plaintext) || empty(APP_ENCRYPTION_KEY)) {
+        return $plaintext;
+    }
+
+    $key = hash('sha256', APP_ENCRYPTION_KEY, true);
+    $iv = openssl_random_pseudo_bytes(16);
+    $encrypted = openssl_encrypt($plaintext, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
+
+    if ($encrypted === false) {
+        error_log("Encryption failed for field");
+        return $plaintext;
+    }
+
+    return base64_encode($iv . $encrypted);
+}
+
+/**
+ * Decrypt a field value encrypted with encrypt_field()
+ * Returns plaintext, or original value if not encrypted or key not set
+ */
+function decrypt_field($ciphertext) {
+    if (empty($ciphertext) || empty(APP_ENCRYPTION_KEY)) {
+        return $ciphertext;
+    }
+
+    // Check if value looks like base64 (encrypted data)
+    $decoded = base64_decode($ciphertext, true);
+    if ($decoded === false || strlen($decoded) < 17) {
+        return $ciphertext; // Not encrypted, return as-is
+    }
+
+    $key = hash('sha256', APP_ENCRYPTION_KEY, true);
+    $iv = substr($decoded, 0, 16);
+    $encrypted = substr($decoded, 16);
+
+    $decrypted = openssl_decrypt($encrypted, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
+
+    if ($decrypted === false) {
+        return $ciphertext; // Decryption failed, return original
+    }
+
+    return $decrypted;
+}
+
+/**
+ * Encrypt sensitive fields in a record array before saving
+ */
+function encrypt_record_fields(&$data, $fields = ['patient_name', 'address']) {
+    foreach ($fields as $field) {
+        if (isset($data[$field]) && !empty($data[$field])) {
+            $data[$field] = encrypt_field($data[$field]);
+        }
+    }
+}
+
+/**
+ * Decrypt sensitive fields in a record array after reading
+ */
+function decrypt_record_fields(&$record, $fields = ['patient_name', 'address']) {
+    if (!$record) return;
+    foreach ($fields as $field) {
+        if (isset($record[$field]) && !empty($record[$field])) {
+            $record[$field] = decrypt_field($record[$field]);
+        }
+    }
+}
+
+/**
+ * Compute diff between old and new record data
+ * Returns array of changed fields with old and new values
+ */
+function compute_record_diff($old, $new) {
+    $changes = [];
+    $skip_fields = ['id', 'created_at', 'updated_at', 'created_by'];
+
+    foreach ($new as $key => $new_value) {
+        if (in_array($key, $skip_fields)) continue;
+        $old_value = $old[$key] ?? null;
+
+        // Normalize for comparison
+        $old_str = trim((string)($old_value ?? ''));
+        $new_str = trim((string)($new_value ?? ''));
+
+        if ($old_str !== $new_str) {
+            $changes[$key] = [
+                'old' => $old_str,
+                'new' => $new_str
+            ];
+        }
+    }
+    return $changes;
+}
+
+/**
+ * Save a version snapshot before updating a record
+ */
+function save_record_version($record_id, $changes) {
+    if (empty($changes)) return;
+
+    $user_id = $_SESSION['user_id'] ?? 0;
+    $changes_json = json_encode($changes);
+
+    $sql = "INSERT INTO record_versions (record_id, user_id, changes_json) VALUES (?, ?, ?)";
+    db_query($sql, [$record_id, $user_id, $changes_json]);
+}
+
+/**
+ * Get version history for a record
+ */
+function get_record_history($record_id) {
+    $sql = "SELECT rv.*, u.username, u.full_name
+            FROM record_versions rv
+            LEFT JOIN users u ON rv.user_id = u.id
+            WHERE rv.record_id = ?
+            ORDER BY rv.created_at DESC";
+    $stmt = db_query($sql, [$record_id]);
+    return $stmt ? $stmt->fetchAll() : [];
+}
+
+/**
+ * Get app setting from database
+ */
+function get_app_setting($key, $default = '') {
+    $sql = "SELECT setting_value FROM app_settings WHERE setting_key = ? LIMIT 1";
+    $stmt = db_query($sql, [$key]);
+    if ($stmt) {
+        $row = $stmt->fetch();
+        return $row ? $row['setting_value'] : $default;
+    }
+    return $default;
 }
 
 /**

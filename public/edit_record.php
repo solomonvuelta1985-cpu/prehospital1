@@ -25,6 +25,12 @@ if ($record_id <= 0) {
     redirect('records.php');
 }
 
+// Ownership check - users can only edit their own records, admins can edit all
+if (!can_access_record($record_id)) {
+    set_flash('Access denied. You can only edit your own records.', 'error');
+    redirect('records.php');
+}
+
 // Get record details
 $sql = "SELECT * FROM prehospital_forms WHERE id = ?";
 $stmt = db_query($sql, [$record_id]);
@@ -34,6 +40,9 @@ if (!$record) {
     set_flash('Record not found', 'error');
     redirect('records.php');
 }
+
+// Decrypt sensitive fields
+decrypt_record_fields($record);
 
 // Get injuries for this record
 $injury_sql = "SELECT * FROM injuries WHERE form_id = ? ORDER BY injury_number";
@@ -974,13 +983,16 @@ if (!is_array($initial_helmet)) {
                                 <input type="text" class="form-control" id="occupation" name="occupation"
                                        value="<?php echo e($record['occupation']); ?>" placeholder="Patient's occupation">
                             </div>
+                            <!-- Commented out: place_of_incident
                             <div>
                                 <label for="placeOfIncident" class="form-label">Place of Incident</label>
                                 <input type="text" class="form-control" id="place_of_incident" name="place_of_incident"
                                        value="<?php echo e($record['place_of_incident']); ?>" placeholder="Location where incident occurred">
                             </div>
+                            -->
                         </div>
 
+                        <!-- Commented out: zone_landmark field and incident_time moved to Emergency tab
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="zoneLandmark" class="form-label">Zone/Landmark</label>
@@ -993,6 +1005,7 @@ if (!is_array($initial_helmet)) {
                                        value="<?php echo e($record['incident_time']); ?>" placeholder="3:00 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
+                        -->
 
                         <div class="section-title" style="margin-top: 1.5rem;">
                             <i class="bi bi-telephone"></i> Informant Details
@@ -1144,17 +1157,24 @@ if (!is_array($initial_helmet)) {
 
                                 <!-- Camera Container -->
                                 <div id="patientCameraContainer" class="patient-camera-container">
+                                    <div class="camera-top-bar">
+                                        <button type="button" class="camera-close-btn" onclick="closePatientCamera()">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                        <span class="camera-top-label">Patient Photo</span>
+                                        <div class="camera-top-spacer"></div>
+                                    </div>
                                     <div class="camera-viewport">
                                         <video id="patientCameraVideo" autoplay playsinline></video>
+                                        <div class="camera-flash-overlay" id="patientFlashOverlay"></div>
                                     </div>
-                                    <div class="camera-controls">
-                                        <button type="button" class="camera-btn capture" id="capturePatientBtn" onclick="capturePatientPhoto()">
-                                            <i class="bi bi-circle-fill"></i>
-                                            <span>Capture</span>
+                                    <div class="camera-bottom-bar">
+                                        <div class="camera-bottom-spacer"></div>
+                                        <button type="button" class="camera-shutter-btn" id="capturePatientBtn" onclick="capturePatientPhoto()">
+                                            <span class="shutter-ring"><span class="shutter-inner"></span></span>
                                         </button>
-                                        <button type="button" class="camera-btn close-cam" id="closePatientCameraBtn" onclick="closePatientCamera()">
-                                            <i class="bi bi-x-lg"></i>
-                                            <span>Close</span>
+                                        <button type="button" class="camera-flip-btn" id="flipPatientCameraBtn" onclick="flipPatientCamera()">
+                                            <i class="bi bi-arrow-repeat"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -1185,6 +1205,15 @@ if (!is_array($initial_helmet)) {
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- GPS Status Indicator -->
+                                <div id="gpsStatus" class="gps-status-indicator" style="display: none;"></div>
+
+                                <!-- GPS Metadata Hidden Fields -->
+                                <input type="hidden" name="photo_latitude" id="photoLatitude" value="<?= htmlspecialchars($record['photo_latitude'] ?? '') ?>">
+                                <input type="hidden" name="photo_longitude" id="photoLongitude" value="<?= htmlspecialchars($record['photo_longitude'] ?? '') ?>">
+                                <input type="hidden" name="photo_address" id="photoAddress" value="<?= htmlspecialchars($record['photo_address'] ?? '') ?>">
+                                <input type="hidden" name="photo_datetime" id="photoDatetime" value="<?= htmlspecialchars($record['photo_datetime'] ?? '') ?>">
 
                                 <!-- Error Message -->
                                 <div id="patientUploadError" class="patient-upload-error">
@@ -1251,6 +1280,16 @@ if (!is_array($initial_helmet)) {
                                        value="<?php echo e($record['emergency_general_details']); ?>" placeholder="Specify general condition">
                             </div>
                         </div>
+
+                        <div class="grid-2 mb-section">
+                            <div>
+                                <label for="incidentTime" class="form-label">Time of Incident</label>
+                                <input type="text" class="form-control time-input-12hr" id="incidentTime" name="incident_time"
+                                       value="<?php echo e($record['incident_time']); ?>" placeholder="3:00 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                            </div>
+                        </div>
+
+                        <hr class="section-divider">
 
                         <div class="section-title">
                             <i class="bi bi-heart-pulse-fill"></i> Care Management
@@ -1991,17 +2030,24 @@ if (!is_array($initial_helmet)) {
 
                                 <!-- Camera Container -->
                                 <div id="cameraContainer" class="endorsement-camera-container">
+                                    <div class="camera-top-bar">
+                                        <button type="button" class="camera-close-btn" onclick="closeCamera()">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                        <span class="camera-top-label">Endorsement Document</span>
+                                        <div class="camera-top-spacer"></div>
+                                    </div>
                                     <div class="camera-viewport">
                                         <video id="cameraVideo" autoplay playsinline></video>
+                                        <div class="camera-flash-overlay" id="endorsementFlashOverlay"></div>
                                     </div>
-                                    <div class="camera-controls">
-                                        <button type="button" class="camera-btn capture" id="captureBtn" onclick="capturePhoto()">
-                                            <i class="bi bi-circle-fill"></i>
-                                            <span>Capture</span>
+                                    <div class="camera-bottom-bar">
+                                        <div class="camera-bottom-spacer"></div>
+                                        <button type="button" class="camera-shutter-btn" id="captureBtn" onclick="capturePhoto()">
+                                            <span class="shutter-ring"><span class="shutter-inner"></span></span>
                                         </button>
-                                        <button type="button" class="camera-btn close-cam" id="closeCameraBtn" onclick="closeCamera()">
-                                            <i class="bi bi-x-lg"></i>
-                                            <span>Close</span>
+                                        <button type="button" class="camera-flip-btn" id="flipEndorsementCameraBtn" onclick="flipEndorsementCamera()">
+                                            <i class="bi bi-arrow-repeat"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -2085,10 +2131,17 @@ if (!is_array($initial_helmet)) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
+    <!-- JS Modules -->
+    <script src="js/modules/utils.js?v=<?php echo asset_version(); ?>"></script>
+    <script src="js/modules/injury-tracker.js?v=<?php echo asset_version(); ?>"></script>
+    <script src="js/modules/camera.js?v=<?php echo asset_version(); ?>"></script>
+    <script src="js/modules/form-tabs.js?v=<?php echo asset_version(); ?>"></script>
+    <script src="js/modules/auto-save.js?v=<?php echo asset_version(); ?>"></script>
+    <script src="js/modules/validation.js?v=<?php echo asset_version(); ?>"></script>
     <script src="js/prehospital-form.js?v=<?php echo asset_version(); ?>"></script>
     <!-- Custom Date Components - Month/Day/Year dropdowns -->
     <script src="js/custom-date.js?v=<?php echo asset_version(); ?>"></script>
-    <script>
+    <script nonce="<?php echo CSP_NONCE; ?>">
         // Remove loading class after page loads - CRITICAL: Always remove skeleton
         window.addEventListener('load', function() {
             setTimeout(function() {

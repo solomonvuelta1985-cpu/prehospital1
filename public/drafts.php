@@ -686,7 +686,7 @@ $drafts = $stmt->fetchAll();
                                                 Resume
                                             </a>
                                             <div class="action-separator"></div>
-                                            <button onclick="deleteDraft(<?php echo $draft['id']; ?>)" class="btn-delete" title="Delete draft">
+                                            <button class="btn-delete" data-delete-draft="<?php echo $draft['id']; ?>" title="Delete draft">
                                                 <i class="bi bi-trash-fill"></i>
                                             </button>
                                         </div>
@@ -752,7 +752,7 @@ $drafts = $stmt->fetchAll();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
-    <script>
+    <script nonce="<?php echo CSP_NONCE; ?>">
         function deleteDraft(id) {
             if (!id || id <= 0) {
                 Notiflix.Notify.failure('Invalid draft ID.');
@@ -772,9 +772,18 @@ $drafts = $stmt->fetchAll();
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ id: parseInt(id) })
+                        body: JSON.stringify({ id: parseInt(id), csrf_token: '<?php echo generate_token(); ?>' })
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        // Check if response was redirected (session expired)
+                        if (response.redirected || response.url.includes('login.php')) {
+                            throw new Error('Session expired. Please login again.');
+                        }
+                        if (!response.ok && response.headers.get('content-type')?.indexOf('application/json') === -1) {
+                            throw new Error('Server error (' + response.status + '). Please try again.');
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         Notiflix.Loading.remove();
 
@@ -793,10 +802,15 @@ $drafts = $stmt->fetchAll();
                     })
                     .catch(error => {
                         Notiflix.Loading.remove();
-                        Notiflix.Notify.failure('Error deleting draft. Please try again.', {
-                            timeout: 3000,
-                        });
-                        console.error('Error:', error);
+                        if (error.message.includes('Session expired')) {
+                            Notiflix.Notify.warning(error.message, { timeout: 3000 });
+                            setTimeout(() => { window.location.href = 'login.php'; }, 2000);
+                        } else {
+                            Notiflix.Notify.failure('Error deleting draft: ' + error.message, {
+                                timeout: 3000,
+                            });
+                        }
+                        console.error('Delete draft error:', error);
                     });
                 },
                 function cancelCb() {
@@ -811,6 +825,14 @@ $drafts = $stmt->fetchAll();
                 }
             );
         }
+
+        // Attach delete handlers via event delegation (CSP blocks inline onclick)
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('[data-delete-draft]');
+            if (btn) {
+                deleteDraft(parseInt(btn.getAttribute('data-delete-draft')));
+            }
+        });
     </script>
 </body>
 </html>

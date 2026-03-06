@@ -23,6 +23,27 @@ function require_login() {
         set_flash('Please login to access this page', 'error');
         redirect('../public/login.php');
     }
+
+    // Session idle timeout (30 minutes)
+    $timeout = 1800;
+    if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout) {
+        logout_user();
+        session_start();
+        set_flash('Your session has expired due to inactivity. Please login again.', 'warning');
+        redirect('../public/login.php');
+    }
+    $_SESSION['last_activity'] = time();
+
+    // Force password change check (skip if already on change_password page)
+    $current_script = basename($_SERVER['SCRIPT_NAME'] ?? '');
+    if ($current_script !== 'change_password.php' && $current_script !== 'logout.php') {
+        $force_pw_sql = "SELECT force_password_change FROM users WHERE id = ? LIMIT 1";
+        $force_pw_stmt = db_query($force_pw_sql, [$_SESSION['user_id']]);
+        $force_pw_user = $force_pw_stmt ? $force_pw_stmt->fetch() : null;
+        if ($force_pw_user && $force_pw_user['force_password_change'] == 1) {
+            redirect('../public/change_password.php');
+        }
+    }
 }
 
 /**
@@ -40,6 +61,22 @@ function require_admin() {
     if (!is_admin()) {
         set_flash('Access denied. Admin privileges required.', 'error');
         redirect('../public/index.php');
+    }
+
+    // IP Whitelist check for admin panel
+    $whitelist_sql = "SELECT setting_value FROM app_settings WHERE setting_key = 'admin_ip_whitelist' LIMIT 1";
+    $whitelist_stmt = db_query($whitelist_sql);
+    if ($whitelist_stmt) {
+        $whitelist_row = $whitelist_stmt->fetch();
+        if ($whitelist_row && !empty(trim($whitelist_row['setting_value']))) {
+            $allowed_ips = array_filter(array_map('trim', explode("\n", $whitelist_row['setting_value'])));
+            $client_ip = get_client_ip();
+            if (!empty($allowed_ips) && !in_array($client_ip, $allowed_ips)) {
+                log_activity('admin_ip_blocked', "Admin access denied from IP: $client_ip");
+                set_flash('Access denied. Your IP is not authorized for admin access.', 'error');
+                redirect('../public/index.php');
+            }
+        }
     }
 
     // Session regeneration on admin access (prevent session fixation)
@@ -117,6 +154,12 @@ function login_user($username, $password, $recaptcha_response = null) {
     // Update last login
     $update_sql = "UPDATE users SET last_login = NOW() WHERE id = ?";
     db_query($update_sql, [$user['id']]);
+
+    // Record login history
+    $ip = get_client_ip();
+    $user_agent = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 500);
+    $login_history_sql = "INSERT INTO login_history (user_id, ip_address, user_agent) VALUES (?, ?, ?)";
+    db_query($login_history_sql, [$user['id'], $ip, $user_agent]);
 
     // Log activity
     log_activity('user_login', 'User logged in: ' . $username);

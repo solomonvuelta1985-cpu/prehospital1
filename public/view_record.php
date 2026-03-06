@@ -19,6 +19,12 @@ if ($record_id <= 0) {
     redirect('records.php');
 }
 
+// Ownership check - users can only view their own records, admins can view all
+if (!can_access_record($record_id)) {
+    set_flash('Access denied. You can only view your own records.', 'error');
+    redirect('records.php');
+}
+
 // Get record details
 $sql = "SELECT * FROM prehospital_forms WHERE id = ?";
 $stmt = db_query($sql, [$record_id]);
@@ -28,6 +34,9 @@ if (!$record) {
     set_flash('Record not found', 'error');
     redirect('records.php');
 }
+
+// Decrypt sensitive fields
+decrypt_record_fields($record);
 
 // Get injuries for this record
 $injury_sql = "SELECT * FROM injuries WHERE form_id = ? ORDER BY injury_number";
@@ -913,6 +922,9 @@ $current_user = get_auth_user();
                 <button onclick="window.print()" class="btn btn-primary">
                     <i class="bi bi-printer"></i> Print
                 </button>
+                <a href="../api/export_pdf.php?id=<?php echo $record['id']; ?>" class="btn btn-danger">
+                    <i class="bi bi-file-earmark-pdf"></i> Export PDF
+                </a>
                 <a href="edit_record.php?id=<?php echo $record['id']; ?>" class="btn btn-warning">
                     <i class="bi bi-pencil"></i> Edit
                 </a>
@@ -1027,18 +1039,16 @@ $current_user = get_auth_user();
                             <label>Zone</label>
                             <div class="value<?php echo empty($record['zone']) ? ' empty' : ''; ?>"><?php echo e($record['zone'] ?: 'Not specified'); ?></div>
                         </div>
+                        <!-- Commented out: place_of_incident and zone_landmark hidden from view
                         <div class="data-field full-width">
-                            <label>Type of Emergency Call</label>
+                            <label>Place of Incident</label>
                             <div class="value<?php echo empty($record['place_of_incident']) ? ' empty' : ''; ?>"><?php echo e($record['place_of_incident'] ?: 'Not specified'); ?></div>
                         </div>
                         <div class="data-field">
                             <label>Zone Landmark</label>
                             <div class="value<?php echo empty($record['zone_landmark']) ? ' empty' : ''; ?>"><?php echo e($record['zone_landmark'] ?: 'Not specified'); ?></div>
                         </div>
-                        <div class="data-field">
-                            <label>Incident Time</label>
-                            <div class="value<?php echo empty($record['incident_time']) ? ' empty' : ''; ?>"><?php echo e($record['incident_time'] ?: 'Not specified'); ?></div>
-                        </div>
+                        -->
                     </div>
                 </div>
 
@@ -1218,6 +1228,16 @@ $current_user = get_auth_user();
                 </div>
                 <?php endif; ?>
 
+                <!-- Incident Time (moved from patient info to emergency/care section) -->
+                <div class="section-content">
+                    <div class="data-grid">
+                        <div class="data-field">
+                            <label>Time of Incident</label>
+                            <div class="value<?php echo empty($record['incident_time']) ? ' empty' : ''; ?>"><?php echo e($record['incident_time'] ?: 'Not specified'); ?></div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Hospital & Team Information -->
                 <div class="section-header">Care Management</div>
                 <div class="section-content">
@@ -1306,6 +1326,9 @@ $current_user = get_auth_user();
                 <button onclick="window.print()" class="btn btn-primary">
                     <i class="bi bi-printer"></i> Print
                 </button>
+                <a href="../api/export_pdf.php?id=<?php echo $record['id']; ?>" class="btn btn-danger">
+                    <i class="bi bi-file-earmark-pdf"></i> Export PDF
+                </a>
                 <a href="edit_record.php?id=<?php echo $record['id']; ?>" class="btn btn-warning">
                     <i class="bi bi-pencil"></i> Edit
                 </a>
@@ -1315,7 +1338,7 @@ $current_user = get_auth_user();
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
-    <script>
+    <script nonce="<?php echo CSP_NONCE; ?>">
         // Configure Notiflix - Corporate Design Colors
         Notiflix.Notify.init({
             width: '320px',

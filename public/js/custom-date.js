@@ -64,10 +64,11 @@ function replaceDateInput(originalInput) {
 
     // Month dropdown
     const monthSelect = document.createElement('select');
-    monthSelect.className = 'form-control';
+    monthSelect.className = 'form-select';
     monthSelect.name = fieldName + '_month';
     monthSelect.id = fieldId + '_month';
     monthSelect.style.flex = '2';
+    monthSelect.style.color = '#1a1a1a';
     if (isRequired) monthSelect.required = true;
 
     monthSelect.innerHTML = `
@@ -89,10 +90,13 @@ function replaceDateInput(originalInput) {
     // Day input (manual entry)
     const dayInput = document.createElement('input');
     dayInput.type = 'text';
+    dayInput.inputMode = 'numeric';
     dayInput.className = 'form-control';
     dayInput.name = fieldName + '_day';
     dayInput.id = fieldId + '_day';
     dayInput.style.flex = '1';
+    dayInput.style.color = '#1a1a1a';
+    dayInput.style.textAlign = 'center';
     dayInput.placeholder = 'DD';
     dayInput.maxLength = 2;
     dayInput.pattern = '(0?[1-9]|[12][0-9]|3[01])';
@@ -112,10 +116,13 @@ function replaceDateInput(originalInput) {
     // Year input (manual entry)
     const yearInput = document.createElement('input');
     yearInput.type = 'text';
+    yearInput.inputMode = 'numeric';
     yearInput.className = 'form-control';
     yearInput.name = fieldName + '_year';
     yearInput.id = fieldId + '_year';
     yearInput.style.flex = '1.5';
+    yearInput.style.color = '#1a1a1a';
+    yearInput.style.textAlign = 'center';
     yearInput.placeholder = 'YYYY';
     yearInput.maxLength = 4;
     yearInput.pattern = '[0-9]{4}';
@@ -164,18 +171,20 @@ function replaceDateInput(originalInput) {
     const separator1 = document.createElement('span');
     separator1.textContent = '/';
     separator1.style.fontWeight = 'bold';
-    separator1.style.fontSize = '20px';
+    separator1.style.fontSize = '18px';
     separator1.style.color = '#666';
     separator1.style.lineHeight = '38px';
-    separator1.style.margin = '0 8px';
+    separator1.style.margin = '0 2px';
+    separator1.style.flexShrink = '0';
 
     const separator2 = document.createElement('span');
     separator2.textContent = '/';
     separator2.style.fontWeight = 'bold';
-    separator2.style.fontSize = '20px';
+    separator2.style.fontSize = '18px';
     separator2.style.color = '#666';
     separator2.style.lineHeight = '38px';
-    separator2.style.margin = '0 8px';
+    separator2.style.margin = '0 2px';
+    separator2.style.flexShrink = '0';
 
     // Add all elements to wrapper with separators
     wrapper.appendChild(monthSelect);

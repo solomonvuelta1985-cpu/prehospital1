@@ -974,18 +974,22 @@ $current_user = get_auth_user();
                                 <label for="patientName" class="form-label required-field">Patient Name</label>
                                 <input type="text" class="form-control" id="patientName" name="patient_name" placeholder="Last Name, First Name, Middle Initial" required>
                             </div>
-                            <div>
-                                <label for="dateOfBirth" class="form-label">Date of Birth</label>
-                                <input type="date" class="form-control" id="dateOfBirth" name="date_of_birth">
-                            </div>
-                            <div>
-                                <label for="age" class="form-label required-field">Age</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" id="age" name="age" min="0" max="150" placeholder="Enter age" required>
-                                    <select class="form-select" id="ageUnit" name="age_unit" style="max-width: 110px;">
-                                        <option value="years" selected>Years</option>
-                                        <option value="months">Months</option>
-                                    </select>
+                            <div style="grid-column: span 2;">
+                                <div class="grid-2">
+                                    <div>
+                                        <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                                        <input type="date" class="form-control" id="dateOfBirth" name="date_of_birth">
+                                    </div>
+                                    <div>
+                                        <label for="age" class="form-label required-field">Age</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="age" name="age" min="0" max="150" placeholder="Enter age" required>
+                                            <select class="form-select" id="ageUnit" name="age_unit" style="max-width: 110px;">
+                                                <option value="years" selected>Years</option>
+                                                <option value="months">Months</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div>
@@ -1065,12 +1069,15 @@ $current_user = get_auth_user();
                                 <label for="occupation" class="form-label">Occupation</label>
                                 <input type="text" class="form-control" id="occupation" name="occupation" placeholder="Patient's occupation">
                             </div>
+                            <!-- Commented out: place_of_incident moved label was misleading
                             <div>
                                 <label for="placeOfIncident" class="form-label">Type of Emergency Call</label>
                                 <input type="text" class="form-control" id="placeOfIncident" name="place_of_incident" placeholder="Location where incident occurred">
                             </div>
+                            -->
                         </div>
 
+                        <!-- Commented out: zone_landmark field and incident_time moved to Emergency tab
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="zoneLandmark" class="form-label">Zone/Landmark</label>
@@ -1081,6 +1088,7 @@ $current_user = get_auth_user();
                                 <input type="text" class="form-control time-input-12hr" id="incidentTime" name="incident_time" placeholder="3:00 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
+                        -->
 
                         <hr class="section-divider">
 
@@ -1201,17 +1209,24 @@ $current_user = get_auth_user();
 
                                 <!-- Camera Container -->
                                 <div id="patientCameraContainer" class="patient-camera-container">
+                                    <div class="camera-top-bar">
+                                        <button type="button" class="camera-close-btn" data-action="closePatientCamera">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                        <span class="camera-top-label">Patient Photo</span>
+                                        <div class="camera-top-spacer"></div>
+                                    </div>
                                     <div class="camera-viewport">
                                         <video id="patientCameraVideo" autoplay playsinline></video>
+                                        <div class="camera-flash-overlay" id="patientFlashOverlay"></div>
                                     </div>
-                                    <div class="camera-controls">
-                                        <button type="button" class="camera-btn capture" id="capturePatientBtn" onclick="capturePatientPhoto()">
-                                            <i class="bi bi-circle-fill"></i>
-                                            <span>Capture</span>
+                                    <div class="camera-bottom-bar">
+                                        <div class="camera-bottom-spacer"></div>
+                                        <button type="button" class="camera-shutter-btn" id="capturePatientBtn" data-action="capturePatientPhoto">
+                                            <span class="shutter-ring"><span class="shutter-inner"></span></span>
                                         </button>
-                                        <button type="button" class="camera-btn close-cam" id="closePatientCameraBtn" onclick="closePatientCamera()">
-                                            <i class="bi bi-x-lg"></i>
-                                            <span>Close</span>
+                                        <button type="button" class="camera-flip-btn" id="flipPatientCameraBtn" data-action="flipPatientCamera">
+                                            <i class="bi bi-arrow-repeat"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -1219,7 +1234,7 @@ $current_user = get_auth_user();
                                 <!-- Image Preview -->
                                 <div id="patientPreviewContainer" class="patient-preview-container">
                                     <div class="preview-card">
-                                        <div class="preview-image-wrapper" onclick="openPatientImageModal()">
+                                        <div class="preview-image-wrapper" data-action="openPatientImageModal">
                                             <img id="patientAttachmentPreview" src="" alt="Patient Documentation Preview">
                                             <div class="preview-overlay">
                                                 <i class="bi bi-zoom-in"></i>
@@ -1231,13 +1246,22 @@ $current_user = get_auth_user();
                                                 <i class="bi bi-check-circle-fill"></i>
                                                 Photo attached
                                             </span>
-                                            <button type="button" class="remove-preview-btn" id="removePatientAttachmentBtn" onclick="removePatientAttachment()">
+                                            <button type="button" class="remove-preview-btn" id="removePatientAttachmentBtn" data-action="removePatientAttachment">
                                                 <i class="bi bi-trash3"></i>
                                                 Remove
                                             </button>
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- GPS Status Indicator -->
+                                <div id="gpsStatus" class="gps-status-indicator" style="display: none;"></div>
+
+                                <!-- GPS Metadata Hidden Fields -->
+                                <input type="hidden" name="photo_latitude" id="photoLatitude">
+                                <input type="hidden" name="photo_longitude" id="photoLongitude">
+                                <input type="hidden" name="photo_address" id="photoAddress">
+                                <input type="hidden" name="photo_datetime" id="photoDatetime">
 
                                 <!-- Error Message -->
                                 <div id="patientUploadError" class="patient-upload-error">
@@ -1248,9 +1272,9 @@ $current_user = get_auth_user();
                         </div>
 
                         <!-- Image Preview Modal -->
-                        <div id="patientImageModal" class="image-preview-modal" onclick="closePatientImageModal()">
-                            <div class="modal-content-custom" onclick="event.stopPropagation()">
-                                <button type="button" class="modal-close-btn" onclick="closePatientImageModal()">
+                        <div id="patientImageModal" class="image-preview-modal" data-action="closePatientImageModal">
+                            <div class="modal-content-custom" data-action="stopPropagation">
+                                <button type="button" class="modal-close-btn" data-action="closePatientImageModal">
                                     <i class="bi bi-x-lg"></i>
                                 </button>
                                 <img id="patientModalImage" src="" alt="Patient Documentation">
@@ -1294,6 +1318,13 @@ $current_user = get_auth_user();
                                     <label class="form-check-label" for="general"><strong>General</strong></label>
                                 </div>
                                 <input type="text" class="form-control" id="generalSpecify" name="general_specify" placeholder="Specify general condition">
+                            </div>
+                        </div>
+
+                        <div class="grid-2 mb-section">
+                            <div>
+                                <label for="incidentTime" class="form-label">Time of Incident</label>
+                                <input type="text" class="form-control time-input-12hr" id="incidentTime" name="incident_time" placeholder="3:00 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
 
@@ -1682,11 +1713,11 @@ $current_user = get_auth_user();
 
                                     <!-- Action Buttons - Redesigned -->
                                     <div class="diagram-actions">
-                                        <button type="button" class="action-btn btn-clear" onclick="clearAllInjuries()" title="Remove all marked injuries">
+                                        <button type="button" class="action-btn btn-clear" data-action="clearAllInjuries" title="Remove all marked injuries">
                                             <i class="bi bi-trash3"></i>
                                             <span>Clear All</span>
                                         </button>
-                                        <button type="button" class="action-btn btn-export" onclick="exportInjuryData()" title="Export injury data as JSON">
+                                        <button type="button" class="action-btn btn-export" data-action="exportInjuryData" title="Export injury data as JSON">
                                             <i class="bi bi-download"></i>
                                             <span>Export</span>
                                         </button>
@@ -1964,17 +1995,24 @@ $current_user = get_auth_user();
 
                                 <!-- Camera Container -->
                                 <div id="cameraContainer" class="endorsement-camera-container">
+                                    <div class="camera-top-bar">
+                                        <button type="button" class="camera-close-btn" data-action="closeCamera">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                        <span class="camera-top-label">Endorsement Document</span>
+                                        <div class="camera-top-spacer"></div>
+                                    </div>
                                     <div class="camera-viewport">
                                         <video id="cameraVideo" autoplay playsinline></video>
+                                        <div class="camera-flash-overlay" id="endorsementFlashOverlay"></div>
                                     </div>
-                                    <div class="camera-controls">
-                                        <button type="button" class="camera-btn capture" id="captureBtn" onclick="capturePhoto()">
-                                            <i class="bi bi-circle-fill"></i>
-                                            <span>Capture</span>
+                                    <div class="camera-bottom-bar">
+                                        <div class="camera-bottom-spacer"></div>
+                                        <button type="button" class="camera-shutter-btn" id="captureBtn" data-action="capturePhoto">
+                                            <span class="shutter-ring"><span class="shutter-inner"></span></span>
                                         </button>
-                                        <button type="button" class="camera-btn close-cam" id="closeCameraBtn" onclick="closeCamera()">
-                                            <i class="bi bi-x-lg"></i>
-                                            <span>Close</span>
+                                        <button type="button" class="camera-flip-btn" id="flipEndorsementCameraBtn" data-action="flipEndorsementCamera">
+                                            <i class="bi bi-arrow-repeat"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -1982,7 +2020,7 @@ $current_user = get_auth_user();
                                 <!-- Image Preview -->
                                 <div id="previewContainer" class="endorsement-preview-container">
                                     <div class="preview-card">
-                                        <div class="preview-image-wrapper" onclick="openEndorsementImageModal()">
+                                        <div class="preview-image-wrapper" data-action="openEndorsementImageModal">
                                             <img id="attachmentPreview" src="" alt="Endorsement Attachment Preview">
                                             <div class="preview-overlay">
                                                 <i class="bi bi-zoom-in"></i>
@@ -1994,7 +2032,7 @@ $current_user = get_auth_user();
                                                 <i class="bi bi-check-circle-fill"></i>
                                                 Document attached
                                             </span>
-                                            <button type="button" class="remove-preview-btn" id="removeAttachmentBtn" onclick="removeAttachment()">
+                                            <button type="button" class="remove-preview-btn" id="removeAttachmentBtn" data-action="removeAttachment">
                                                 <i class="bi bi-trash3"></i>
                                                 Remove
                                             </button>
@@ -2011,9 +2049,9 @@ $current_user = get_auth_user();
                         </div>
 
                         <!-- Endorsement Image Preview Modal -->
-                        <div id="endorsementImageModal" class="image-preview-modal" onclick="closeEndorsementImageModal()">
-                            <div class="modal-content-custom" onclick="event.stopPropagation()">
-                                <button type="button" class="modal-close-btn" onclick="closeEndorsementImageModal()">
+                        <div id="endorsementImageModal" class="image-preview-modal" data-action="closeEndorsementImageModal">
+                            <div class="modal-content-custom" data-action="stopPropagation">
+                                <button type="button" class="modal-close-btn" data-action="closeEndorsementImageModal">
                                     <i class="bi bi-x-lg"></i>
                                 </button>
                                 <img id="endorsementModalImage" src="" alt="Endorsement Attachment">
@@ -2032,7 +2070,7 @@ $current_user = get_auth_user();
 
                         <!-- View Summary Button -->
                         <div class="text-center summary-button-container">
-                            <button type="button" class="btn btn-primary" id="viewSummaryBtn" onclick="openSummaryModal()">
+                            <button type="button" class="btn btn-primary" id="viewSummaryBtn" data-action="openSummaryModal">
                                 <i class="bi bi-list-check"></i>
                                 <span>View Form Summary</span>
                             </button>
@@ -2053,15 +2091,15 @@ $current_user = get_auth_user();
                             <div class="narrative-toolbar">
                                 <div class="narrative-toolbar-left">
                                     <div class="narrative-format-toggle">
-                                        <button type="button" class="format-btn active" data-format="professional" onclick="switchNarrativeFormat('professional')">
+                                        <button type="button" class="format-btn active" data-format="professional" data-action="switchNarrativeFormat" data-arg="professional">
                                             <i class="bi bi-journal-text"></i> Professional
                                         </button>
-                                        <button type="button" class="format-btn" data-format="concise" onclick="switchNarrativeFormat('concise')">
+                                        <button type="button" class="format-btn" data-format="concise" data-action="switchNarrativeFormat" data-arg="concise">
                                             <i class="bi bi-list-ul"></i> Concise
                                         </button>
                                     </div>
                                 </div>
-                                <button type="button" class="narrative-regenerate-btn" onclick="generateNarrative()">
+                                <button type="button" class="narrative-regenerate-btn" data-action="generateNarrative">
                                     <i class="bi bi-arrow-clockwise"></i> Regenerate
                                 </button>
                             </div>
@@ -2071,7 +2109,7 @@ $current_user = get_auth_user();
                                 <div class="narrative-placeholder">
                                     <i class="bi bi-file-earmark-text"></i>
                                     <p>Narrative report will be generated automatically when you complete the form.</p>
-                                    <button type="button" class="narrative-generate-btn" onclick="generateNarrative()">
+                                    <button type="button" class="narrative-generate-btn" data-action="generateNarrative">
                                         Generate Now
                                     </button>
                                 </div>
@@ -2079,13 +2117,13 @@ $current_user = get_auth_user();
 
                             <!-- Actions -->
                             <div class="narrative-actions">
-                                <button type="button" class="narrative-action-btn narrative-action-primary" onclick="copyNarrativeToClipboard()">
+                                <button type="button" class="narrative-action-btn narrative-action-primary" data-action="copyNarrativeToClipboard">
                                     <i class="bi bi-clipboard"></i> Copy
                                 </button>
-                                <button type="button" class="narrative-action-btn" onclick="printNarrative()">
+                                <button type="button" class="narrative-action-btn" data-action="printNarrative">
                                     <i class="bi bi-printer"></i> Print
                                 </button>
-                                <button type="button" class="narrative-action-btn" onclick="exportNarrativeAsText()">
+                                <button type="button" class="narrative-action-btn" data-action="exportNarrativeAsText">
                                     <i class="bi bi-download"></i> Download
                                 </button>
                             </div>
@@ -2122,10 +2160,10 @@ $current_user = get_auth_user();
 
                     <!-- Modal Footer -->
                     <div class="modal-footer" style="background-color: #fff; border-top: 2px solid #e9ecef; padding: 1rem 1.5rem;">
-                        <button type="button" class="btn btn-outline-secondary" onclick="copySummaryToClipboard()">
+                        <button type="button" class="btn btn-outline-secondary" data-action="copySummaryToClipboard">
                             <i class="bi bi-clipboard"></i> Copy to Clipboard
                         </button>
-                        <button type="button" class="btn btn-outline-primary" onclick="printSummary()">
+                        <button type="button" class="btn btn-outline-primary" data-action="printSummary">
                             <i class="bi bi-printer"></i> Print Summary
                         </button>
                         <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
@@ -2137,13 +2175,13 @@ $current_user = get_auth_user();
         </div>
 
         <div class="navigation-buttons">
-            <button type="button" class="btn btn-outline-primary" id="prevBtn" onclick="navigateTab(-1)">
+            <button type="button" class="btn btn-outline-primary" id="prevBtn" data-action="navigateTab" data-arg="-1">
                 <i class="bi bi-chevron-left"></i> Previous
             </button>
-            <button type="button" class="btn btn-primary" id="nextBtn" onclick="navigateTab(1)">
+            <button type="button" class="btn btn-primary" id="nextBtn" data-action="navigateTab" data-arg="1">
                 Next <i class="bi bi-chevron-right"></i>
             </button>
-            <button type="button" class="btn btn-success" id="submitBtn" style="display: none;" onclick="submitForm()">
+            <button type="button" class="btn btn-success" id="submitBtn" style="display: none;" data-action="submitForm">
                 <i class="bi bi-check2"></i> Save Form
             </button>
         </div>
@@ -2202,10 +2240,17 @@ $current_user = get_auth_user();
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
+    <!-- JS Modules -->
+    <script src="js/modules/utils.js?v=<?php echo asset_version(); ?>"></script>
+    <script src="js/modules/injury-tracker.js?v=<?php echo asset_version(); ?>"></script>
+    <script src="js/modules/camera.js?v=<?php echo asset_version(); ?>"></script>
+    <script src="js/modules/form-tabs.js?v=<?php echo asset_version(); ?>"></script>
+    <script src="js/modules/auto-save.js?v=<?php echo asset_version(); ?>"></script>
+    <script src="js/modules/validation.js?v=<?php echo asset_version(); ?>"></script>
     <script src="js/prehospital-form.js?v=<?php echo asset_version(); ?>"></script>
     <!-- Custom Date Components - Month/Day/Year dropdowns -->
     <script src="js/custom-date.js?v=<?php echo asset_version(); ?>"></script>
-    <script>
+    <script nonce="<?php echo CSP_NONCE; ?>">
         // Configure Notiflix
         Notiflix.Notify.init({
             width: '320px',
@@ -4249,6 +4294,40 @@ $current_user = get_auth_user();
                 }
             }, 300);
         });
+    // CSP-compliant event delegation for data-action attributes
+    document.addEventListener('click', function(e) {
+        var el = e.target.closest('[data-action]');
+        if (!el) return;
+        var action = el.getAttribute('data-action');
+        var arg = el.getAttribute('data-arg');
+        switch (action) {
+            case 'stopPropagation': e.stopPropagation(); return;
+            case 'closePatientCamera': closePatientCamera(); break;
+            case 'capturePatientPhoto': capturePatientPhoto(); break;
+            case 'flipPatientCamera': flipPatientCamera(); break;
+            case 'openPatientImageModal': openPatientImageModal(); break;
+            case 'removePatientAttachment': removePatientAttachment(); break;
+            case 'closePatientImageModal': closePatientImageModal(); break;
+            case 'clearAllInjuries': clearAllInjuries(); break;
+            case 'exportInjuryData': exportInjuryData(); break;
+            case 'closeCamera': closeCamera(); break;
+            case 'capturePhoto': capturePhoto(); break;
+            case 'flipEndorsementCamera': flipEndorsementCamera(); break;
+            case 'openEndorsementImageModal': openEndorsementImageModal(); break;
+            case 'removeAttachment': removeAttachment(); break;
+            case 'closeEndorsementImageModal': closeEndorsementImageModal(); break;
+            case 'openSummaryModal': openSummaryModal(); break;
+            case 'switchNarrativeFormat': switchNarrativeFormat(arg); break;
+            case 'generateNarrative': generateNarrative(); break;
+            case 'copyNarrativeToClipboard': copyNarrativeToClipboard(); break;
+            case 'printNarrative': printNarrative(); break;
+            case 'exportNarrativeAsText': exportNarrativeAsText(); break;
+            case 'copySummaryToClipboard': copySummaryToClipboard(); break;
+            case 'printSummary': printSummary(); break;
+            case 'navigateTab': navigateTab(parseInt(arg)); break;
+            case 'submitForm': submitForm(); break;
+        }
+    });
     </script>
 </body>
 </html>

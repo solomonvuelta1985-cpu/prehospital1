@@ -250,10 +250,10 @@ $records = ($stmt) ? $stmt->fetchAll() : [];
                 <a href="prehospital_form.php" class="btn-custom btn-primary-custom">
                     <i class="fas fa-plus"></i> Add New Record
                 </a>
-                <button onclick="exportToCSV()" class="btn-custom btn-success-custom">
+                <button id="btnExportCSV" class="btn-custom btn-success-custom">
                     <i class="fas fa-file-csv"></i> Export CSV
                 </button>
-                <button class="btn-custom btn-secondary-custom" onclick="window.print()">
+                <button id="btnPrint" class="btn-custom btn-secondary-custom">
                     <i class="fas fa-print"></i> Print
                 </button>
             </div>
@@ -519,7 +519,7 @@ $records = ($stmt) ? $stmt->fetchAll() : [];
                                             <li><hr class="dropdown-divider"></li>
                                             <?php endif; ?>
                                             <li>
-                                                <a class="dropdown-item" href="javascript:void(0)" onclick="viewRecord(<?php echo $record['id']; ?>)">
+                                                <a class="dropdown-item" href="javascript:void(0)" data-view-record="<?php echo $record['id']; ?>">
                                                     <i class="fas fa-eye" style="color: #0065FF;"></i> View
                                                 </a>
                                             </li>
@@ -530,7 +530,7 @@ $records = ($stmt) ? $stmt->fetchAll() : [];
                                             </li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li>
-                                                <a class="dropdown-item dropdown-item-danger" href="javascript:void(0)" onclick="deleteRecord(<?php echo $record['id']; ?>)">
+                                                <a class="dropdown-item dropdown-item-danger" href="javascript:void(0)" data-delete-record="<?php echo $record['id']; ?>">
                                                     <i class="fas fa-trash"></i> Delete
                                                 </a>
                                             </li>
@@ -592,7 +592,7 @@ $records = ($stmt) ? $stmt->fetchAll() : [];
     </div>
 
     <!-- Back to Top Button -->
-    <button class="back-to-top" id="backToTop" onclick="scrollToTop()" title="Back to top">
+    <button class="back-to-top" id="backToTop" title="Back to top">
         <i class="fas fa-arrow-up"></i>
     </button>
 
@@ -631,7 +631,7 @@ $records = ($stmt) ? $stmt->fetchAll() : [];
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
-    <script>
+    <script nonce="<?php echo CSP_NONCE; ?>">
     // Skeleton Loader
     document.addEventListener('DOMContentLoaded', function() {
         const tableContainer = document.getElementById('tableContainer');
@@ -697,7 +697,7 @@ $records = ($stmt) ? $stmt->fetchAll() : [];
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ id: id })
+                    body: JSON.stringify({ id: id, csrf_token: '<?php echo generate_token(); ?>' })
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -803,6 +803,24 @@ $records = ($stmt) ? $stmt->fetchAll() : [];
                 `;
             });
     }
+
+    // Attach all event handlers via JS (CSP blocks inline onclick)
+    document.addEventListener('click', function(e) {
+        var deleteBtn = e.target.closest('[data-delete-record]');
+        if (deleteBtn) {
+            deleteRecord(parseInt(deleteBtn.getAttribute('data-delete-record')));
+            return;
+        }
+        var viewBtn = e.target.closest('[data-view-record]');
+        if (viewBtn) {
+            viewRecord(parseInt(viewBtn.getAttribute('data-view-record')));
+            return;
+        }
+    });
+
+    document.getElementById('btnExportCSV')?.addEventListener('click', function() { exportToCSV(); });
+    document.getElementById('btnPrint')?.addEventListener('click', function() { window.print(); });
+    document.getElementById('backToTop')?.addEventListener('click', function() { scrollToTop(); });
 
     </script>
 </body>

@@ -18,26 +18,21 @@ error_reporting(E_ALL); // Still log all errors, just don't display them
 // For development, uncomment this line to see errors:
 // ini_set('display_errors', '1');
 
+// Load environment variables from .env file
+require_once __DIR__ . '/env_loader.php';
+load_env();
+
 // Environment detection (must be before database config)
 $is_localhost = in_array($_SERVER['HTTP_HOST'], ['localhost', '127.0.0.1']) ||
                 strpos($_SERVER['HTTP_HOST'], 'localhost:') === 0 ||
                 strpos($_SERVER['HTTP_HOST'], '127.0.0.1:') === 0;
 define('IS_LOCALHOST', $is_localhost);
 
-// Database credentials - Environment specific
-if (IS_LOCALHOST) {
-    // LOCAL DEVELOPMENT DATABASE
-    define('DB_HOST', 'localhost');
-    define('DB_NAME', 'pre_hospital_db'); // Your local database name
-    define('DB_USER', 'root'); // Default XAMPP user
-    define('DB_PASS', ''); // Default XAMPP password (empty)
-} else {
-    // PRODUCTION DATABASE
-    define('DB_HOST', 'localhost');
-    define('DB_NAME', 'btrahnqi_pre_hospital_db'); // Production database name
-    define('DB_USER', 'btrahnqi_richmond'); // Production database user
-    define('DB_PASS', 'Almondmamon@17'); // Production database password
-}
+// Database credentials from .env (with fallbacks for backward compatibility)
+define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+define('DB_NAME', getenv('DB_NAME') ?: 'pre_hospital_db');
+define('DB_USER', getenv('DB_USER') ?: 'root');
+define('DB_PASS', getenv('DB_PASS') ?: '');
 define('DB_CHARSET', 'utf8mb4');
 
 // Application settings
@@ -46,12 +41,12 @@ define('APP_VERSION', '1.0.0');
 define('UPLOAD_DIR', __DIR__ . '/../uploads/');
 define('MAX_FILE_SIZE', 5242880); // 5MB
 
-// reCAPTCHA settings (get keys from https://www.google.com/recaptcha/admin)
-// PRODUCTION: Replace with your own reCAPTCHA keys from Google
-// Register your domain at: https://www.google.com/recaptcha/admin
-// IMPORTANT: Add 'localhost' to allowed domains in reCAPTCHA admin for local testing
-define('RECAPTCHA_SITE_KEY', '6LeJ5kUsAAAAAHJQkM9upH2rVKIFb15MikEPG1gw');
-define('RECAPTCHA_SECRET_KEY', '6LeJ5kUsAAAAACnDq8gUHRuIFgD3To17FLUB2WO7');
+// reCAPTCHA settings from .env
+define('RECAPTCHA_SITE_KEY', getenv('RECAPTCHA_SITE_KEY') ?: '');
+define('RECAPTCHA_SECRET_KEY', getenv('RECAPTCHA_SECRET_KEY') ?: '');
+
+// Encryption key from .env (used for data encryption at rest)
+define('APP_ENCRYPTION_KEY', getenv('APP_ENCRYPTION_KEY') ?: '');
 
 // Force HTTPS redirect - ONLY ON PRODUCTION
 // Disabled for localhost development
@@ -104,6 +99,28 @@ if (!$is_mobile_webview_request) {
     // X-Frame-Options intentionally omitted for mobile webview compatibility
 }
 
+// HSTS header - production only (forces HTTPS for 1 year)
+if (!IS_LOCALHOST) {
+    header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+}
+
+// Generate CSP nonce per-request for inline scripts/styles (must happen BEFORE CSP header)
+$_SESSION['csp_nonce'] = bin2hex(random_bytes(16));
+define('CSP_NONCE', $_SESSION['csp_nonce']);
+
+// Global Content-Security-Policy
+$csp_nonce_val = CSP_NONCE;
+$csp = "default-src 'self'; "
+     . "script-src 'self' 'nonce-{$csp_nonce_val}' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com; "
+     . "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
+     . "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+     . "img-src 'self' data: blob: https://nominatim.openstreetmap.org; "
+     . "connect-src 'self' https://nominatim.openstreetmap.org https://www.google.com https://cdn.jsdelivr.net; "
+     . "frame-src https://www.google.com https://www.gstatic.com; "
+     . "object-src 'none'; "
+     . "base-uri 'self';";
+header("Content-Security-Policy: {$csp}");
+
 // PDO Database Connection
 try {
     $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
@@ -123,8 +140,4 @@ try {
 // Timezone
 date_default_timezone_set('Asia/Manila');
 
-// Generate CSP nonce for inline scripts/styles
-if (!isset($_SESSION['csp_nonce'])) {
-    $_SESSION['csp_nonce'] = bin2hex(random_bytes(16));
-}
-define('CSP_NONCE', $_SESSION['csp_nonce']);
+// CSP_NONCE already defined above (before CSP header)

@@ -180,6 +180,22 @@ if (count($name_parts) >= 2) {
                 <span>User Management</span>
             </a>
         </li>
+        <li>
+            <a href="<?= $base_path ?>admin/activity_logs.php"
+               class="<?php echo ($current_page === 'activity_logs.php') ? 'active' : ''; ?>"
+               title="Activity Logs">
+                <span class="material-icons">history</span>
+                <span>Activity Logs</span>
+            </a>
+        </li>
+        <li>
+            <a href="<?= $base_path ?>admin/settings.php"
+               class="<?php echo ($current_page === 'settings.php') ? 'active' : ''; ?>"
+               title="Settings">
+                <span class="material-icons">settings</span>
+                <span>Settings</span>
+            </a>
+        </li>
         <?php endif; ?>
     </ul>
 
@@ -1111,7 +1127,7 @@ if (count($name_parts) >= 2) {
 }
 </style>
 
-<script>
+<script nonce="<?php echo CSP_NONCE; ?>">
 document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebarOverlay');

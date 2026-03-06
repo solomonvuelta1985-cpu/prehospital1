@@ -198,7 +198,7 @@ if (isset($_POST['clear_log'])) {
         </div>
     </div>
 
-    <script>
+    <script nonce="<?php echo CSP_NONCE; ?>">
         let autoScrollEnabled = false;
         let autoScrollInterval = null;
 

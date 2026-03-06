@@ -14,29 +14,40 @@ require_admin();
 
 // Rate limiting - prevent abuse
 if (!check_rate_limit('admin_change_password', 10, 300)) {
-    set_flash('error', 'Too many password change attempts. Please wait 5 minutes.');
+    set_flash('Too many password change attempts. Please wait 5 minutes.', 'error');
     header('Location: ../../public/admin/users.php');
     exit;
 }
 
 // Check request method
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    set_flash('error', 'Invalid request method');
+    set_flash('Invalid request method', 'error');
     header('Location: ../../public/admin/users.php');
     exit;
 }
 
 // Verify CSRF token
 if (!verify_token($_POST['csrf_token'] ?? '')) {
-    set_flash('error', 'Invalid security token');
+    set_flash('Invalid security token', 'error');
     header('Location: ../../public/admin/users.php');
     exit;
 }
 
 // Get and validate input
 $user_id = intval($_POST['user_id'] ?? 0);
+$generate_temp = isset($_POST['generate_temp']) && $_POST['generate_temp'] === '1';
 $new_password = $_POST['new_password'] ?? '';
 $confirm_password = $_POST['confirm_password'] ?? '';
+
+// Generate temporary password if requested
+if ($generate_temp) {
+    $chars = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%';
+    $new_password = '';
+    for ($i = 0; $i < 12; $i++) {
+        $new_password .= $chars[random_int(0, strlen($chars) - 1)];
+    }
+    $confirm_password = $new_password;
+}
 
 // Validation
 $errors = [];
@@ -71,7 +82,7 @@ if (empty($errors)) {
 
 // If there are errors, return
 if (!empty($errors)) {
-    set_flash('error', implode('<br>', $errors));
+    set_flash(implode('<br>', $errors), 'error');
     header('Location: ../../public/admin/users.php');
     exit;
 }
@@ -80,17 +91,26 @@ try {
     // Hash new password
     $password_hash = password_hash($new_password, PASSWORD_DEFAULT);
 
-    // Update password
-    $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
-    $stmt->execute([$password_hash, $user_id]);
+    // Update password and set force_password_change flag if temp password
+    if ($generate_temp) {
+        $stmt = $pdo->prepare("UPDATE users SET password = ?, force_password_change = 1 WHERE id = ?");
+        $stmt->execute([$password_hash, $user_id]);
 
-    set_flash('success', "Password for '{$user['username']}' updated successfully!");
+        log_activity('admin_temp_password', "Generated temporary password for user: {$user['username']}");
+        set_flash("Temporary password for '{$user['username']}': <strong>{$new_password}</strong><br><small>The user will be required to change this on next login.</small>", 'success');
+    } else {
+        $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+        $stmt->execute([$password_hash, $user_id]);
+
+        set_flash("Password for '{$user['username']}' updated successfully!", 'success');
+    }
+
     header('Location: ../../public/admin/users.php');
     exit;
 
 } catch (PDOException $e) {
     error_log("Error changing password: " . $e->getMessage());
-    set_flash('error', 'Database error occurred while changing password');
+    set_flash('Database error occurred while changing password', 'error');
     header('Location: ../../public/admin/users.php');
     exit;
 }

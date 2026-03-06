@@ -626,7 +626,7 @@ $csrf_token = generate_token();
     <!-- TSParticles Library -->
     <script src="https://cdn.jsdelivr.net/npm/tsparticles-slim@2.0.6/tsparticles.slim.bundle.min.js"></script>
     
-    <script>
+    <script nonce="<?php echo CSP_NONCE; ?>">
         // 1. Initialize Particles (The "Medical Connections" effect)
         (async () => {
             await tsParticles.load("tsparticles", {

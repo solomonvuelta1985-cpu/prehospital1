@@ -671,8 +671,30 @@ body:not(.loading) .nav-tabs .nav-link {
     border-radius: 6px;
     padding: 0.75rem 1rem;
     font-size: 1rem;
+    color: #1a1a1a;
+    background-color: #fff;
     height: auto;
     min-height: 45px;
+}
+
+/* Custom date input wrapper */
+.custom-date-input {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: nowrap;
+}
+
+.custom-date-input .form-control,
+.custom-date-input .form-select {
+    min-width: 0;
+    padding: 0.5rem 0.4rem;
+    text-align: center;
+    color: #1a1a1a;
+}
+
+.custom-date-input span {
+    flex-shrink: 0;
 }
 
 .form-select[multiple] {
@@ -1519,12 +1541,19 @@ textarea.form-control {
     color: white;
 }
 
+/* Injury badges with pattern indicators for colorblind accessibility */
 .injury-type-badge.laceration { background: #dc3545; }
+.injury-type-badge.laceration::before { content: "// "; font-size: 0.6rem; }
 .injury-type-badge.fracture { background: #fd7e14; }
+.injury-type-badge.fracture::before { content: "## "; font-size: 0.6rem; }
 .injury-type-badge.burn { background: #ffc107; color: #333; }
+.injury-type-badge.burn::before { content: "~~ "; font-size: 0.6rem; }
 .injury-type-badge.contusion { background: #6f42c1; }
+.injury-type-badge.contusion::before { content: "** "; font-size: 0.6rem; }
 .injury-type-badge.abrasion { background: #20c997; }
+.injury-type-badge.abrasion::before { content: ".. "; font-size: 0.6rem; }
 .injury-type-badge.other { background: #6c757d; }
+.injury-type-badge.other::before { content: "-- "; font-size: 0.6rem; }
 
 .injury-notes {
     width: 100%;
@@ -2007,6 +2036,18 @@ a:active {
 
     .checkbox-grid {
         grid-template-columns: 1fr;
+    }
+
+    /* Custom date inputs on mobile */
+    .custom-date-input .form-control,
+    .custom-date-input .form-select {
+        padding: 0.4rem 0.3rem;
+        font-size: 0.85rem;
+        min-height: 38px;
+    }
+
+    .custom-date-input select.form-control option {
+        font-size: 0.85rem;
     }
 
     .nav-tabs {
@@ -3048,76 +3089,310 @@ a:active {
     display: none;
 }
 
-/* Camera Container */
+/* GPS Status Indicator */
+.gps-status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    margin-top: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.gps-status-indicator.fetching {
+    background: #eff6ff;
+    color: #3b82f6;
+    border: 1px solid #bfdbfe;
+}
+
+.gps-status-indicator.fetching i {
+    animation: spin 1s linear infinite;
+}
+
+.gps-status-indicator.success {
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
+
+.gps-status-indicator.unavailable {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   CAMERA OVERLAY - Modern Native-Feel
+   ======================================== */
+
+/* Shared base for both camera containers */
 .patient-camera-container,
 .endorsement-camera-container {
     display: none;
     margin-top: 1.5rem;
-    background: #f8fafc;
+    background: #000;
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid #e5e9f0;
+    position: relative;
 }
 
+/* Camera viewport */
 .camera-viewport {
     background: #000;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
 }
 
 .camera-viewport video {
     width: 100%;
-    max-height: 350px;
+    max-height: 400px;
     display: block;
     object-fit: cover;
 }
 
-.camera-controls {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    padding: 1rem;
+/* Flash feedback overlay */
+.camera-flash-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: #ffffff;
-    border-top: 1px solid #e5e9f0;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 5;
+    transition: opacity 0.08s ease-out;
 }
 
-.camera-btn {
+.camera-flash-overlay.flash-active {
+    opacity: 0.85;
+}
+
+/* Top bar */
+.camera-top-bar {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    border-radius: 50px;
-    font-size: 0.9rem;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.camera-top-label {
+    font-size: 0.85rem;
     font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 0.3px;
+}
+
+.camera-top-spacer,
+.camera-bottom-spacer {
+    width: 44px;
+    flex-shrink: 0;
+}
+
+.camera-close-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    border: none;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    transition: all 0.2s ease;
-    border: 2px solid;
+    transition: background 0.2s ease;
+    font-size: 1rem;
 }
 
-.camera-btn.capture {
-    background: linear-gradient(135deg, #28a745 0%, #218838 100%);
-    border-color: #28a745;
-    color: #ffffff;
+.camera-close-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
 }
 
-.camera-btn.capture:hover {
-    background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
+/* Bottom controls bar */
+.camera-bottom-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+/* Large circular shutter button */
+.camera-shutter-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s ease;
+}
+
+.camera-shutter-btn:hover {
     transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
 
-.camera-btn.capture i {
-    font-size: 1.1rem;
+.camera-shutter-btn:active {
+    transform: scale(0.92);
 }
 
-.camera-btn.close-cam {
+.shutter-ring {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 3px solid #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s ease;
+}
+
+.shutter-inner {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
     background: #ffffff;
-    border-color: #6c757d;
-    color: #6c757d;
+    transition: background 0.15s ease, transform 0.15s ease;
 }
 
-.camera-btn.close-cam:hover {
-    background: #6c757d;
+.camera-shutter-btn:hover .shutter-inner {
+    background: #e0e0e0;
+}
+
+.camera-shutter-btn:active .shutter-inner {
+    transform: scale(0.88);
+    background: #cccccc;
+}
+
+@keyframes shutter-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.85); }
+    100% { transform: scale(1); }
+}
+
+.camera-shutter-btn.capturing .shutter-inner {
+    animation: shutter-pulse 0.3s ease;
+    background: #cccccc;
+}
+
+/* Camera flip button */
+.camera-flip-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    border: none;
     color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-size: 1.2rem;
+}
+
+.camera-flip-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+@keyframes flip-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(180deg); }
+}
+
+.camera-flip-btn.flipping i {
+    animation: flip-rotate 0.4s ease;
+}
+
+/* ========================================
+   MOBILE FULLSCREEN CAMERA EXPERIENCE
+   ======================================== */
+@media (max-width: 768px) {
+    .patient-camera-container,
+    .endorsement-camera-container {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        border: none;
+        border-radius: 0;
+        z-index: 99999;
+        flex-direction: column;
+        background: #000;
+        transform: translateY(100%);
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .patient-camera-container.camera-active,
+    .endorsement-camera-container.camera-active {
+        display: flex !important;
+        flex-direction: column;
+        transform: translateY(0);
+    }
+
+    .camera-top-bar {
+        padding: 0.5rem 1rem;
+        padding-top: max(0.5rem, env(safe-area-inset-top));
+        flex-shrink: 0;
+    }
+
+    .camera-viewport {
+        flex: 1;
+        min-height: 0;
+    }
+
+    .camera-viewport video {
+        width: 100%;
+        height: 100%;
+        max-height: none;
+        object-fit: cover;
+    }
+
+    .camera-bottom-bar {
+        padding: 1rem 2rem;
+        padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+        flex-shrink: 0;
+    }
+
+    .shutter-ring {
+        width: 72px;
+        height: 72px;
+        border-width: 4px;
+    }
+
+    .shutter-inner {
+        width: 58px;
+        height: 58px;
+    }
+
+    .camera-flip-btn {
+        width: 48px;
+        height: 48px;
+        font-size: 1.3rem;
+    }
+
+    .camera-close-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
 }
 
 /* Preview Container */
@@ -3336,10 +3611,6 @@ a:active {
 
     .preview-card {
         max-width: 100%;
-    }
-
-    .camera-viewport video {
-        max-height: 280px;
     }
 
     .patient-doc-header,
@@ -3690,4 +3961,63 @@ a:active {
     .preview-overlay {
         display: none !important;
     }
+}
+
+/* ============================================
+   ACCESSIBILITY IMPROVEMENTS
+   ============================================ */
+
+/* Focus visible outlines for keyboard navigation */
+*:focus-visible {
+    outline: 3px solid #0d6efd;
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+button:focus-visible,
+.btn:focus-visible {
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.5);
+}
+
+/* Body diagram keyboard focus indicator */
+.body-image-container:focus-visible {
+    outline: 3px solid #0d6efd;
+    outline-offset: 4px;
+    border-radius: 8px;
+}
+
+/* Injury marker keyboard focus */
+.injury-marker:focus-visible {
+    transform: scale(1.3);
+    outline: 3px solid #fff;
+    box-shadow: 0 0 0 5px #0d6efd;
+}
+
+/* Tab navigation keyboard focus */
+.step-indicator .step:focus-visible {
+    outline: 3px solid #0d6efd;
+    outline-offset: 2px;
+}
+
+/* Skip navigation link for screen readers */
+.skip-nav {
+    position: absolute;
+    left: -9999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+.skip-nav:focus {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    width: auto;
+    height: auto;
+    padding: 10px 20px;
+    background: #0d6efd;
+    color: #fff;
+    z-index: 99999;
+    font-weight: 600;
+    border-radius: 4px;
 }

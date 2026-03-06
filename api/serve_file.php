@@ -12,6 +12,12 @@ require_once '../includes/auth.php';
 // Require authentication
 require_login();
 
+// Rate limiting for file downloads
+if (!check_rate_limit('file_download', 30, 60)) {
+    http_response_code(429);
+    die('Too many requests. Please try again later.');
+}
+
 // Get file path from query parameter
 $filePath = $_GET['file'] ?? '';
 
@@ -37,7 +43,9 @@ if (!file_exists($realPath)) {
 
 // Get file info
 $fileSize = filesize($realPath);
-$mimeType = mime_content_type($realPath);
+$finfo = finfo_open(FILEINFO_MIME_TYPE);
+$mimeType = finfo_file($finfo, $realPath);
+finfo_close($finfo);
 
 // Set headers for secure serving
 header('Content-Type: ' . $mimeType);

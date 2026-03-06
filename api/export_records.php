@@ -11,6 +11,12 @@ require_once '../includes/auth.php';
 // Require authentication
 require_login();
 
+// Rate limiting for exports
+if (!check_rate_limit('export', 5, 300)) {
+    http_response_code(429);
+    die('Too many export requests. Please try again in 5 minutes.');
+}
+
 // Get filters
 $search = isset($_GET['search']) ? sanitize($_GET['search']) : '';
 $status_filter = isset($_GET['status']) ? sanitize($_GET['status']) : '';
@@ -80,6 +86,12 @@ if (!empty($emergency_filter)) {
 if (!empty($vehicle_filter)) {
     $where_conditions[] = "vehicle_used = ?";
     $params[] = $vehicle_filter;
+}
+
+// Non-admin users can only export their own records
+if (!is_admin()) {
+    $where_conditions[] = "created_by = ?";
+    $params[] = $_SESSION['user_id'];
 }
 
 $where_sql = !empty($where_conditions) ? "WHERE " . implode(" AND ", $where_conditions) : "";

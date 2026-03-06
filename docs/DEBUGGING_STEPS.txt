@@ -82,3 +82,199 @@ And REMOVE these debug lines:
 - drafts.php line 403 (error_log for draft ID)
 
 ===============================================
+
+
+
+
+# Comprehensive Project Audit: Pre-Hospital Care System
+
+## Context
+Full security and feature audit of the Rescue 116 MDRRMO Pre-Hospital Care System. The application is a production-grade PHP web app for emergency medical documentation with 48 PHP files, 15+ API endpoints, 5 database tables, and 80+ form fields.
+
+---
+
+## PART 1: CRITICAL SECURITY VULNERABILITIES (Fix Immediately)
+
+### 1.1 Hardcoded Production Credentials
+- **File:** `includes/config.php` (Lines 36-39, 53-54)
+- **Issue:** Production database password (`Almondmamon@17`) and reCAPTCHA secret key are hardcoded in source code and visible in git history
+- **Fix:** Move to `.env` file, use `getenv()` or a dotenv library, rotate credentials immediately
+
+### 1.2 Missing Record Ownership Validation (IDOR Vulnerability)
+- **Files:** `api/get_record.php`, `api/update_record.php`, `api/delete_record.php`, `public/view_record.php`
+- **Issue:** Any authenticated user can view/edit/delete ANY record by changing the ID parameter. No check that `created_by == current_user_id`
+- **Fix:** Add ownership check: `WHERE id = ? AND (created_by = ? OR user_is_admin)`
+
+### 1.3 Debug/Test Files Accessible in Production
+- **Files:** `public/debug_recaptcha.php`, `public/test_recaptcha_verify.php`, `public/fix_database.php`, `public/test_login.php`, `public/check_drafts.php`, `public/check_columns.php`, `public/check_schema.php`
+- **Issue:** Expose system info, database schema, and configuration without authentication
+- **Fix:** Delete or move behind admin authentication
+
+### 1.4 XSS via innerHTML in JavaScript
+- **File:** `public/js/prehospital-form.js` (Lines ~483, ~1021)
+- **Issue:** User input (patient name, injury notes) inserted via `innerHTML` without sanitization
+- **Fix:** Use `textContent` for user data or escape HTML entities before insertion
+
+---
+
+## PART 2: HIGH PRIORITY SECURITY IMPROVEMENTS
+
+### 2.1 Session Timeout
+- **Issue:** No idle session timeout configured. Sessions persist indefinitely.
+- **Fix:** Add 30-minute idle timeout in `config.php` or `auth.php`
+
+### 2.2 HSTS Header Missing
+- **Issue:** No `Strict-Transport-Security` header
+- **Fix:** Add `header('Strict-Transport-Security: max-age=31536000; includeSubDomains');` in production
+
+### 2.3 Detailed Error Info Leaked to Client
+- **File:** `api/autosave_draft.php` (Lines 292-305)
+- **Issue:** Returns `error_file` and `error_line` to the client
+- **Fix:** Remove file/line details from JSON responses; keep only in server logs
+
+### 2.4 Rate Limiting Gaps
+- **Files:** `api/serve_file.php`, `api/export_records.php`
+- **Issue:** No rate limiting on file downloads or bulk CSV exports
+- **Fix:** Add `check_rate_limit()` calls
+
+### 2.5 Flash Message Parameter Order Bug
+- **File:** `api/admin/change_user_password.php` (Lines 17, 31, 32, 74)
+- **Issue:** `set_flash('error', 'message')` has wrong parameter order (should be `set_flash('message', 'error')`)
+- **Fix:** Swap parameters
+
+### 2.6 Deprecated `mime_content_type()` Usage
+- **Files:** `api/update_record.php` (Line 234), `api/serve_file.php` (Line 40)
+- **Fix:** Replace with `finfo_file(finfo_open(FILEINFO_MIME_TYPE), $path)`
+
+---
+
+## PART 3: MEDIUM PRIORITY SECURITY IMPROVEMENTS
+
+### 3.1 Global Content-Security-Policy
+- **Issue:** CSP only applied in one file, not site-wide
+- **Fix:** Add comprehensive CSP in `config.php` with nonce for inline scripts
+
+### 3.2 Rate Limit Fail-Open Behavior
+- **File:** `includes/functions.php` (Line 393)
+- **Issue:** If rate limiting check throws an exception, request is allowed through
+- **Fix:** Change to fail-closed (deny on error) with logging
+
+### 3.3 Console.log Sensitive Data
+- **File:** `public/js/prehospital-form.js` (Lines 699, 960, 972)
+- **Issue:** Form data logged to browser console in production
+- **Fix:** Remove or wrap in environment check
+
+### 3.4 Rate Limit Record Cleanup
+- **Issue:** `cleanup_rate_limits()` function exists but is never called
+- **Fix:** Call periodically or add a cron job
+
+---
+
+## PART 4: RECOMMENDED NEW FEATURES
+
+### 4.1 Environment Variable Support (.env)
+- Add `.env` file support using a simple PHP dotenv loader
+- Move all secrets out of `config.php`
+
+### 4.2 Password Reset / Forgot Password
+- Currently no way for users to reset passwords without admin
+- Add email-based token reset with time-limited single-use tokens
+
+### 4.3 Two-Factor Authentication (2FA)
+- Add TOTP-based 2FA for admin accounts
+- Critical for medical data systems
+
+### 4.4 Offline Mode / Service Worker
+- No service worker detected
+- Field responders may lose connectivity mid-entry
+- Add offline form caching with sync when back online
+
+### 4.5 Auto-Save to localStorage
+- Tab state is saved, but form data is not
+- Add periodic auto-save to prevent data loss on page reload
+
+### 4.6 Audit Log Dashboard
+- `activity_logs` table exists but `view_logs.php` is basic
+- Add searchable, filterable admin audit dashboard with export
+
+### 4.7 Data Encryption at Rest
+- Patient medical records stored in plaintext
+- Add AES-256 encryption for sensitive fields (patient name, address, medical data)
+
+### 4.8 API Versioning
+- No API versioning currently
+- Add `/api/v1/` prefix for future-proofing
+
+### 4.9 Automated Database Backups
+- No backup mechanism detected
+- Add scheduled mysqldump with rotation
+
+### 4.10 PDF Report Generation
+- Currently only CSV export
+- Add PDF export for individual patient records and summary reports
+
+### 4.11 Email/SMS Notifications
+- No notification system
+- Add alerts for: new form submissions, account lockouts, daily summaries
+
+### 4.12 Data Retention Policy
+- No automatic archiving or purging of old records
+- Add configurable retention periods with auto-archive
+
+### 4.13 Accessibility Improvements
+- Body diagram not keyboard accessible
+- Missing ARIA labels on interactive elements
+- Color-only injury type indicators (colorblind issue)
+
+### 4.14 Performance: Split Large JS File
+- `prehospital-form.js` is 107KB monolithic file
+- Split into modules: form-tabs.js, injury-tracker.js, camera.js, validation.js
+
+### 4.15 IP Whitelist for Admin Panel
+- Allow admin access only from trusted IPs
+- Configurable in admin settings
+
+### 4.16 Login Activity Notifications
+- Email admin when login from new IP/device
+- Show "last login" info on dashboard
+
+### 4.17 Record Versioning / Change History
+- No version history for edited records
+- Add diff tracking so changes can be reviewed/reverted
+
+---
+
+## PART 5: WHAT'S ALREADY DONE WELL
+
+- PDO prepared statements (SQL injection prevention)
+- bcrypt password hashing with `password_verify()`
+- CSRF token protection with timing-safe comparison
+- IP-based rate limiting + account lockout
+- Role-based access control (admin/user/viewer)
+- Session regeneration on login
+- Security headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection)
+- File upload validation (MIME, extension, size, exif)
+- Secure file serving with path traversal prevention
+- Activity logging audit trail
+- Input sanitization with `htmlspecialchars()` + `strip_tags()`
+- Database transactions with rollback on error
+- reCAPTCHA on login
+
+---
+
+## Implementation Priority
+
+| Priority | Items | Effort |
+|----------|-------|--------|
+| **CRITICAL** | 1.1, 1.2, 1.3, 1.4 | 2-4 hours |
+| **HIGH** | 2.1-2.6 | 2-3 hours |
+| **MEDIUM** | 3.1-3.4 | 1-2 hours |
+| **FEATURES** | 4.1-4.17 | User selects |
+
+## Verification
+- After each fix: test affected pages/APIs manually
+- Check that non-admin users cannot access other users' records
+- Verify debug files return 403/404
+- Test rate limiting by exceeding thresholds
+- Validate CSRF tokens still work after changes
+- Check security headers with browser dev tools

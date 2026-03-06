@@ -31,6 +31,9 @@ try {
     // Get draft data
     $sql = "SELECT * FROM prehospital_forms WHERE id = ? AND created_by = ? AND status = 'draft'";
     $stmt = db_query($sql, [$draft_id, $user_id]);
+    if (!$stmt) {
+        throw new Exception('Database error');
+    }
     $draft = $stmt->fetch();
 
     if (!$draft) {

@@ -12,6 +12,12 @@ require_once '../includes/auth.php';
 // Require authentication
 require_login();
 
+// Rate limiting for exports
+if (!check_rate_limit('export', 5, 300)) {
+    http_response_code(429);
+    die('Too many export requests. Please try again in 5 minutes.');
+}
+
 // Get current user
 $current_user = get_auth_user();
 $user_id = $current_user['id'];
@@ -58,11 +64,11 @@ $sql = "
     SELECT
         pf.form_number,
         pf.form_date,
-        pf.form_time,
+        pf.departure_time,
         pf.patient_name,
         pf.age,
         pf.gender,
-        pf.incident_location,
+        pf.place_of_incident,
         pf.vehicle_used,
         pf.arrival_hospital_name,
         pf.arrival_hospital_time,
@@ -85,10 +91,14 @@ $sql = "
     FROM prehospital_forms pf
     LEFT JOIN users u ON pf.created_by = u.id
     WHERE $where_clause
-    ORDER BY pf.form_date DESC, pf.form_time DESC
+    ORDER BY pf.form_date DESC, pf.departure_time DESC
 ";
 
 $stmt = db_query($sql, $params);
+if (!$stmt) {
+    http_response_code(500);
+    die('Database query failed. Please try again.');
+}
 $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Set headers for CSV download
@@ -105,11 +115,11 @@ fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
 $headers = [
     'Form Number',
     'Form Date',
-    'Form Time',
+    'Departure Time',
     'Patient Name',
     'Age',
     'Gender',
-    'Incident Location',
+    'Place of Incident',
     'Vehicle Used',
     'Destination Hospital',
     'Arrival Time',
@@ -131,11 +141,11 @@ foreach ($records as $record) {
     $row = [
         $record['form_number'],
         $record['form_date'],
-        $record['form_time'],
-        $record['patient_name'],
+        $record['departure_time'],
+        decrypt_field($record['patient_name'] ?? ''),
         $record['age'],
-        $record['gender'] === 'M' ? 'Male' : ($record['gender'] === 'F' ? 'Female' : 'Other'),
-        $record['incident_location'],
+        ucfirst($record['gender'] ?? ''),
+        $record['place_of_incident'],
         $record['vehicle_used'],
         $record['arrival_hospital_name'],
         $record['arrival_hospital_time'],

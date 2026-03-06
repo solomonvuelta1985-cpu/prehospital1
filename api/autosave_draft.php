@@ -194,7 +194,9 @@ try {
         // Update existing draft
         $check_sql = "SELECT id, form_number FROM prehospital_forms WHERE id = ? AND created_by = ? AND status = 'draft'";
         $check_stmt = db_query($check_sql, [$draft_id, $user_id]);
-
+        if (!$check_stmt) {
+            throw new Exception('Database error while checking draft');
+        }
         $existing_draft = $check_stmt->fetch();
         if (!$existing_draft) {
             throw new Exception('Draft not found or unauthorized');
@@ -213,7 +215,10 @@ try {
         $update_values[] = $draft_id;
 
         $update_sql = "UPDATE prehospital_forms SET " . implode(', ', $update_fields) . " WHERE id = ?";
-        db_query($update_sql, $update_values);
+        $update_result = db_query($update_sql, $update_values);
+        if (!$update_result) {
+            throw new Exception('Failed to update draft');
+        }
 
         echo json_encode([
             'success' => true,
@@ -257,7 +262,7 @@ try {
 
             $fallback_sql = "SELECT id FROM prehospital_forms WHERE form_number = ? AND created_by = ? ORDER BY id DESC LIMIT 1";
             $fallback_stmt = db_query($fallback_sql, [$form_number, $user_id]);
-            $fallback_result = $fallback_stmt->fetch();
+            $fallback_result = $fallback_stmt ? $fallback_stmt->fetch() : false;
 
             if ($fallback_result) {
                 error_log("Fallback query result: " . var_export($fallback_result, true));
@@ -299,8 +304,6 @@ try {
     http_response_code(400);
     echo json_encode([
         'success' => false,
-        'message' => $e->getMessage(),
-        'error_file' => $e->getFile(),
-        'error_line' => $e->getLine()
+        'message' => 'An error occurred while saving the draft.'
     ]);
 }
