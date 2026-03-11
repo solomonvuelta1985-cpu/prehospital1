@@ -813,15 +813,54 @@ $current_user = get_auth_user();
                             <i class="bi bi-info-circle"></i> Basic Information
                         </div>
 
-                        <!-- Date & Time Information -->
+                        <!-- Date & Vehicle -->
                         <div class="subsection-title">
-                            <i class="bi bi-calendar-event"></i> Date & Time
+                            <i class="bi bi-calendar-event"></i> Date & Vehicle
                         </div>
-                        <div class="grid-3 mb-section">
+                        <div class="grid-2 mb-section">
                             <div>
                                 <label for="formDate" class="form-label required-field">Date</label>
                                 <input type="date" class="form-control" id="formDate" name="form_date" required>
                             </div>
+                            <div>
+                                <label class="form-label">Vehicle Used</label>
+                                <div class="inline-group">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="vehicle_used" id="ambulance" value="ambulance">
+                                        <label class="form-check-label" for="ambulance">Ambulance</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="vehicle_used" id="fireTruck" value="fireTruck">
+                                        <label class="form-check-label" for="fireTruck">Fire Truck</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="vehicle_used" id="othersVehicle" value="others">
+                                        <label class="form-check-label" for="othersVehicle">Others</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="vehicle_details" id="vehicleDetails">
+                        <!-- Selected Vehicle Display -->
+                        <div id="selectedVehicleDisplay" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #e7f3ff; border-left: 4px solid #0066cc; border-radius: 4px;">
+                            <strong style="color: #0066cc;">Selected Vehicle:</strong>
+                            <span id="selectedVehicleText" style="color: #333; margin-left: 0.5rem;"></span>
+                        </div>
+
+                        <div class="mb-section">
+                            <label for="driver" class="form-label">Driver</label>
+                            <input type="text" class="form-control" id="driver" name="driver" placeholder="Driver name">
+                        </div>
+
+                        <hr class="section-divider-light">
+
+                        <!-- Response Timeline -->
+                        <div class="subsection-title">
+                            <i class="bi bi-clock-history"></i> Response Timeline
+                        </div>
+
+                        <!-- 1. Departure Time -->
+                        <div class="grid-2 mb-section">
                             <div>
                                 <label for="depTime" class="form-label required-field">Departure Time</label>
                                 <input type="text" class="form-control time-input-12hr" id="depTime" name="departure_time" placeholder="2:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true" required>
@@ -832,47 +871,7 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
-                        <hr class="section-divider-light">
-
-                        <!-- Vehicle Information -->
-                        <div class="subsection-title">
-                            <i class="bi bi-truck"></i> Vehicle Information
-                        </div>
-                        <div class="form-group-compact">
-                            <label class="form-label">Vehicle Used</label>
-                            <div class="inline-group">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="vehicle_used" id="ambulance" value="ambulance">
-                                    <label class="form-check-label" for="ambulance">Ambulance</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="vehicle_used" id="fireTruck" value="fireTruck">
-                                    <label class="form-check-label" for="fireTruck">Fire Truck</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="vehicle_used" id="othersVehicle" value="others">
-                                    <label class="form-check-label" for="othersVehicle">Others</label>
-                                </div>
-                            </div>
-                            <input type="hidden" name="vehicle_details" id="vehicleDetails">
-                            <!-- Selected Vehicle Display -->
-                            <div id="selectedVehicleDisplay" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #e7f3ff; border-left: 4px solid #0066cc; border-radius: 4px;">
-                                <strong style="color: #0066cc;">Selected Vehicle:</strong>
-                                <span id="selectedVehicleText" style="color: #333; margin-left: 0.5rem;"></span>
-                            </div>
-                        </div>
-
-                        <div class="mb-section">
-                            <label for="driver" class="form-label">Driver</label>
-                            <input type="text" class="form-control" id="driver" name="driver" placeholder="Driver name">
-                        </div>
-
-                        <hr class="section-divider-light">
-
-                        <!-- Scene Location & Timing -->
-                        <div class="subsection-title">
-                            <i class="bi bi-geo-alt"></i> Scene Information
-                        </div>
+                        <!-- 2. Arrival at Scene -->
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="arrSceneLocation" class="form-label">Arrival at Scene - Location</label>
@@ -884,6 +883,7 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
+                        <!-- 3. Departure at Scene -->
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="depSceneLocation" class="form-label">Departure from Scene - Location</label>
@@ -895,12 +895,7 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
-                        <hr class="section-divider-light">
-
-                        <!-- Hospital Information -->
-                        <div class="subsection-title">
-                            <i class="bi bi-hospital"></i> Hospital Information
-                        </div>
+                        <!-- 4. Arrival at Hospital -->
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="arrHospName" class="form-label">Arrival at Hospital - Name</label>
@@ -912,6 +907,7 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
+                        <!-- 5. Departure from Hospital -->
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="depHospTime" class="form-label">Departure from Hospital - Time</label>
@@ -919,9 +915,12 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
-                        <div class="mb-section">
-                            <label for="arrStation" class="form-label">Arrival at Station (Walk-in)</label>
-                            <input type="text" class="form-control time-input-12hr" id="arrStation" name="arrival_station_time" placeholder="6:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                        <!-- 6. Arrival at Station -->
+                        <div class="grid-2 mb-section">
+                            <div>
+                                <label for="arrStation" class="form-label">Arrival at Station</label>
+                                <input type="text" class="form-control time-input-12hr" id="arrStation" name="arrival_station_time" placeholder="6:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                            </div>
                         </div>
 
                         <hr class="section-divider-light">
@@ -1201,7 +1200,7 @@ $current_user = get_auth_user();
                                         </div>
                                         <div class="upload-method-text">
                                             <span class="upload-method-title">Upload File</span>
-                                            <span class="upload-method-desc">JPG, PNG, GIF, WebP (max 5MB)</span>
+                                            <span class="upload-method-desc">JPG, PNG, GIF, WebP (max 20MB, auto-compressed)</span>
                                         </div>
                                         <input type="file" class="hidden-file-input" id="patientFileUpload" name="patient_documentation" accept="image/jpeg,image/png,image/gif,image/webp" onchange="validatePatientFileUpload(this)">
                                     </label>
@@ -1987,7 +1986,7 @@ $current_user = get_auth_user();
                                         </div>
                                         <div class="upload-method-text">
                                             <span class="upload-method-title">Upload File</span>
-                                            <span class="upload-method-desc">JPG, PNG, GIF, WebP (max 5MB)</span>
+                                            <span class="upload-method-desc">JPG, PNG, GIF, WebP (max 20MB, auto-compressed)</span>
                                         </div>
                                         <input type="file" class="hidden-file-input" id="fileUpload" name="endorsement_attachment" accept="image/jpeg,image/png,image/gif,image/webp" onchange="validateFileUpload(this)">
                                     </label>

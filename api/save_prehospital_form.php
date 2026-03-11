@@ -50,10 +50,10 @@ if (isset($_FILES['patient_documentation']) && $_FILES['patient_documentation'][
         throw new Exception('Patient documentation upload error: ' . $file['error']);
     }
 
-    // Validate file size (5MB max)
-    $maxSize = 5 * 1024 * 1024; // 5MB
+    // Validate file size (20MB max)
+    $maxSize = MAX_FILE_SIZE;
     if ($file['size'] > $maxSize) {
-        throw new Exception('Patient documentation file size exceeds 5MB limit');
+        throw new Exception('Patient documentation file size exceeds 20MB limit');
     }
 
     // Validate MIME type
@@ -458,10 +458,10 @@ try {
             throw new Exception('Endorsement attachment upload error: ' . $file['error']);
         }
 
-        // Validate file size (5MB max)
-        $maxSize = 5 * 1024 * 1024; // 5MB
+        // Validate file size (20MB max)
+        $maxSize = MAX_FILE_SIZE;
         if ($file['size'] > $maxSize) {
-            throw new Exception('Endorsement attachment file size exceeds 5MB limit');
+            throw new Exception('Endorsement attachment file size exceeds 20MB limit');
         }
 
         // Validate MIME type

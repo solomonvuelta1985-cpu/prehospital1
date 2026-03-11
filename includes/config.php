@@ -39,7 +39,7 @@ define('DB_CHARSET', 'utf8mb4');
 define('APP_NAME', 'Pre-Hospital Care System');
 define('APP_VERSION', '1.0.0');
 define('UPLOAD_DIR', __DIR__ . '/../uploads/');
-define('MAX_FILE_SIZE', 5242880); // 5MB
+define('MAX_FILE_SIZE', 20971520); // 20MB
 
 // reCAPTCHA settings from .env
 define('RECAPTCHA_SITE_KEY', getenv('RECAPTCHA_SITE_KEY') ?: '');

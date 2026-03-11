@@ -17,14 +17,18 @@ require_login();
 
 // Only accept POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    set_flash('Invalid request method', 'error');
-    redirect('../public/records.php');
+    header('Content-Type: application/json');
+    http_response_code(405);
+    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+    exit;
 }
 
 // Verify CSRF token
 if (!verify_token($_POST['csrf_token'] ?? '')) {
-    set_flash('Security token validation failed', 'error');
-    redirect('../public/records.php');
+    header('Content-Type: application/json');
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Security token validation failed. Please refresh the page and try again.']);
+    exit;
 }
 
 try {
@@ -36,8 +40,10 @@ try {
 
     // Ownership check - users can only update their own records, admins can update all
     if (!can_access_record($record_id)) {
-        set_flash('Access denied. You can only edit your own records.', 'error');
-        redirect('../public/records.php');
+        header('Content-Type: application/json');
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Access denied. You can only edit your own records.']);
+        exit;
     }
 
     // Get full current record state for version tracking
@@ -232,10 +238,10 @@ try {
             throw new Exception('Patient documentation upload error: ' . $file['error']);
         }
 
-        // Check file size (max 5MB)
-        $maxFileSize = 5 * 1024 * 1024; // 5MB in bytes
+        // Check file size (max 20MB)
+        $maxFileSize = MAX_FILE_SIZE;
         if ($file['size'] > $maxFileSize) {
-            throw new Exception('Patient documentation file size exceeds 5MB limit');
+            throw new Exception('Patient documentation file size exceeds 20MB limit');
         }
 
         // Validate MIME type
@@ -432,10 +438,10 @@ try {
             throw new Exception('Endorsement attachment upload error: ' . $file['error']);
         }
 
-        // Check file size (max 5MB)
-        $maxFileSize = 5 * 1024 * 1024; // 5MB in bytes
+        // Check file size (max 20MB)
+        $maxFileSize = MAX_FILE_SIZE;
         if ($file['size'] > $maxFileSize) {
-            throw new Exception('Endorsement attachment file size exceeds 5MB limit');
+            throw new Exception('Endorsement attachment file size exceeds 20MB limit');
         }
 
         // Validate MIME type
@@ -756,18 +762,26 @@ try {
     // Log activity
     log_activity('form_updated', "Updated form: {$existing_record['form_number']} for patient: $patient_name");
     
-    // Success response
-    set_flash('Record updated successfully!', 'success');
-    redirect('../public/view_record.php?id=' . $record_id);
-    
+    // Success response - return JSON for AJAX requests
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => true,
+        'message' => 'Record updated successfully!',
+        'redirect_url' => '../public/view_record.php?id=' . $record_id
+    ]);
+
 } catch (Exception $e) {
     // Rollback on error
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
-    
+
     error_log("Update Record Error: " . $e->getMessage());
-    
-    set_flash('Error updating record. Please try again or contact administrator.', 'error');
-    redirect('../public/records.php');
+
+    header('Content-Type: application/json');
+    http_response_code(400);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Error updating record: ' . $e->getMessage()
+    ]);
 }

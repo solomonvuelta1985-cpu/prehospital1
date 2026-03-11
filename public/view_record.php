@@ -1108,6 +1108,75 @@ $current_user = get_auth_user();
                     </div>
                 </div>
 
+                <!-- Emergency Type & Care Management -->
+                <div class="section-header">Emergency Type & Care Management</div>
+                <div class="section-content">
+                    <div class="data-grid">
+                        <div class="data-field full-width">
+                            <label>Emergency Types</label>
+                            <div class="value<?php
+                                $emergency_types = [];
+                                if (!empty($record['emergency_medical'])) $emergency_types[] = 'Medical';
+                                if (!empty($record['emergency_trauma'])) $emergency_types[] = 'Trauma';
+                                if (!empty($record['emergency_ob'])) $emergency_types[] = 'OB';
+                                if (!empty($record['emergency_general'])) $emergency_types[] = 'General';
+                                echo empty($emergency_types) ? ' empty' : '';
+                            ?>">
+                                <?php echo !empty($emergency_types) ? implode(', ', $emergency_types) : 'Not specified'; ?>
+                            </div>
+                        </div>
+                        <?php if (!empty($record['emergency_medical_details'])): ?>
+                        <div class="data-field">
+                            <label>Medical Details</label>
+                            <div class="value"><?php echo e($record['emergency_medical_details']); ?></div>
+                        </div>
+                        <?php endif; ?>
+                        <?php if (!empty($record['emergency_trauma_details'])): ?>
+                        <div class="data-field">
+                            <label>Trauma Details</label>
+                            <div class="value"><?php echo e($record['emergency_trauma_details']); ?></div>
+                        </div>
+                        <?php endif; ?>
+                        <?php if (!empty($record['emergency_ob_details'])): ?>
+                        <div class="data-field">
+                            <label>OB Details</label>
+                            <div class="value"><?php echo e($record['emergency_ob_details']); ?></div>
+                        </div>
+                        <?php endif; ?>
+                        <?php if (!empty($record['emergency_general_details'])): ?>
+                        <div class="data-field">
+                            <label>General Details</label>
+                            <div class="value"><?php echo e($record['emergency_general_details']); ?></div>
+                        </div>
+                        <?php endif; ?>
+                        <div class="data-field full-width">
+                            <label>Care Management</label>
+                            <div class="value<?php
+                                $care_mgmt = $record['care_management'] ?? '';
+                                $care_decoded = $care_mgmt ? json_decode($care_mgmt, true) : null;
+                                $has_care = $care_decoded && is_array($care_decoded) && count($care_decoded) > 0;
+                                echo !$has_care ? ' empty' : '';
+                            ?>">
+                                <?php
+                                if ($has_care) {
+                                    echo implode(', ', array_map('ucfirst', array_map('e', $care_decoded)));
+                                } else {
+                                    echo 'Not specified';
+                                }
+                                ?>
+                            </div>
+                        </div>
+                        <div class="data-field">
+                            <label>O² (LPM via)</label>
+                            <div class="value<?php echo empty($record['oxygen_lpm']) ? ' empty' : ''; ?>"><?php echo e($record['oxygen_lpm'] ?: 'Not specified'); ?></div>
+                        </div>
+                        <div class="data-field">
+                            <label>Other Care</label>
+                            <div class="value<?php echo empty($record['other_care']) ? ' empty' : ''; ?>"><?php echo e($record['other_care'] ?: 'Not specified'); ?></div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Vital Signs -->
                 <div class="section-header">Vital Signs</div>
                 <div class="section-content">
@@ -1238,8 +1307,8 @@ $current_user = get_auth_user();
                     </div>
                 </div>
 
-                <!-- Hospital & Team Information -->
-                <div class="section-header">Care Management</div>
+                <!-- Hospital & Transport Information -->
+                <div class="section-header">Hospital & Transport</div>
                 <div class="section-content">
                     <div class="data-grid">
                         <div class="data-field">

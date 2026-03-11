@@ -3,6 +3,52 @@
 // Camera stream, photo capture, GPS metadata, file upload validation
 // ============================================
 
+// ============================================
+// IMAGE COMPRESSION UTILITY
+// ============================================
+
+function compressImage(file, maxWidth, quality) {
+    maxWidth = maxWidth || 2000;
+    quality = quality || 0.7;
+
+    return new Promise(function(resolve) {
+        if (!file.type.startsWith('image/')) {
+            resolve(file);
+            return;
+        }
+
+        var img = new Image();
+        img.onload = function() {
+            var canvas = document.createElement('canvas');
+            var width = img.width;
+            var height = img.height;
+
+            if (width > maxWidth) {
+                height = Math.round((height * maxWidth) / width);
+                width = maxWidth;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob(function(blob) {
+                if (blob && blob.size < file.size) {
+                    var compressed = new File([blob], file.name, { type: 'image/jpeg' });
+                    resolve(compressed);
+                } else {
+                    resolve(file);
+                }
+            }, 'image/jpeg', quality);
+        };
+        img.onerror = function() {
+            resolve(file);
+        };
+        img.src = URL.createObjectURL(file);
+    });
+}
+
 let cameraStream = null;
 let currentFacingMode = 'environment';
 let patientCameraStream = null;
@@ -154,9 +200,9 @@ function validateFileUpload(input) {
 
     if (!file) return;
 
-    const maxSize = 5 * 1024 * 1024;
+    const maxSize = 20 * 1024 * 1024;
     if (file.size > maxSize) {
-        if (errorText) errorText.textContent = 'File size exceeds 5MB limit.';
+        if (errorText) errorText.textContent = 'File size exceeds 20MB limit.';
         uploadError.style.display = 'flex';
         input.value = '';
         return;
@@ -171,13 +217,17 @@ function validateFileUpload(input) {
     }
 
     uploadError.style.display = 'none';
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        preview.src = e.target.result;
+
+    compressImage(file, 2000, 0.7).then(function(compressed) {
+        var dataTransfer = new DataTransfer();
+        dataTransfer.items.add(compressed);
+        input.files = dataTransfer.files;
+
+        var imageUrl = URL.createObjectURL(compressed);
+        preview.src = imageUrl;
         previewContainer.style.display = 'block';
         if (controlsContainer) controlsContainer.style.display = 'none';
-    };
-    reader.readAsDataURL(file);
+    });
 }
 
 function removeAttachment() {
@@ -450,9 +500,9 @@ function validatePatientFileUpload(input) {
 
     if (!file) return;
 
-    const maxSize = 5 * 1024 * 1024;
+    const maxSize = 20 * 1024 * 1024;
     if (file.size > maxSize) {
-        if (errorText) errorText.textContent = 'File size exceeds 5MB limit.';
+        if (errorText) errorText.textContent = 'File size exceeds 20MB limit.';
         uploadError.style.display = 'flex';
         input.value = '';
         return;
@@ -470,21 +520,17 @@ function validatePatientFileUpload(input) {
 
     updateGPSStatus('fetching');
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        fetch(e.target.result).then(function(res) {
-            return res.blob();
-        }).then(function(originalBlob) {
-            return captureAndStampGPS(originalBlob);
-        }).then(function(result) {
-            const finalBlob = result.blob;
+    compressImage(file, 2000, 0.7).then(function(compressed) {
+        var compressedBlob = compressed.slice(0, compressed.size, compressed.type);
+        return captureAndStampGPS(compressedBlob).then(function(result) {
+            var finalBlob = result.blob;
 
-            const stampedFile = new File([finalBlob], file.name, { type: 'image/jpeg' });
-            const dataTransfer = new DataTransfer();
+            var stampedFile = new File([finalBlob], file.name, { type: 'image/jpeg' });
+            var dataTransfer = new DataTransfer();
             dataTransfer.items.add(stampedFile);
             input.files = dataTransfer.files;
 
-            const imageUrl = URL.createObjectURL(finalBlob);
+            var imageUrl = URL.createObjectURL(finalBlob);
             preview.src = imageUrl;
             previewContainer.style.display = 'block';
             if (controlsContainer) controlsContainer.style.display = 'none';
@@ -495,8 +541,7 @@ function validatePatientFileUpload(input) {
                 updateGPSStatus('unavailable');
             }
         });
-    };
-    reader.readAsDataURL(file);
+    });
 }
 
 function removePatientAttachment() {

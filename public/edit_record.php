@@ -742,12 +742,54 @@ if (!is_array($initial_helmet)) {
                             <i class="bi bi-info-circle"></i> Basic Information
                         </div>
 
-                        <div class="grid-3 mb-section">
+                        <!-- Date & Vehicle -->
+                        <div class="subsection-title">
+                            <i class="bi bi-calendar-event"></i> Date & Vehicle
+                        </div>
+                        <div class="grid-2 mb-section">
                             <div>
                                 <label for="formDate" class="form-label required-field">Date</label>
-                                <input type="date" class="form-control" id="formDate" name="form_date" 
+                                <input type="date" class="form-control" id="formDate" name="form_date"
                                        value="<?php echo e($record['form_date']); ?>" required>
                             </div>
+                            <div>
+                                <label class="form-label">Vehicle Used</label>
+                                <div class="inline-group">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="vehicle_used" id="ambulance" value="ambulance"
+                                               <?php echo $record['vehicle_used'] === 'ambulance' ? 'checked' : ''; ?>>
+                                        <label class="form-check-label" for="ambulance">Ambulance</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="vehicle_used" id="fireTruck" value="fireTruck"
+                                               <?php echo $record['vehicle_used'] === 'fireTruck' ? 'checked' : ''; ?>>
+                                        <label class="form-check-label" for="fireTruck">Fire Truck</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="vehicle_used" id="othersVehicle" value="others"
+                                               <?php echo $record['vehicle_used'] === 'others' ? 'checked' : ''; ?>>
+                                        <label class="form-check-label" for="othersVehicle">Others</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="vehicle_details" id="vehicleDetails" value="<?php echo e($record['vehicle_details']); ?>">
+
+                        <div class="mb-section">
+                            <label for="driver" class="form-label">Driver</label>
+                            <input type="text" class="form-control" id="driver" name="driver_name"
+                                   value="<?php echo e($record['driver_name']); ?>" placeholder="Driver name">
+                        </div>
+
+                        <hr class="section-divider-light">
+
+                        <!-- Response Timeline -->
+                        <div class="subsection-title">
+                            <i class="bi bi-clock-history"></i> Response Timeline
+                        </div>
+
+                        <!-- 1. Departure Time -->
+                        <div class="grid-2 mb-section">
                             <div>
                                 <label for="depTime" class="form-label required-field">Departure Time</label>
                                 <input type="text" class="form-control time-input-12hr" id="depTime" name="departure_time"
@@ -760,28 +802,7 @@ if (!is_array($initial_helmet)) {
                             </div>
                         </div>
 
-                        <div class="form-group-compact">
-                            <label class="form-label">Vehicle Used</label>
-                            <div class="inline-group">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="vehicle_used" id="ambulance" value="ambulance"
-                                           <?php echo $record['vehicle_used'] === 'ambulance' ? 'checked' : ''; ?>>
-                                    <label class="form-check-label" for="ambulance">Ambulance</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="vehicle_used" id="fireTruck" value="fireTruck"
-                                           <?php echo $record['vehicle_used'] === 'fireTruck' ? 'checked' : ''; ?>>
-                                    <label class="form-check-label" for="fireTruck">Fire Truck</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="vehicle_used" id="othersVehicle" value="others"
-                                           <?php echo $record['vehicle_used'] === 'others' ? 'checked' : ''; ?>>
-                                    <label class="form-check-label" for="othersVehicle">Others</label>
-                                </div>
-                            </div>
-                            <input type="hidden" name="vehicle_details" id="vehicleDetails" value="<?php echo e($record['vehicle_details']); ?>">
-                        </div>
-
+                        <!-- 2. Arrival at Scene -->
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="arrSceneLocation" class="form-label">Arrival at Scene - Location</label>
@@ -795,6 +816,7 @@ if (!is_array($initial_helmet)) {
                             </div>
                         </div>
 
+                        <!-- 3. Departure at Scene -->
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="depSceneLocation" class="form-label">Departure from Scene - Location</label>
@@ -808,6 +830,7 @@ if (!is_array($initial_helmet)) {
                             </div>
                         </div>
 
+                        <!-- 4. Arrival at Hospital -->
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="arrHospName" class="form-label">Arrival at Hospital - Name</label>
@@ -821,6 +844,7 @@ if (!is_array($initial_helmet)) {
                             </div>
                         </div>
 
+                        <!-- 5. Departure from Hospital -->
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="depHospTime" class="form-label">Departure from Hospital - Time</label>
@@ -829,18 +853,16 @@ if (!is_array($initial_helmet)) {
                             </div>
                         </div>
 
+                        <!-- 6. Arrival at Station -->
                         <div class="grid-2 mb-section">
-                            <div>
-                                <label for="driver" class="form-label">Driver</label>
-                                <input type="text" class="form-control" id="driver" name="driver_name" 
-                                       value="<?php echo e($record['driver_name']); ?>" placeholder="Driver name">
-                            </div>
                             <div>
                                 <label for="arrStation" class="form-label">Arrival at Station</label>
                                 <input type="text" class="form-control time-input-12hr" id="arrStation" name="arrival_station_time"
                                        value="<?php echo e($record['arrival_station_time']); ?>" placeholder="6:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
+
+                        <hr class="section-divider-light">
 
                         <div class="form-group-compact">
                             <label class="form-label">Persons Present Upon Arrival</label>
@@ -1149,7 +1171,7 @@ if (!is_array($initial_helmet)) {
                                         </div>
                                         <div class="upload-method-text">
                                             <span class="upload-method-title">Upload File</span>
-                                            <span class="upload-method-desc">JPG, PNG, GIF, WebP (max 5MB)</span>
+                                            <span class="upload-method-desc">JPG, PNG, GIF, WebP (max 20MB, auto-compressed)</span>
                                         </div>
                                         <input type="file" class="hidden-file-input" id="patientFileUpload" name="patient_documentation" accept="image/jpeg,image/png,image/gif,image/webp" onchange="validatePatientFileUpload(this)">
                                     </label>
@@ -2022,7 +2044,7 @@ if (!is_array($initial_helmet)) {
                                         </div>
                                         <div class="upload-method-text">
                                             <span class="upload-method-title">Upload File</span>
-                                            <span class="upload-method-desc">JPG, PNG, GIF, WebP (max 5MB)</span>
+                                            <span class="upload-method-desc">JPG, PNG, GIF, WebP (max 20MB, auto-compressed)</span>
                                         </div>
                                         <input type="file" class="hidden-file-input" id="fileUpload" name="endorsement_attachment" accept="image/jpeg,image/png,image/gif,image/webp" onchange="validateFileUpload(this)">
                                     </label>
@@ -2519,13 +2541,66 @@ if (!is_array($initial_helmet)) {
                     // Combine SAMPLE fields before submitting
                     combineSampleFields();
 
+                    // Populate injuries data
+                    var injuriesDataField = document.getElementById('injuriesData');
+                    if (injuriesDataField && typeof injuries !== 'undefined') {
+                        injuriesDataField.value = JSON.stringify(injuries);
+                    }
+
                     // Show loading indicator
                     Notiflix.Loading.standard('Updating record...', {
                         backgroundColor: 'rgba(0,0,0,0.8)',
                     });
 
-                    // Submit the form
-                    document.getElementById('editForm').submit();
+                    // Convert time fields to 24h before sending
+                    var form = document.getElementById('editForm');
+                    var timeInputs = form.querySelectorAll('.time-input-12hr, input[data-time-field="true"]');
+                    var hasTimeError = false;
+                    timeInputs.forEach(function(input) {
+                        var value = input.value.trim();
+                        if (!value) return;
+                        var timeRegex = /^(0?[1-9]|1[0-2]):([0-5][0-9])\s?(AM|PM)$/i;
+                        if (timeRegex.test(value)) {
+                            var converted = convert12to24Hour(value);
+                            if (converted) input.value = converted;
+                        }
+                    });
+
+                    var formData = new FormData(form);
+
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(function(response) {
+                        return response.json().then(function(data) {
+                            return { ok: response.ok, status: response.status, data: data };
+                        });
+                    })
+                    .then(function(result) {
+                        Notiflix.Loading.remove();
+                        if (result.ok && result.data.success) {
+                            Notiflix.Report.success(
+                                'Record Updated',
+                                result.data.message || 'Record updated successfully!',
+                                'OK',
+                                function() {
+                                    window.location.href = result.data.redirect_url || 'records.php';
+                                }
+                            );
+                        } else {
+                            throw new Error(result.data.message || 'Update failed');
+                        }
+                    })
+                    .catch(function(error) {
+                        Notiflix.Loading.remove();
+                        console.error('Update error:', error);
+                        Notiflix.Report.failure(
+                            'Update Failed',
+                            error.message || 'An error occurred while updating the record. Please try again.',
+                            'OK'
+                        );
+                    });
                 },
                 function cancelCb() {
                     // Do nothing
