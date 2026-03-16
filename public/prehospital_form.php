@@ -1196,7 +1196,7 @@ $current_user = get_auth_user();
                                             <span class="upload-method-title">Upload File</span>
                                             <span class="upload-method-desc">JPG, PNG, GIF, WebP (max 20MB, auto-compressed)</span>
                                         </div>
-                                        <input type="file" class="hidden-file-input" id="patientFileUpload" name="patient_documentation" accept="image/jpeg,image/png,image/gif,image/webp" onchange="validatePatientFileUpload(this)">
+                                        <input type="file" class="hidden-file-input" id="patientFileUpload" name="patient_documentation" accept="image/jpeg,image/png,image/gif,image/webp">
                                     </label>
                                 </div>
 

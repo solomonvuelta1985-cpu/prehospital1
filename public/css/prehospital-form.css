@@ -3460,6 +3460,42 @@ a:active {
     font-weight: 500;
 }
 
+.preview-processing-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    z-index: 2;
+    border-radius: inherit;
+}
+
+.preview-processing-overlay i {
+    font-size: 1.5rem;
+    color: #ffffff;
+}
+
+.preview-processing-overlay span {
+    font-size: 0.85rem;
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.spin-icon {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 .preview-actions {
     display: flex;
     justify-content: space-between;

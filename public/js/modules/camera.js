@@ -285,6 +285,13 @@ function initializePatientCameraButton() {
             openPatientCamera();
         });
     }
+
+    const patientFileUpload = document.getElementById('patientFileUpload');
+    if (patientFileUpload) {
+        patientFileUpload.addEventListener('change', function() {
+            validatePatientFileUpload(this);
+        });
+    }
 }
 
 function openPatientCamera() {
@@ -518,29 +525,24 @@ function validatePatientFileUpload(input) {
 
     uploadError.style.display = 'none';
 
-    updateGPSStatus('fetching');
-
+    // Compress and show preview (no GPS overlay for file uploads)
     compressImage(file, 2000, 0.7).then(function(compressed) {
-        var compressedBlob = compressed.slice(0, compressed.size, compressed.type);
-        return captureAndStampGPS(compressedBlob).then(function(result) {
-            var finalBlob = result.blob;
+        var compressedFile = new File([compressed], file.name, { type: 'image/jpeg' });
+        var dataTransfer = new DataTransfer();
+        dataTransfer.items.add(compressedFile);
+        input.files = dataTransfer.files;
 
-            var stampedFile = new File([finalBlob], file.name, { type: 'image/jpeg' });
-            var dataTransfer = new DataTransfer();
-            dataTransfer.items.add(stampedFile);
-            input.files = dataTransfer.files;
-
-            var imageUrl = URL.createObjectURL(finalBlob);
-            preview.src = imageUrl;
-            previewContainer.style.display = 'block';
-            if (controlsContainer) controlsContainer.style.display = 'none';
-
-            if (result.hasGPS) {
-                updateGPSStatus('success');
-            } else {
-                updateGPSStatus('unavailable');
-            }
-        });
+        var imageUrl = URL.createObjectURL(compressed);
+        preview.src = imageUrl;
+        previewContainer.style.display = 'block';
+        if (controlsContainer) controlsContainer.style.display = 'none';
+    }).catch(function(error) {
+        console.error('Image processing failed:', error);
+        // Show original file as fallback
+        var imageUrl = URL.createObjectURL(file);
+        preview.src = imageUrl;
+        previewContainer.style.display = 'block';
+        if (controlsContainer) controlsContainer.style.display = 'none';
     });
 }
 
