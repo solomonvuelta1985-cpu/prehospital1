@@ -86,8 +86,12 @@ if (count($name_parts) >= 2) {
                     </a>
                 </div>
             </div>
-            <button type="button" id="mobileSidebarToggle">
-                <span class="material-icons">menu</span>
+            <button type="button" id="mobileSidebarToggle" aria-label="Toggle menu" aria-expanded="false">
+                <div class="hamburger-icon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
             </button>
         </div>
     </div>
@@ -296,9 +300,42 @@ if (count($name_parts) >= 2) {
     font-size: 20px;
 }
 
-#mobileSidebarToggle .material-icons,
 #sidebarCollapse .material-icons {
     font-size: 22px;
+}
+
+/* Hamburger Icon Animation */
+.hamburger-icon {
+    width: 20px;
+    height: 16px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.hamburger-icon span {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: var(--text-primary);
+    border-radius: 2px;
+    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1),
+                opacity 0.2s ease;
+    transform-origin: center;
+}
+
+body.sidebar-open .hamburger-icon span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+body.sidebar-open .hamburger-icon span:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+}
+
+body.sidebar-open .hamburger-icon span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
 }
 
 .dropdown-arrow {
@@ -368,7 +405,6 @@ if (count($name_parts) >= 2) {
 
 /* Sidebar Overlay */
 .sidebar-overlay {
-    display: none;
     position: fixed;
     top: 0;
     left: 0;
@@ -377,10 +413,18 @@ if (count($name_parts) >= 2) {
     background: rgba(0, 0, 0, 0.6);
     z-index: 999;
     backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.35s cubic-bezier(0.32, 0.72, 0, 1),
+                visibility 0.35s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .sidebar-overlay.active {
-    display: block;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
 }
 
 /* Top Navigation Bar */
@@ -396,7 +440,7 @@ if (count($name_parts) >= 2) {
     align-items: center;
     padding: 0;
     z-index: 100;
-    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: left 0.35s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .sidebar-collapsed .top-navbar {
@@ -716,7 +760,7 @@ if (count($name_parts) >= 2) {
     border-right: 1px solid rgba(148, 163, 184, 0.1);
     display: flex;
     flex-direction: column;
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.35s cubic-bezier(0.32, 0.72, 0, 1);
     overflow: hidden;
 }
 
@@ -751,8 +795,15 @@ if (count($name_parts) >= 2) {
     letter-spacing: -0.02em;
 }
 
+.sidebar-header h4 span {
+    transition: opacity 0.25s cubic-bezier(0.32, 0.72, 0, 1),
+                transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
 .sidebar-collapsed .sidebar-header h4 span {
-    display: none;
+    opacity: 0;
+    transform: translateX(-8px);
+    pointer-events: none;
 }
 
 .sidebar-menu {
@@ -907,8 +958,14 @@ if (count($name_parts) >= 2) {
 
 .sidebar-menu li a span:not(.material-icons) {
     font-size: 13.5px;
-    transition: all 0.3s ease;
+    transition: opacity 0.25s cubic-bezier(0.32, 0.72, 0, 1),
+                transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
     font-weight: 500;
+}
+
+.sidebar-collapsed .sidebar-menu li a span:not(.material-icons) {
+    opacity: 0;
+    transform: translateX(-8px);
 }
 
 .sidebar-collapsed .sidebar-menu li a {
@@ -918,7 +975,10 @@ if (count($name_parts) >= 2) {
 }
 
 .sidebar-collapsed .sidebar-menu li a span:not(.material-icons) {
-    display: none;
+    opacity: 0;
+    transform: translateX(-8px);
+    pointer-events: none;
+    position: absolute;
 }
 
 .sidebar-collapsed .sidebar-menu li a .material-icons {
@@ -943,10 +1003,12 @@ if (count($name_parts) >= 2) {
     letter-spacing: 0.05em;
     white-space: nowrap;
     overflow: hidden;
+    transition: opacity 0.25s cubic-bezier(0.32, 0.72, 0, 1),
+                padding 0.35s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .sidebar-collapsed .sidebar-heading {
-    text-indent: -9999px;
+    opacity: 0;
     padding: 8px 0;
     margin: 0;
 }
@@ -977,7 +1039,7 @@ if (count($name_parts) >= 2) {
     padding-top: 64px;
     min-height: 100vh;
     background: #f8fafc;
-    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: margin-left 0.35s cubic-bezier(0.32, 0.72, 0, 1);
     animation: pageFadeIn 0.25s ease-out, pageSlideUp 0.3s cubic-bezier(0, 0, 0.2, 1);
 }
 
@@ -1052,6 +1114,8 @@ if (count($name_parts) >= 2) {
     .sidebar {
         transform: translateX(-100%);
         width: 280px;
+        transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+        will-change: transform;
     }
 
     .sidebar.active {
@@ -1062,10 +1126,32 @@ if (count($name_parts) >= 2) {
         width: 280px;
     }
 
+    /* Body scroll lock when sidebar is open */
+    body.sidebar-open {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        top: 0;
+        left: 0;
+    }
+
+    /* Content scale-down effect for native feel */
     .content {
         margin-left: 0;
         padding: 0;
         padding-top: 70px;
+        transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    body.sidebar-open .content {
+        transform: scale(0.97);
+        transform-origin: right center;
+    }
+
+    body.sidebar-open .mobile-header {
+        transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+        transform: scale(0.97);
+        transform-origin: right top;
     }
 
     .sidebar-collapsed .content {
@@ -1084,6 +1170,10 @@ if (count($name_parts) >= 2) {
         display: inline;
         font-size: inherit;
         text-indent: 0;
+        opacity: 1;
+        transform: none;
+        pointer-events: auto;
+        position: static;
     }
 
     .sidebar-collapsed .sidebar-menu li a {
@@ -1135,32 +1225,54 @@ document.addEventListener('DOMContentLoaded', function() {
     const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
     const body = document.body;
 
-    // Desktop: Toggle sidebar collapse/expand
+    // ========== Mobile Sidebar Open/Close Helpers ==========
+    function openSidebar() {
+        body.dataset.scrollY = window.scrollY;
+        body.style.top = `-${window.scrollY}px`;
+        sidebar.classList.add('active');
+        sidebarOverlay.classList.add('active');
+        body.classList.add('sidebar-open');
+        if (mobileSidebarToggle) mobileSidebarToggle.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeSidebar() {
+        sidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+        body.classList.remove('sidebar-open');
+        sidebar.style.transform = '';
+        sidebarOverlay.style.opacity = '';
+        if (mobileSidebarToggle) mobileSidebarToggle.setAttribute('aria-expanded', 'false');
+
+        // Restore scroll position
+        const scrollY = parseInt(body.dataset.scrollY || '0');
+        body.style.top = '';
+        window.scrollTo(0, scrollY);
+    }
+
+    // ========== Desktop: Toggle sidebar collapse/expand ==========
     if (sidebarCollapse) {
         sidebarCollapse.addEventListener('click', function() {
             body.classList.toggle('sidebar-collapsed');
-
-            // Save state to localStorage
             const isCollapsed = body.classList.contains('sidebar-collapsed');
             localStorage.setItem('sidebarCollapsed', isCollapsed);
         });
     }
 
-    // Mobile: Toggle sidebar visibility
+    // ========== Mobile: Toggle sidebar visibility ==========
     if (mobileSidebarToggle) {
         mobileSidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('active');
-            sidebarOverlay.classList.toggle('active');
-            body.classList.toggle('sidebar-open');
+            if (sidebar.classList.contains('active')) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
         });
     }
 
     // Close sidebar when clicking overlay
     if (sidebarOverlay) {
         sidebarOverlay.addEventListener('click', function() {
-            sidebar.classList.remove('active');
-            sidebarOverlay.classList.remove('active');
-            body.classList.remove('sidebar-open');
+            closeSidebar();
         });
     }
 
@@ -1176,14 +1288,57 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 150);
 
             if (window.innerWidth <= 768) {
-                sidebar.classList.remove('active');
-                sidebarOverlay.classList.remove('active');
-                body.classList.remove('sidebar-open');
+                closeSidebar();
             }
         });
     });
 
-    // Restore sidebar state on page load
+    // ========== Touch Swipe to Close ==========
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchCurrentX = 0;
+    let isSwiping = false;
+
+    sidebar.addEventListener('touchstart', function(e) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchCurrentX = touchStartX;
+        isSwiping = false;
+    }, { passive: true });
+
+    sidebar.addEventListener('touchmove', function(e) {
+        touchCurrentX = e.touches[0].clientX;
+        const deltaX = touchCurrentX - touchStartX;
+        const deltaY = Math.abs(e.touches[0].clientY - touchStartY);
+
+        // Only track horizontal left swipes (ignore vertical scrolling)
+        if (deltaX < -10 && deltaY < 50) {
+            isSwiping = true;
+            // Real-time drag follow
+            const progress = Math.max(deltaX, -280);
+            sidebar.style.transition = 'none';
+            sidebar.style.transform = `translateX(${progress}px)`;
+            sidebarOverlay.style.transition = 'none';
+            sidebarOverlay.style.opacity = Math.max(0, 1 + (progress / 280));
+        }
+    }, { passive: true });
+
+    sidebar.addEventListener('touchend', function(e) {
+        sidebar.style.transition = '';
+        sidebarOverlay.style.transition = '';
+
+        if (isSwiping && (touchCurrentX - touchStartX) < -80) {
+            // Swipe threshold met: close sidebar
+            closeSidebar();
+        } else if (isSwiping) {
+            // Snap back open
+            sidebar.style.transform = '';
+            sidebarOverlay.style.opacity = '';
+        }
+        isSwiping = false;
+    }, { passive: true });
+
+    // ========== Restore sidebar state on page load ==========
     const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
     if (isCollapsed && window.innerWidth > 768) {
         body.classList.add('sidebar-collapsed');
@@ -1192,7 +1347,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Animate active menu item on page load
     const activeMenuItem = document.querySelector('.sidebar-menu a.active');
     if (activeMenuItem) {
-        // Trigger the animation
         activeMenuItem.style.animation = 'none';
         setTimeout(() => {
             activeMenuItem.style.animation = '';
@@ -1202,14 +1356,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle window resize
     window.addEventListener('resize', function() {
         if (window.innerWidth > 768) {
-            // Close mobile overlay on desktop
-            sidebar.classList.remove('active');
-            sidebarOverlay.classList.remove('active');
-            body.classList.remove('sidebar-open');
+            closeSidebar();
         }
     });
 
-    // User Profile Dropdown Functionality
+    // ========== User Profile Dropdown Functionality ==========
     const userProfileBtn = document.getElementById('userProfileBtn');
     const userDropdownMenu = document.getElementById('userDropdownMenu');
     const mobileUserProfileBtn = document.getElementById('mobileUserProfileBtn');
@@ -1222,7 +1373,6 @@ document.addEventListener('DOMContentLoaded', function() {
             userProfileBtn.classList.toggle('active');
             userDropdownMenu.classList.toggle('show');
 
-            // Close mobile dropdown if open
             if (mobileUserProfileBtn && mobileUserDropdownMenu) {
                 mobileUserProfileBtn.classList.remove('active');
                 mobileUserDropdownMenu.classList.remove('show');
@@ -1237,7 +1387,6 @@ document.addEventListener('DOMContentLoaded', function() {
             mobileUserProfileBtn.classList.toggle('active');
             mobileUserDropdownMenu.classList.toggle('show');
 
-            // Close desktop dropdown if open
             if (userProfileBtn && userDropdownMenu) {
                 userProfileBtn.classList.remove('active');
                 userDropdownMenu.classList.remove('show');
@@ -1247,7 +1396,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Close dropdown when clicking outside
     document.addEventListener('click', function(e) {
-        // Check if click is outside both desktop and mobile dropdowns
         if (userProfileBtn && userDropdownMenu) {
             if (!userProfileBtn.contains(e.target) && !userDropdownMenu.contains(e.target)) {
                 userProfileBtn.classList.remove('active');
@@ -1263,9 +1411,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Close dropdown when pressing Escape key
+    // ========== Escape key: close sidebar + dropdowns ==========
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
+            // Close mobile sidebar
+            if (sidebar.classList.contains('active')) {
+                closeSidebar();
+            }
+            // Close dropdowns
             if (userProfileBtn && userDropdownMenu) {
                 userProfileBtn.classList.remove('active');
                 userDropdownMenu.classList.remove('show');

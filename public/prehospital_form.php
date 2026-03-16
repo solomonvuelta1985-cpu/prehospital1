@@ -860,15 +860,13 @@ $current_user = get_auth_user();
                         </div>
 
                         <!-- 1. Departure Time -->
-                        <div class="grid-2 mb-section">
-                            <div>
-                                <label for="depTime" class="form-label required-field">Departure Time</label>
-                                <input type="text" class="form-control time-input-12hr" id="depTime" name="departure_time" placeholder="2:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true" required>
-                            </div>
-                            <div>
+                        <div class="mb-section">
+                            <label for="depTime" class="form-label required-field">Departure Time</label>
+                            <input type="text" class="form-control time-input-12hr" id="depTime" name="departure_time" placeholder="2:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true" required>
+                            <!-- <div>
                                 <label for="arrTime" class="form-label">Arrival Time</label>
                                 <input type="text" class="form-control time-input-12hr" id="arrTime" name="arrival_time" placeholder="3:45 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
-                            </div>
+                            </div> -->
                         </div>
 
                         <!-- 2. Arrival at Scene -->
@@ -908,19 +906,15 @@ $current_user = get_auth_user();
                         </div>
 
                         <!-- 5. Departure from Hospital -->
-                        <div class="grid-2 mb-section">
-                            <div>
-                                <label for="depHospTime" class="form-label">Departure from Hospital - Time</label>
-                                <input type="text" class="form-control time-input-12hr" id="depHospTime" name="departure_hospital_time" placeholder="6:00 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
-                            </div>
+                        <div class="mb-section">
+                            <label for="depHospTime" class="form-label">Departure from Hospital - Time</label>
+                            <input type="text" class="form-control time-input-12hr" id="depHospTime" name="departure_hospital_time" placeholder="6:00 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                         </div>
 
                         <!-- 6. Arrival at Station -->
-                        <div class="grid-2 mb-section">
-                            <div>
-                                <label for="arrStation" class="form-label">Arrival at Station</label>
-                                <input type="text" class="form-control time-input-12hr" id="arrStation" name="arrival_station_time" placeholder="6:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
-                            </div>
+                        <div class="mb-section">
+                            <label for="arrStation" class="form-label">Arrival at Station</label>
+                            <input type="text" class="form-control time-input-12hr" id="arrStation" name="arrival_station_time" placeholder="6:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                         </div>
 
                         <hr class="section-divider-light">
@@ -3580,7 +3574,7 @@ $current_user = get_auth_user();
                 // Basic Info
                 formDate: getFieldValue('form_date'),
                 departureTime: getFieldValue('departure_time'),
-                arrivalTime: getFieldValue('arrival_time'),
+                // arrivalTime: getFieldValue('arrival_time'),
                 vehicleUsed: getRadioValue('vehicle_used'),
 
                 // Patient Info
