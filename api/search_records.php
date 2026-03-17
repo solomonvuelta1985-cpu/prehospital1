@@ -79,6 +79,9 @@ try {
                 $careItems = array_map('ucfirst', $decoded);
             }
         }
+        if (!empty($record['other_care'])) {
+            $careItems[] = htmlspecialchars($record['other_care']);
+        }
 
         $results[] = [
             'id' => $record['id'],

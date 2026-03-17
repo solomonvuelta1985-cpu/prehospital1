@@ -123,7 +123,7 @@ $sql = "SELECT
     pf.emergency_trauma, pf.emergency_trauma_details,
     pf.emergency_ob, pf.emergency_ob_details,
     pf.emergency_general, pf.emergency_general_details,
-    pf.care_management,
+    pf.care_management, pf.other_care,
     u.full_name as created_by_name
     FROM prehospital_forms pf
     LEFT JOIN users u ON pf.created_by = u.id
@@ -476,6 +476,9 @@ $records = ($stmt) ? $stmt->fetchAll() : [];
                                         if (is_array($decoded)) {
                                             $careItems = array_map('ucfirst', $decoded);
                                         }
+                                    }
+                                    if (!empty($record['other_care'])) {
+                                        $careItems[] = htmlspecialchars($record['other_care']);
                                     }
                                     echo $careItems ? implode(', ', $careItems) : '-';
                                     ?>
