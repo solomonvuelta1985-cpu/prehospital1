@@ -5,7 +5,8 @@
       "Bash(c:/xampp/php/php.exe:*)",
       "Bash(/c/xampp/php/php.exe:*)",
       "Bash(flutter create:*)",
-      "Bash(/c/xampp/htdocs/prehospital/api/v1/admin/change_user_password.php:*)"
+      "Bash(/c/xampp/htdocs/prehospital/api/v1/admin/change_user_password.php:*)",
+      "Bash(flutter --version)"
     ],
     "deny": [],
     "ask": []

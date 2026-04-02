@@ -48,6 +48,14 @@ define('RECAPTCHA_SECRET_KEY', getenv('RECAPTCHA_SECRET_KEY') ?: '');
 // Encryption key from .env (used for data encryption at rest)
 define('APP_ENCRYPTION_KEY', getenv('APP_ENCRYPTION_KEY') ?: '');
 
+// WebAuthn (Biometric/Face ID) configuration
+define('WEBAUTHN_RP_ID', IS_LOCALHOST ? 'localhost' : (getenv('WEBAUTHN_RP_ID') ?: $_SERVER['HTTP_HOST']));
+define('WEBAUTHN_RP_NAME', 'Baggao Rescue 116');
+define('WEBAUTHN_ORIGIN', IS_LOCALHOST ? 'http://localhost' : 'https://' . WEBAUTHN_RP_ID);
+
+// Flutter app native biometric authentication key
+define('FLUTTER_APP_KEY', getenv('FLUTTER_APP_KEY') ?: 'rsc116_flutter_bio_xK9mP3nR7qL2wJ5vBaggao');
+
 // Force HTTPS redirect - ONLY ON PRODUCTION
 // Disabled for localhost development
 if (!IS_LOCALHOST) {

@@ -79,6 +79,10 @@ if (count($name_parts) >= 2) {
                         <span class="material-icons">lock</span>
                         <span>Change Password</span>
                     </a>
+                    <a href="<?= $base_path ?>biometric_settings.php" class="dropdown-item">
+                        <span class="material-icons">fingerprint</span>
+                        <span>Biometric Settings</span>
+                    </a>
                     <div class="dropdown-divider"></div>
                     <a href="<?= $base_path ?>logout.php" class="dropdown-item logout-item">
                         <span class="material-icons">logout</span>
@@ -169,6 +173,18 @@ if (count($name_parts) >= 2) {
                title="Reports & Analytics">
                 <span class="material-icons">assessment</span>
                 <span>Reports</span>
+            </a>
+        </li>
+
+        <!-- Account Section -->
+        <li class="sidebar-divider"></li>
+        <li class="sidebar-heading">Account</li>
+        <li>
+            <a href="<?= $base_path ?>biometric_settings.php"
+               class="<?php echo ($current_page === 'biometric_settings.php') ? 'active' : ''; ?>"
+               title="Biometric Settings">
+                <span class="material-icons">fingerprint</span>
+                <span>Biometric Login</span>
             </a>
         </li>
 

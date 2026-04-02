@@ -87,6 +87,37 @@ function require_admin() {
 }
 
 /**
+ * Set up authenticated session for a user
+ * Shared by password login and WebAuthn biometric login
+ *
+ * @param array $user User record with id, username, role
+ * @param string $loginMethod Activity log label (e.g., 'user_login', 'user_login_webauthn')
+ */
+function setup_user_session($user, $loginMethod = 'user_login') {
+    // Regenerate session ID to prevent fixation
+    session_regenerate_id(true);
+
+    // Set session variables
+    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['username'] = $user['username'];
+    $_SESSION['user_role'] = $user['role'];
+    $_SESSION['login_time'] = time();
+
+    // Update last login
+    $update_sql = "UPDATE users SET last_login = NOW() WHERE id = ?";
+    db_query($update_sql, [$user['id']]);
+
+    // Record login history
+    $ip = get_client_ip();
+    $user_agent = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 500);
+    $login_history_sql = "INSERT INTO login_history (user_id, ip_address, user_agent) VALUES (?, ?, ?)";
+    db_query($login_history_sql, [$user['id'], $ip, $user_agent]);
+
+    // Log activity
+    log_activity($loginMethod, 'User logged in: ' . $user['username']);
+}
+
+/**
  * Login user
  */
 function login_user($username, $password, $recaptcha_response = null) {
@@ -142,27 +173,8 @@ function login_user($username, $password, $recaptcha_response = null) {
     // Successful login - reset failed attempts
     reset_failed_attempts($username);
 
-    // Regenerate session ID to prevent fixation
-    session_regenerate_id(true);
-
-    // Set session variables
-    $_SESSION['user_id'] = $user['id'];
-    $_SESSION['username'] = $user['username'];
-    $_SESSION['user_role'] = $user['role'];
-    $_SESSION['login_time'] = time();
-
-    // Update last login
-    $update_sql = "UPDATE users SET last_login = NOW() WHERE id = ?";
-    db_query($update_sql, [$user['id']]);
-
-    // Record login history
-    $ip = get_client_ip();
-    $user_agent = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 500);
-    $login_history_sql = "INSERT INTO login_history (user_id, ip_address, user_agent) VALUES (?, ?, ?)";
-    db_query($login_history_sql, [$user['id'], $ip, $user_agent]);
-
-    // Log activity
-    log_activity('user_login', 'User logged in: ' . $username);
+    // Set up the authenticated session
+    setup_user_session($user, 'user_login');
 
     return ['success' => true, 'message' => 'Login successful'];
 }
