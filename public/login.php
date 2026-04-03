@@ -940,6 +940,24 @@ $csrf_token = generate_token();
         (function() {
             var csrfToken = '<?php echo $csrf_token; ?>';
 
+            // Pre-populate username from localStorage (returning users)
+            (function() {
+                var saved = localStorage.getItem('rescue116_username');
+                if (saved) {
+                    var field = document.getElementById('username');
+                    if (field && !field.value) field.value = saved;
+                }
+            })();
+
+            // Save username on password form submit
+            var loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function() {
+                    var un = document.getElementById('username').value.trim();
+                    if (un) localStorage.setItem('rescue116_username', un);
+                });
+            }
+
             function showBiometricSection() {
                 var section = document.getElementById('webauthn-section');
                 if (section) section.style.display = 'block';
@@ -1012,6 +1030,7 @@ $csrf_token = generate_token();
 
                     webauthnLogin(username, csrfToken)
                         .then(function(data) {
+                            localStorage.setItem('rescue116_username', username);
                             statusEl.textContent = 'Success! Redirecting...';
                             statusEl.style.color = '#059669';
                             Notiflix.Notify.success('Biometric authentication successful!');

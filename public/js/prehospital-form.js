@@ -9,37 +9,6 @@
 // VEHICLE FUNCTIONS
 // ============================================
 
-function initializeAmbulanceList() {
-    const ambulanceList = document.getElementById('ambulanceList');
-    if (!ambulanceList) return;
-
-    ambulanceList.innerHTML = '';
-
-    for (let i = 1; i <= 12; i++) {
-        const ambulanceId = `V${i}`;
-        const plateNumber = generatePlateNumber();
-
-        const ambulanceOption = document.createElement('div');
-        ambulanceOption.className = 'vehicle-option';
-        ambulanceOption.dataset.id = ambulanceId;
-        ambulanceOption.dataset.plate = plateNumber;
-
-        ambulanceOption.innerHTML = `
-            <div class="vehicle-name">${ambulanceId}</div>
-            <div class="vehicle-details">Plate Number: ${plateNumber}</div>
-        `;
-
-        ambulanceOption.addEventListener('click', function() {
-            document.querySelectorAll('#ambulanceList .vehicle-option').forEach(option => {
-                option.classList.remove('selected');
-            });
-            this.classList.add('selected');
-        });
-
-        ambulanceList.appendChild(ambulanceOption);
-    }
-}
-
 function setupVehicleModals() {
     // Initialize camera buttons
     initializeCameraButton();
@@ -49,11 +18,26 @@ function setupVehicleModals() {
     const ambulanceRadio = document.getElementById('ambulance');
     if (ambulanceRadio) {
         ambulanceRadio.addEventListener('click', function() {
-            const displayDiv = document.getElementById('selectedVehicleDisplay');
-            displayDiv.style.display = 'none';
+            document.getElementById('selectedVehicleDisplay').style.display = 'none';
+            document.getElementById('ambulanceDropdownContainer').style.display = 'block';
+            document.getElementById('vehicleDetails').value = '';
+            document.getElementById('ambulanceSelect').value = '';
+        });
+    }
 
-            const ambulanceModal = new bootstrap.Modal(document.getElementById('ambulanceModal'));
-            ambulanceModal.show();
+    // Ambulance dropdown change
+    const ambulanceSelect = document.getElementById('ambulanceSelect');
+    if (ambulanceSelect) {
+        ambulanceSelect.addEventListener('change', function() {
+            const selectedId = this.value;
+            if (selectedId) {
+                document.getElementById('vehicleDetails').value = JSON.stringify({ type: 'ambulance', id: selectedId });
+                document.getElementById('selectedVehicleText').textContent = `Ambulance ${selectedId}`;
+                document.getElementById('selectedVehicleDisplay').style.display = 'block';
+            } else {
+                document.getElementById('vehicleDetails').value = '';
+                document.getElementById('selectedVehicleDisplay').style.display = 'none';
+            }
         });
     }
 
@@ -61,8 +45,9 @@ function setupVehicleModals() {
     const fireTruckRadio = document.getElementById('fireTruck');
     if (fireTruckRadio) {
         fireTruckRadio.addEventListener('click', function() {
-            const displayDiv = document.getElementById('selectedVehicleDisplay');
-            displayDiv.style.display = 'none';
+            document.getElementById('selectedVehicleDisplay').style.display = 'none';
+            document.getElementById('ambulanceDropdownContainer').style.display = 'none';
+            document.getElementById('ambulanceSelect').value = '';
 
             const fireTruckModal = new bootstrap.Modal(document.getElementById('fireTruckModal'));
             fireTruckModal.show();
@@ -73,6 +58,8 @@ function setupVehicleModals() {
     const othersRadio = document.getElementById('othersVehicle');
     if (othersRadio) {
         othersRadio.addEventListener('click', function() {
+            document.getElementById('ambulanceDropdownContainer').style.display = 'none';
+            document.getElementById('ambulanceSelect').value = '';
             Notiflix.Confirm.show(
                 'Specify Vehicle',
                 'Please enter the vehicle type/name:',
@@ -112,37 +99,6 @@ function setupVehicleModals() {
             this.classList.add('selected');
         });
     });
-
-    // Confirm ambulance selection
-    const confirmAmbulanceBtn = document.getElementById('confirmAmbulance');
-    if (confirmAmbulanceBtn) {
-        confirmAmbulanceBtn.addEventListener('click', function() {
-            const selectedAmbulance = document.querySelector('#ambulanceList .vehicle-option.selected');
-
-            if (selectedAmbulance) {
-                const ambulanceId = selectedAmbulance.dataset.id;
-                const plateNumber = selectedAmbulance.dataset.plate;
-
-                document.getElementById('vehicleDetails').value = JSON.stringify({
-                    type: 'ambulance',
-                    id: ambulanceId,
-                    plate: plateNumber
-                });
-
-                const displayDiv = document.getElementById('selectedVehicleDisplay');
-                const displayText = document.getElementById('selectedVehicleText');
-                displayText.textContent = `Ambulance ${ambulanceId} (${plateNumber})`;
-                displayDiv.style.display = 'block';
-
-                Notiflix.Notify.success(`Ambulance ${ambulanceId} (${plateNumber}) selected`);
-
-                const ambulanceModal = bootstrap.Modal.getInstance(document.getElementById('ambulanceModal'));
-                ambulanceModal.hide();
-            } else {
-                Notiflix.Notify.warning('Please select an ambulance');
-            }
-        });
-    }
 
     // Confirm fire truck selection
     const confirmFireTruckBtn = document.getElementById('confirmFireTruck');
@@ -195,7 +151,6 @@ document.addEventListener('DOMContentLoaded', function() {
     loadExistingInjuries();
 
     // Vehicle & camera
-    initializeAmbulanceList();
     setupVehicleModals();
 
     // Initialize progress bar for edit form

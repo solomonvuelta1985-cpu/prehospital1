@@ -838,6 +838,30 @@ $current_user = get_auth_user();
                                         <label class="form-check-label" for="othersVehicle">Others</label>
                                     </div>
                                 </div>
+                                <!-- Ambulance Dropdown -->
+                                <div id="ambulanceDropdownContainer" style="display: none; margin-top: 0.5rem;">
+                                    <select class="form-select" id="ambulanceSelect">
+                                        <option value="">-- Select Ambulance --</option>
+                                        <option value="V1">V1</option>
+                                        <option value="V2">V2</option>
+                                        <option value="V3">V3</option>
+                                        <option value="V4">V4</option>
+                                        <option value="V5">V5</option>
+                                        <option value="V6">V6</option>
+                                        <option value="V7">V7</option>
+                                        <option value="V8">V8</option>
+                                        <option value="V9">V9</option>
+                                        <option value="V10">V10</option>
+                                        <option value="V11">V11</option>
+                                        <option value="V12">V12</option>
+                                        <option value="V13">V13</option>
+                                        <option value="V14">V14</option>
+                                        <option value="V15">V15</option>
+                                        <option value="V16">V16</option>
+                                        <option value="V17">V17</option>
+                                        <option value="V18">V18</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                         <input type="hidden" name="vehicle_details" id="vehicleDetails">
@@ -2177,28 +2201,6 @@ $current_user = get_auth_user();
             <button type="button" class="btn btn-success" id="submitBtn" style="display: none;" data-action="submitForm">
                 <i class="bi bi-check2"></i> Save Form
             </button>
-        </div>
-    </div>
-
-    <!-- Ambulance Selection Modal -->
-    <div class="modal fade" id="ambulanceModal" tabindex="-1" aria-labelledby="ambulanceModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="ambulanceModalLabel">Select Ambulance</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Please select an ambulance from the list below:</p>
-                    <div id="ambulanceList">
-                        <!-- Ambulance options will be generated here -->
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="confirmAmbulance">Confirm Selection</button>
-                </div>
-            </div>
         </div>
     </div>
 
