@@ -1,0 +1,4 @@
+---
+deployment:
+  tasks:
+    - composer install --no-dev --optimize-autoloader --working-dir=/home/btrahnqi/rescue116-link.online/prehospital
