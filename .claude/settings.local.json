@@ -6,9 +6,14 @@
       "Bash(/c/xampp/php/php.exe:*)",
       "Bash(flutter create:*)",
       "Bash(/c/xampp/htdocs/prehospital/api/v1/admin/change_user_password.php:*)",
-      "Bash(flutter --version)"
+      "Bash(flutter --version)",
+      "Bash(flutter pub:*)",
+      "Bash(grep -E \"\\\\.\\(php|js\\)$\")"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\Users\\MDRRMO\\Desktop\\rescue116_prehospital"
+    ]
   }
 }

@@ -77,6 +77,10 @@ function navigateTab(direction) {
         targetPane.classList.add('show', 'active');
     }
 
+    if (currentTab === 4 && typeof repositionMarkers === 'function') {
+        requestAnimationFrame(() => requestAnimationFrame(() => repositionMarkers()));
+    }
+
     tabs.forEach((tab, index) => {
         if (index === currentTab) {
             tab.classList.add('active');
@@ -160,6 +164,10 @@ document.querySelectorAll('.nav-tabs .nav-link').forEach((tab, index) => {
         const targetPane = document.querySelector(`#section${currentTab + 1}`);
         if (targetPane) {
             targetPane.classList.add('show', 'active');
+        }
+
+        if (currentTab === 4 && typeof repositionMarkers === 'function') {
+            requestAnimationFrame(() => requestAnimationFrame(() => repositionMarkers()));
         }
 
         document.querySelectorAll('.nav-tabs .nav-link').forEach((t, i) => {
