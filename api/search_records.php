@@ -84,17 +84,28 @@ try {
         }
 
         $results[] = [
-            'id' => $record['id'],
-            'form_number' => htmlspecialchars($record['form_number'] ?? ''),
-            'form_date' => ($record['form_date'] && $record['form_date'] !== '0000-00-00') ? date('M d, Y', strtotime($record['form_date'])) : 'N/A',
-            'patient_name' => htmlspecialchars($record['patient_name'] ?? ''),
-            'age' => htmlspecialchars($record['age'] ?? ''),
-            'gender' => $record['gender'] ? ucfirst($record['gender']) : '-',
-            'emergency_types' => $emergencyTypes ? htmlspecialchars(implode('; ', $emergencyTypes)) : '-',
-            'care_management' => $careItems ? implode(', ', $careItems) : '-',
-            'vehicle_used' => $record['vehicle_used'] ? ucfirst($record['vehicle_used']) : '',
-            'created_by_name' => htmlspecialchars($record['created_by_name'] ?? 'Unknown'),
+            'id' => (int)$record['id'],
+            'form_number' => $record['form_number'] ?? '',
+            'form_date' => $record['form_date'] ?? '',
+            'patient_name' => $record['patient_name'] ?? '',
+            'age' => $record['age'] ?? '',
+            'gender' => $record['gender'] ?? '',
+            'place_of_incident' => $record['place_of_incident'] ?? '',
+            'arrival_hospital_name' => $record['arrival_hospital_name'] ?? '',
+            'vehicle_used' => $record['vehicle_used'] ?? '',
+            'created_by_name' => $record['created_by_name'] ?? 'Unknown',
             'status' => $record['status'] ?? 'draft',
+            'care_management' => $record['care_management'] ?? '',
+            'other_care' => $record['other_care'] ?? '',
+            'emergency_medical' => (int)($record['emergency_medical'] ?? 0),
+            'emergency_medical_details' => $record['emergency_medical_details'] ?? '',
+            'emergency_trauma' => (int)($record['emergency_trauma'] ?? 0),
+            'emergency_trauma_details' => $record['emergency_trauma_details'] ?? '',
+            'emergency_ob' => (int)($record['emergency_ob'] ?? 0),
+            'emergency_ob_details' => $record['emergency_ob_details'] ?? '',
+            'emergency_general' => (int)($record['emergency_general'] ?? 0),
+            'emergency_general_details' => $record['emergency_general_details'] ?? '',
+            'time_ago' => time_ago($record['updated_at'] ?? $record['created_at']),
         ];
     }
 

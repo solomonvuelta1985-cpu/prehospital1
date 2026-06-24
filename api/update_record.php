@@ -314,6 +314,15 @@ try {
     $emergency_general = isset($_POST['emergency_type']) && in_array('general', $_POST['emergency_type']) ? 1 : 0;
     $emergency_general_details = !empty($_POST['general_specify']) ? sanitize($_POST['general_specify']) : null;
 
+    // An edited record must keep at least one emergency type — can't strip it to none.
+    if ($emergency_medical + $emergency_trauma + $emergency_ob + $emergency_general === 0) {
+        throw new Exception('Please select at least one Type of Emergency Call (Medical, Trauma, OB, or General).');
+    }
+
+    // Structured incident category: explicit value if provided, else auto-classify
+    // below (after narrative/complaint are parsed) so the narrative is included.
+    $incident_category = !empty($_POST['incident_category']) ? sanitize($_POST['incident_category']) : null;
+
     // Care Management
     $care_management = isset($_POST['care_management']) ? $_POST['care_management'] : [];
     if (!is_array($care_management)) {
@@ -716,6 +725,20 @@ try {
     ];
 
     $stmt = db_query($sql, $params, true);
+
+    // Persist structured incident category. When not explicitly set, auto-classify
+    // from all signal fields (specify boxes + complaint + narrative).
+    if ($incident_category === null) {
+        $incident_category = classify_incident_from_record([
+            'emergency_trauma_details'  => $emergency_trauma_details,
+            'emergency_general_details' => $emergency_general_details,
+            'emergency_medical_details' => $emergency_medical_details,
+            'emergency_ob_details'      => $emergency_ob_details,
+            'other_complaints'          => $other_complaints,
+            'team_leader_notes'         => $team_leader_notes,
+        ]);
+    }
+    db_query("UPDATE prehospital_forms SET incident_category = ? WHERE id = ?", [$incident_category, $record_id], true);
 
     // Update injuries - delete old ones and insert new ones
     // First, delete all existing injuries for this form

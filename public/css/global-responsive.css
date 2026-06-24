@@ -1,0 +1,568 @@
+/**
+ * Global Responsive Styles — Enhanced with clamp() for fluid sizing
+ * Ensures all pages are responsive across all device types
+ * Part of RESQ-link Pre-Hospital Care System
+ */
+
+/* ===== RESPONSIVE CONTENT AREA ===== */
+@media (max-width: 768px) {
+    .content {
+        padding-top: 70px !important;
+        padding-left: clamp(0.5rem, 3vw, 1.25rem) !important;
+        padding-right: clamp(0.5rem, 3vw, 1.25rem) !important;
+        padding-bottom: 1.5rem !important;
+    }
+
+    /* Ensure all containers are full-width */
+    .container,
+    .container-fluid {
+        padding-left: clamp(0.375rem, 2vw, 1rem);
+        padding-right: clamp(0.375rem, 2vw, 1rem);
+    }
+
+    /* Card responsive adjustments with fluid spacing */
+    .card {
+        border-radius: clamp(6px, 1.2vw, 12px);
+        margin-bottom: clamp(0.5rem, 1.75vw, 1.25rem);
+    }
+
+    .card-body {
+        padding: clamp(0.75rem, 2vw, 1.5rem);
+    }
+
+    /* Form responsiveness */
+    .form-control,
+    .form-select {
+        font-size: 16px !important; /* Prevent iOS zoom */
+        min-height: clamp(44px, 8vh, 52px);
+    }
+
+    /* Button tap targets */
+    .btn {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* Table responsiveness */
+    .table-responsive {
+        margin-bottom: 0;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+    }
+
+    table {
+        min-width: clamp(500px, 80vw, 650px);
+    }
+
+    /* Modal responsiveness */
+    .modal-dialog {
+        margin: clamp(0.25rem, 2vw, 1rem);
+        max-width: calc(100vw - clamp(0.5rem, 3vw, 2rem));
+    }
+
+    .modal-body {
+        padding: clamp(0.75rem, 2.5vw, 1.25rem);
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .modal-header {
+        padding: clamp(0.75rem, 2vw, 1.25rem) clamp(0.75rem, 2vw, 1.25rem);
+    }
+
+    .modal-footer {
+        padding: clamp(0.75rem, 2vw, 1.25rem);
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .modal-footer .btn {
+        flex: 1;
+        justify-content: center;
+        min-width: 0;
+    }
+
+    /* Sidebar-related content adjustment */
+    body.sidebar-open {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .content {
+        padding-left: clamp(0.375rem, 2.5vw, 0.75rem) !important;
+        padding-right: clamp(0.375rem, 2.5vw, 0.75rem) !important;
+    }
+
+    /* Stack cards vertically */
+    .row > [class*="col-"] {
+        margin-bottom: 0.75rem;
+    }
+
+    /* Fluid heading sizes using clamp() — scales seamlessly between min/max */
+    h1, .h1 { font-size: clamp(1.2rem, 4vw, 2.25rem); }
+    h2, .h2 { font-size: clamp(1.1rem, 3.5vw, 1.85rem); }
+    h3, .h3 { font-size: clamp(1rem, 3vw, 1.5rem); }
+    h4, .h4 { font-size: clamp(0.95rem, 2.5vw, 1.25rem); }
+    h5, .h5 { font-size: clamp(0.85rem, 2vw, 1.1rem); }
+    h6, .h6 { font-size: clamp(0.8rem, 1.75vw, 1rem); }
+
+    /* Fluid section padding */
+    .section, .content-section {
+        padding: clamp(0.75rem, 3vw, 2rem);
+    }
+
+    /* Full-width inputs */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="search"],
+    input[type="tel"],
+    input[type="date"],
+    input[type="datetime-local"],
+    textarea,
+    select {
+        width: 100%;
+    }
+
+    /* Dropdowns full-width on small screens */
+    .dropdown-menu {
+        position: fixed !important;
+        top: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-height: 50vh;
+        overflow-y: auto;
+        border-radius: 16px 16px 0 0 !important;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.2) !important;
+        z-index: 1055 !important;
+    }
+
+    /* Alert/notification responsiveness */
+    .alert {
+        padding: clamp(0.6rem, 2vw, 1rem);
+        font-size: clamp(0.8rem, 2vw, 1rem);
+        border-radius: 8px;
+    }
+
+    /* Badge/pill adjustments */
+    .badge {
+        font-size: clamp(0.6rem, 1.5vw, 0.75rem);
+        padding: clamp(0.15rem, 0.5vw, 0.3rem) clamp(0.4rem, 1vw, 0.6rem);
+    }
+}
+
+@media (max-width: 480px) {
+    .content {
+        padding-left: clamp(0.25rem, 2vw, 0.5rem) !important;
+        padding-right: clamp(0.25rem, 2vw, 0.5rem) !important;
+    }
+
+    /* Minimize padding on smallest screens */
+    .card-body {
+        padding: clamp(0.5rem, 3vw, 0.875rem);
+    }
+
+    /* Stack button groups vertically */
+    .btn-group,
+    .d-flex.gap-2,
+    .d-flex.gap-3 {
+        flex-wrap: wrap;
+    }
+
+    .btn-group .btn,
+    .d-flex.gap-2 .btn,
+    .d-flex.gap-3 .btn {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    /* Ensure grid columns stack */
+    .row > [class*="col-"] {
+        width: 100%;
+    }
+
+    /* Pagination touch-friendly */
+    .pagination .page-link {
+        min-width: clamp(32px, 10vw, 44px);
+        min-height: clamp(32px, 8vh, 44px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* ===== DASHBOARD RESPONSIVE WITH FLUID GRIDS ===== */
+.stats-grid,
+.stat-cards-row {
+    display: grid;
+    gap: clamp(0.5rem, 1.5vw, 1.25rem);
+    grid-template-columns: repeat(auto-fit, minmax(clamp(160px, 25vw, 240px), 1fr));
+}
+
+@media (max-width: 992px) {
+    .stats-grid,
+    .stat-cards-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-grid,
+    .stat-cards-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .chart-card {
+        margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
+    }
+
+    .chart-card canvas {
+        max-height: clamp(200px, 55vw, 300px);
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid,
+    .stat-cards-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+}
+
+/* ===== LOGIN PAGE RESPONSIVE ===== */
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #2c5282 100%);
+    padding: clamp(0.5rem, 2vw, 2rem);
+}
+
+.login-card {
+    width: 100%;
+    max-width: clamp(320px, 90vw, 420px);
+    background: #fff;
+    border-radius: clamp(8px, 2vw, 16px);
+    padding: clamp(1.5rem, 5vw, 2.5rem) clamp(1rem, 4vw, 2rem);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+@media (max-width: 480px) {
+    .login-card {
+        padding: clamp(1.25rem, 5vw, 2rem) clamp(0.875rem, 4vw, 1.5rem);
+        border-radius: clamp(6px, 2vw, 12px);
+        max-width: 100%;
+        margin: 0.5rem;
+    }
+
+    .login-card h3 {
+        font-size: clamp(1.1rem, 5vw, 1.5rem);
+    }
+
+    .login-card .form-control {
+        min-height: 48px;
+        font-size: 16px;
+    }
+
+    .login-card .btn {
+        width: 100%;
+        min-height: 48px;
+    }
+}
+
+/* ===== CHANGE PASSWORD / PROFILE PAGES ===== */
+@media (max-width: 768px) {
+    .profile-form,
+    .password-form {
+        max-width: 100%;
+    }
+
+    .profile-card,
+    .password-card {
+        padding: clamp(0.875rem, 3vw, 1.5rem);
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-card,
+    .password-card {
+        padding: clamp(0.75rem, 4vw, 1.25rem);
+        border-radius: clamp(6px, 2vw, 10px);
+    }
+
+    .profile-card .btn,
+    .password-card .btn {
+        width: 100%;
+        min-height: 48px;
+    }
+}
+
+/* ===== VIEW RECORD PAGE ===== */
+@media (max-width: 768px) {
+    .record-view-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .record-section {
+        margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
+        padding: clamp(0.75rem, 2.5vw, 1.25rem);
+    }
+
+    .vital-signs-grid {
+        grid-template-columns: 1fr 1fr !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .vital-signs-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .record-section {
+        padding: 0.75rem;
+    }
+
+    .record-section table {
+        font-size: clamp(0.7rem, 3vw, 0.875rem);
+    }
+
+    .record-section table td {
+        padding: clamp(0.35rem, 1.5vw, 0.6rem);
+    }
+}
+
+/* ===== DRAFTS PAGE ===== */
+@media (max-width: 768px) {
+    .drafts-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .drafts-table {
+        min-width: clamp(450px, 80vw, 600px);
+    }
+}
+
+/* ===== VIEW LOGS PAGE ===== */
+@media (max-width: 768px) {
+    .logs-filter-bar {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .logs-filter-bar .form-control {
+        width: 100%;
+    }
+
+    .logs-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .logs-table {
+        min-width: clamp(450px, 85vw, 650px);
+        font-size: clamp(0.7rem, 2.5vw, 0.85rem);
+    }
+}
+
+@media (max-width: 576px) {
+    .logs-table {
+        min-width: 500px;
+    }
+
+    .logs-table th,
+    .logs-table td {
+        padding: clamp(0.35rem, 1.5vw, 0.6rem);
+    }
+}
+
+/* ===== BIOMETRIC SETTINGS PAGE ===== */
+@media (max-width: 768px) {
+    .biometric-card {
+        padding: clamp(0.75rem, 3vw, 1.25rem);
+    }
+
+    .biometric-status {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .biometric-card .btn {
+        width: 100%;
+    }
+}
+
+/* ===== EDIT RECORD PAGE ===== */
+@media (max-width: 768px) {
+    .edit-record-container {
+        padding: clamp(0.5rem, 2vw, 1rem);
+    }
+
+    .edit-record-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* ===== ADMIN DASHBOARD RESPONSIVE ===== */
+@media (max-width: 992px) {
+    .admin-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .admin-charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .admin-chart-card canvas {
+        max-height: clamp(200px, 50vw, 280px);
+    }
+
+    .admin-user-table {
+        min-width: clamp(450px, 85vw, 600px);
+    }
+
+    .admin-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+@media (max-width: 576px) {
+    .admin-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .admin-header-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .admin-header-actions .btn {
+        width: 100%;
+    }
+}
+
+/* ===== UTILITY CLASSES ===== */
+
+/* Hide on mobile */
+@media (max-width: 768px) {
+    .hide-mobile {
+        display: none !important;
+    }
+}
+
+/* Show only on mobile */
+@media (min-width: 769px) {
+    .show-mobile-only {
+        display: none !important;
+    }
+}
+
+/* Fluid container widths */
+.container-fluid--responsive {
+    width: 100%;
+    padding-left: clamp(0.5rem, 3vw, 2rem);
+    padding-right: clamp(0.5rem, 3vw, 2rem);
+}
+
+/* Fluid gap utility */
+.gap-fluid {
+    gap: clamp(0.5rem, 2vw, 1.5rem);
+}
+
+/* Fluid font size utility */
+.text-fluid {
+    font-size: clamp(0.875rem, 2vw, 1.125rem);
+}
+
+.text-fluid-lg {
+    font-size: clamp(1rem, 3vw, 1.5rem);
+}
+
+.text-fluid-xl {
+    font-size: clamp(1.25rem, 4vw, 2.25rem);
+}
+
+/* Smooth scrolling for anchor links */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Safe area padding for notched phones */
+@supports (padding-top: env(safe-area-inset-top)) {
+    @media (max-width: 768px) {
+        .mobile-header {
+            padding-top: max(16px, env(safe-area-inset-top)) !important;
+        }
+
+        .content {
+            padding-bottom: max(1.5rem, env(safe-area-inset-bottom)) !important;
+        }
+
+        .fixed-bottom-bar {
+            padding-bottom: max(0.75rem, env(safe-area-inset-bottom)) !important;
+        }
+    }
+}
+
+/* Prevent content shift when scrollbar appears */
+@media (min-width: 769px) {
+    html {
+        overflow-y: scroll;
+    }
+}
+
+/* Responsive images */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Responsive embeds/videos */
+.embed-responsive {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    overflow: hidden;
+}
+
+.embed-responsive::before {
+    display: block;
+    content: "";
+}
+
+.embed-responsive .embed-responsive-item,
+.embed-responsive iframe,
+.embed-responsive embed,
+.embed-responsive object,
+.embed-responsive video {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}

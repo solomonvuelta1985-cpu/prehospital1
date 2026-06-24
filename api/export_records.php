@@ -196,14 +196,8 @@ foreach ($records as $record) {
         }
     }
 
-    // Build helmet string
-    $helmetStr = '';
-    if (!empty($record['initial_helmet'])) {
-        $decoded = json_decode($record['initial_helmet'], true);
-        if (is_array($decoded)) {
-            $helmetStr = implode(', ', array_map('ucfirst', $decoded));
-        }
-    }
+    // Build helmet string — decode_helmet() handles both JSON and legacy formats.
+    $helmetStr = implode(', ', array_map('helmet_label', decode_helmet($record['initial_helmet'] ?? '')));
 
     fputcsv($output, [
         $record['form_number'],

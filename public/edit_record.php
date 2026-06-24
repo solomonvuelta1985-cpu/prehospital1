@@ -2532,6 +2532,15 @@ if (!is_array($initial_helmet)) {
 
         // Override submit function for edit mode
         function updateRecord() {
+            // Require at least one Type of Emergency Call — can't strip it to none.
+            if (!document.querySelector('input[name="emergency_type[]"]:checked')) {
+                Notiflix.Report.warning(
+                    'Required Field Missing',
+                    'Please select at least one <strong>Type of Emergency Call</strong> (Medical, Trauma, OB, or General).',
+                    'OK'
+                );
+                return;
+            }
             Notiflix.Confirm.show(
                 'Update Record',
                 'Are you sure you want to update this record?',

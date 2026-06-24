@@ -131,6 +131,15 @@ try {
         'emergency_ob_details' => $data['ob_specify'] ?? null,
         'emergency_general' => isset($data['emergency_type']) && in_array('general', $data['emergency_type']) ? 1 : 0,
         'emergency_general_details' => $data['general_specify'] ?? null,
+        'incident_category' => !empty($data['incident_category']) ? $data['incident_category']
+            : classify_incident_from_record([
+                'emergency_trauma_details'  => $data['trauma_specify']  ?? null,
+                'emergency_general_details' => $data['general_specify'] ?? null,
+                'emergency_medical_details' => $data['medical_specify'] ?? null,
+                'emergency_ob_details'      => $data['ob_specify']      ?? null,
+                'other_complaints'          => $data['other_complaints'] ?? null,
+                'team_leader_notes'         => $data['team_leader_notes'] ?? null,
+            ]),
         'care_management' => isset($data['care_management']) ? json_encode($data['care_management']) : null,
         'oxygen_lpm' => $data['oxygen_lpm'] ?? null,
         'other_care' => $data['other_care'] ?? null,

@@ -31,705 +31,276 @@ $current_user = get_auth_user();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pre-Hospital Care Form (1x.2025)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
+    <link href="css/records-style.css?v=<?php echo asset_version(); ?>" rel="stylesheet">
     <link href="css/prehospital-form.css?v=<?php echo asset_version(); ?>" rel="stylesheet">
     <style>
-        /* Sidebar Layout Compatibility Fixes */
-        body {
-            overflow: auto !important;
-            height: auto !important;
+        /* Indigo Design System Overrides — matching records/dashboard aesthetic */
+        :root {
+            --brand-accent: #4f46e5;
+            --brand-accent-light: #6366f1;
+            --brand-accent-muted: #a5b4fc;
+            --primary-color: #4f46e5;
+            --secondary-color: #4338ca;
         }
 
-        .content {
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            padding-bottom: 0 !important;
-            min-height: 100vh;
-            max-height: 100vh;
-            position: relative;
-        }
+        /* Sidebar Layout Compatibility - Corporate Design 2026 */
+        body { overflow: auto !important; height: auto !important; }
+        .content { overflow-y: auto !important; overflow-x: hidden !important; padding-bottom: 0 !important; min-height: 100vh; max-height: 100vh; position: relative; }
+        .form-container { overflow: visible !important; height: auto !important; max-width: 100%; margin-bottom: 0; padding-bottom: 0; }
+        .form-body { overflow: visible !important; max-height: none !important; padding-bottom: 2rem !important; min-height: calc(100vh - 400px) !important; }
+        .tab-content { overflow: visible !important; padding-bottom: 0 !important; }
+        .tab-pane { padding-bottom: 0 !important; }
+        .form-section { margin-bottom: 0 !important; padding-bottom: 0 !important; }
 
-        .form-container {
-            overflow: visible !important;
-            height: auto !important;
-            max-width: 100%;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-
-        .form-body {
-            overflow: visible !important;
-            max-height: none !important;
-            padding-bottom: 2rem !important;
-            min-height: calc(100vh - 400px) !important;
-        }
-
+        /* Sticky Navigation with Indigo Accent */
         .navigation-buttons {
-            position: sticky !important;
-            bottom: 0 !important;
-            left: 0;
-            right: 0;
-            background: #ffffff !important;
-            margin-top: auto !important;
-            margin-bottom: 0 !important;
-            z-index: 1000 !important;
-            border-top: 4px solid #0066cc !important;
-            padding: 1.5rem 2rem !important;
-            display: flex !important;
-            justify-content: space-between !important;
-            gap: 1rem !important;
-            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08) !important;
+            position: sticky !important; bottom: 0 !important; left: 0; right: 0;
+            background: #ffffff !important; margin-top: auto !important;
+            margin-bottom: 0 !important; z-index: 1000 !important;
+            border-top: 4px solid #4f46e5 !important; padding: 1.5rem 2rem !important;
+            display: flex !important; justify-content: space-between !important;
+            gap: 1rem !important; box-shadow: 0 -4px 16px rgba(15,23,42,0.10) !important;
             flex-shrink: 0 !important;
         }
+        @supports (position: sticky) { .navigation-buttons { position: -webkit-sticky !important; position: sticky !important; } }
+        @media (max-width: 768px) { body.sidebar-open .navigation-buttons { opacity: 0.25 !important; pointer-events: none !important; } }
 
-        /* Ensure all content is visible */
-        .tab-content {
-            overflow: visible !important;
-            padding-bottom: 0 !important;
+        /* Notiflix Fix */
+        div[id^="NotiflixReportWrap"] button, div[id^="NotiflixReportWrap"] button:hover, div[id^="NotiflixReportWrap"] button:focus, div[id^="NotiflixReportWrap"] button:active { text-decoration: none !important; }
+
+        /* Indigo Navigation Tabs */
+        .tabs-container { margin-bottom: 1.5rem; overflow-x: auto; overflow-y: visible; }
+        .nav-tabs { border-bottom: 2px solid var(--gray-200, #e5e7eb); display: flex; flex-wrap: nowrap; gap: 0; padding: 0; position: relative; }
+        .nav-item { flex: 0 0 auto; min-width: auto; position: relative; margin: 0; }
+        .nav-link { background: transparent; color: #64748b; border: none; border-bottom: 3px solid transparent; padding: 0.75rem 0.875rem; font-weight: 600; font-size: 0.875rem; font-style: normal; text-align: center; position: relative; border-radius: 0; transition: all .2s ease; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 0.35rem; }
+        .nav-item:not(:last-child) .nav-link::after { content: '›'; position: absolute; right: -4px; font-size: 1.25rem; color: #cbd5e1; font-weight: 300; z-index: 1; }
+        .nav-link:hover { color: #4f46e5; background: rgba(79,70,229,0.05); border-bottom-color: #a5b4fc; }
+        .nav-link.active { color: #4f46e5; background: transparent; border-bottom-color: #4f46e5; font-weight: 700; }
+        .nav-link.active::after { color: #4f46e5 !important; }
+        .nav-link.completed:not(.active) { color: #059669; }
+        @media (max-width: 992px) { .nav-link { font-size: .8rem; padding: .65rem .75rem; } }
+        @media (max-width: 768px) { .nav-link { font-size: .75rem; padding: .6rem .65rem; gap: .25rem; } .nav-item:not(:last-child) .nav-link::after { font-size: 1.1rem; right: -3px; } }
+        @media (max-width: 576px) { .tabs-container { margin-left: -.5rem; margin-right: -.5rem; padding: 0 .25rem; } .nav-link { font-size: .7rem; padding: .5rem .4rem; } .nav-item:not(:last-child) .nav-link::after { display: none; } }
+
+        /* Mobile Touch-Friendly Inputs */
+        @media (max-width: 768px) { input[type="time"], input[type="datetime-local"], input[type="date"] { font-size: 16px !important; min-height: 48px !important; padding: 12px !important; -webkit-appearance: none; appearance: none; } }
+        @media (max-width: 576px) { input[type="time"], input[type="datetime-local"], input[type="date"] { font-size: 16px !important; min-height: 50px !important; } }
+
+        /* Uppercase Inputs */
+        input[type="text"]:not(.no-uppercase), input[type="email"], input[type="tel"], input[type="url"], select { text-transform: uppercase !important; }
+        textarea, input[type="text"].no-uppercase { text-transform: none !important; }
+        input::placeholder, textarea::placeholder { text-transform: none !important; }
+
+        /* Vehicle Display Bar - Indigo */
+        #selectedVehicleDisplay { background: linear-gradient(90deg, #eef2ff 0%, #e0e7ff 100%); border-left: 4px solid #4f46e5; border-radius: 8px; }
+
+        /* View Summary Button - Indigo */
+        .summary-button-container { padding: 1.5rem 1rem; }
+        #viewSummaryBtn { padding: .55rem 1.5rem; font-size: .875rem; font-weight: 600; border-radius: 8px; border: 2px solid #4f46e5; color: #4f46e5; background: #fff; transition: all .2s ease; }
+        #viewSummaryBtn i { font-size: .95rem; margin-right: .35rem; }
+        #viewSummaryBtn:hover { background: #eef2ff; box-shadow: 0 2px 12px rgba(79,70,229,0.2); transform: translateY(-1px); }
+        .summary-help-text { font-size: .9rem; }
+        @media (max-width: 768px) { .summary-button-container { padding: 1.25rem .5rem; } #viewSummaryBtn { padding: .4rem 1.1rem; font-size: .85rem; } .summary-help-text { font-size: .85rem; padding: 0 1rem; } }
+        @media (max-width: 576px) { .summary-button-container { padding: 1rem .5rem; } #viewSummaryBtn { padding: .4rem 1rem; font-size: .8rem; } .summary-help-text { font-size: .8rem; } }
+
+        /* ===== NARRATIVE REPORT CARD - Indigo Corporate Design ===== */
+        .narrative-report-card {
+            background: #fff;
+            border: 1px solid var(--gray-200, #e5e7eb);
+            border-radius: var(--radius-lg, 16px);
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(16,24,40,0.06);
+            margin: 1.5rem 0;
         }
-
-        /* Consistent spacing for all tabs */
-        .tab-pane {
-            padding-bottom: 0 !important;
-        }
-
-        /* Minimal space at the bottom of form content */
-        .form-section {
-            margin-bottom: 0 !important;
-            padding-bottom: 0 !important;
-        }
-
-        /* Ensure sticky works in all browsers */
-        @supports (position: sticky) {
-            .navigation-buttons {
-                position: -webkit-sticky !important;
-                position: sticky !important;
-            }
-        }
-
-        /* Hide navigation buttons on mobile when sidebar is open */
-        @media (max-width: 768px) {
-            body.sidebar-open .navigation-buttons {
-                display: none !important;
-            }
-        }
-
-        /* Fix Notiflix Report button underline */
-        div[id^="NotiflixReportWrap"] button {
-            text-decoration: none !important;
-        }
-
-        div[id^="NotiflixReportWrap"] button:hover,
-        div[id^="NotiflixReportWrap"] button:focus,
-        div[id^="NotiflixReportWrap"] button:active {
-            text-decoration: none !important;
-        }
-
-        /* Clean Corporate Navigation Tabs with Subtle Arrows */
-        .tabs-container {
-            margin-bottom: 1.5rem;
-            overflow-x: auto;
-            overflow-y: visible;
-        }
-
-        .nav-tabs {
-            border-bottom: 2px solid #e9ecef;
+        .narrative-header-bar {
             display: flex;
-            flex-wrap: nowrap;
-            gap: 0;
-            padding: 0;
-            position: relative;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+            color: #fff;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
-
-        .nav-item {
-            flex: 0 0 auto;
-            min-width: auto;
-            position: relative;
-            margin: 0;
+        .narrative-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
-
-        .nav-link {
-            background: transparent;
-            color: #6c757d;
-            border: none;
-            border-bottom: 3px solid transparent;
-            padding: 0.75rem 0.875rem;
-            font-weight: 600;
-            font-size: 0.875rem;
-            font-style: italic;
-            text-align: center;
-            position: relative;
-            border-radius: 0;
-            transition: all 0.2s ease;
-            white-space: nowrap;
+        .narrative-icon-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.18);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.35rem;
-        }
-
-        /* Subtle arrow separator */
-        .nav-item:not(:last-child) .nav-link::after {
-            content: '›';
-            position: absolute;
-            right: -4px;
-            font-size: 1.25rem;
-            color: #dee2e6;
-            font-weight: 300;
-            z-index: 1;
-        }
-
-        .nav-link:hover {
-            color: #0066cc;
-            background: rgba(0, 102, 204, 0.05);
-            border-bottom-color: #0066cc;
-        }
-
-        .nav-link.active {
-            color: #0066cc;
-            background: transparent;
-            border-bottom-color: #0066cc;
-            font-weight: 700;
-        }
-
-        .nav-link.active::after {
-            color: #0066cc !important;
-        }
-
-        /* Completed tabs - subtle green color only */
-        .nav-link.completed:not(.active) {
-            color: #059669;
-            position: relative;
-        }
-
-        /* Mobile responsive - cleaner approach */
-        @media (max-width: 992px) {
-            .nav-link {
-                font-size: 0.8rem;
-                padding: 0.65rem 0.75rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .nav-link {
-                font-size: 0.75rem;
-                padding: 0.6rem 0.65rem;
-                gap: 0.25rem;
-            }
-
-            .nav-item:not(:last-child) .nav-link::after {
-                font-size: 1.1rem;
-                right: -3px;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .tabs-container {
-                margin-left: -0.5rem;
-                margin-right: -0.5rem;
-                padding: 0 0.25rem;
-            }
-
-            .nav-link {
-                font-size: 0.7rem;
-                padding: 0.5rem 0.4rem;
-            }
-
-            .nav-item:not(:last-child) .nav-link::after {
-                display: none; /* Hide arrows on very small screens */
-            }
-        }
-
-        /* Flatpickr Mobile Optimization */
-        .flatpickr-mobile .flatpickr-time {
-            max-height: none !important;
-        }
-
-        .flatpickr-mobile .flatpickr-time input {
-            font-size: 18px !important;
-            padding: 12px !important;
-        }
-
-        .flatpickr-mobile .numInputWrapper {
-            width: 70px !important;
-        }
-
-        .flatpickr-calendar {
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
-            border-radius: 8px !important;
-            margin: 0 auto !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-        }
-
-        /* Prevent calendar from being cut off */
-        .flatpickr-calendar.open {
-            z-index: 9999 !important;
-        }
-
-        /* Dark backdrop for mobile calendar */
-        @media (max-width: 768px) {
-            /* Add backdrop when calendar is open */
-            body.flatpickr-mobile-open::before {
-                content: '';
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: 9998;
-            }
-
-            .flatpickr-calendar {
-                position: fixed !important;
-                left: 50% !important;
-                top: 50% !important;
-                transform: translate(-50%, -50%) !important;
-                margin: 0 !important;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-            }
-        }
-
-        .flatpickr-time input.flatpickr-hour,
-        .flatpickr-time input.flatpickr-minute {
-            font-weight: 600 !important;
-            font-size: 16px !important;
-        }
-
-        .flatpickr-time .flatpickr-time-separator {
-            font-weight: 600 !important;
-            font-size: 16px !important;
-        }
-
-        /* Mobile-specific improvements */
-        @media (max-width: 768px) {
-            /* Make native datetime/time inputs more touch-friendly when flatpickr is not active */
-            input[type="time"],
-            input[type="datetime-local"],
-            input[type="date"] {
-                font-size: 16px !important; /* Prevents zoom on iOS */
-                min-height: 48px !important; /* Better touch target */
-                padding: 12px !important;
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                appearance: none;
-            }
-
-            /* Flatpickr calendar mobile optimization */
-            .flatpickr-calendar {
-                width: 320px !important;
-                max-width: calc(100vw - 20px) !important;
-                font-size: 16px !important;
-                position: fixed !important;
-                left: 50% !important;
-                top: 50% !important;
-                transform: translate(-50%, -50%) !important;
-                margin: 0 !important;
-                max-height: 90vh !important;
-                overflow-y: auto !important;
-            }
-
-            /* Flatpickr wrapper positioning */
-            .flatpickr-calendar.inline {
-                position: relative !important;
-                transform: none !important;
-                left: auto !important;
-                top: auto !important;
-            }
-
-            /* Larger day cells for easier tapping */
-            .flatpickr-calendar .flatpickr-day {
-                height: 42px !important;
-                line-height: 42px !important;
-                max-width: 42px !important;
-                font-size: 16px !important;
-            }
-
-            /* Month navigation buttons */
-            .flatpickr-calendar .flatpickr-prev-month,
-            .flatpickr-calendar .flatpickr-next-month {
-                padding: 12px !important;
-            }
-
-            /* Time input improvements */
-            .flatpickr-time input {
-                font-size: 20px !important;
-                padding: 14px 8px !important;
-                min-height: 50px !important;
-            }
-
-            .flatpickr-time .arrowUp,
-            .flatpickr-time .arrowDown {
-                padding: 8px !important;
-                height: 36px !important;
-                width: 36px !important;
-            }
-
-            .flatpickr-time .arrowUp:after,
-            .flatpickr-time .arrowDown:after {
-                border-width: 6px !important;
-            }
-
-            .numInputWrapper {
-                width: 80px !important;
-            }
-
-            /* AM/PM toggle styling for mobile */
-            .flatpickr-am-pm {
-                font-size: 18px !important;
-                font-weight: 700 !important;
-                padding: 14px 12px !important;
-                min-width: 60px !important;
-                cursor: pointer !important;
-                background: #0066cc !important;
-                color: white !important;
-                border-radius: 6px !important;
-                margin-left: 8px !important;
-            }
-
-            .flatpickr-am-pm:hover {
-                background: #0052a3 !important;
-            }
-
-            /* Month dropdown for better mobile selection */
-            .flatpickr-monthDropdown-months {
-                font-size: 16px !important;
-                padding: 8px !important;
-            }
-
-            /* Year input */
-            .flatpickr-current-month input.cur-year {
-                font-size: 16px !important;
-                padding: 4px !important;
-            }
-
-            /* Flatpickr input field styling */
-            .flatpickr-input {
-                font-size: 16px !important;
-                min-height: 48px !important;
-                padding: 12px !important;
-            }
-
-            /* Flatpickr weekday labels */
-            .flatpickr-weekdays {
-                padding: 8px 0 !important;
-            }
-
-            .flatpickr-weekday {
-                font-size: 14px !important;
-                font-weight: 600 !important;
-            }
-
-            /* Current month/year dropdown styling */
-            .flatpickr-current-month {
-                padding: 12px 0 !important;
-            }
-
-            .flatpickr-current-month .flatpickr-monthDropdown-months {
-                min-height: 40px !important;
-            }
-        }
-
-        /* Extra small devices */
-        @media (max-width: 576px) {
-            .flatpickr-calendar {
-                width: calc(100vw - 30px) !important;
-                max-width: 340px !important;
-                padding: 8px !important;
-            }
-
-            input[type="time"],
-            input[type="datetime-local"],
-            input[type="date"] {
-                font-size: 16px !important;
-                min-height: 50px !important;
-            }
-
-            /* Smaller day cells for very small screens */
-            .flatpickr-calendar .flatpickr-day {
-                height: 38px !important;
-                line-height: 38px !important;
-                max-width: 38px !important;
-                font-size: 14px !important;
-            }
-        }
-
-        /* UPPERCASE ALL TEXT INPUTS */
-        input[type="text"],
-        input[type="email"],
-        input[type="tel"],
-        input[type="url"],
-        textarea,
-        select {
-            text-transform: uppercase !important;
-        }
-
-        /* Keep placeholders in normal case for readability */
-        input::placeholder,
-        textarea::placeholder {
-            text-transform: none !important;
-        }
-
-        /* Form Summary Modal Styles */
-        #formSummaryModal .modal-xl {
-            max-width: 1200px;
-        }
-
-        #formSummaryModal .summary-section {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        #formSummaryModal .summary-section:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-        }
-
-        #formSummaryModal .summary-section h6 {
-            color: #667eea;
-            font-weight: 600;
             font-size: 1.1rem;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #667eea;
+            flex-shrink: 0;
+        }
+        .narrative-header-left h5 {
+            margin: 0;
+            font-size: 0.9375rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.01em;
+        }
+        .narrative-header-left span {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.7);
+            font-weight: 400;
+        }
+        .narrative-header-right {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.625rem;
         }
-
-        #formSummaryModal .summary-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
+        .narrative-pills {
+            display: flex;
+            gap: 0;
+            background: rgba(255,255,255,0.15);
+            border-radius: 8px;
+            padding: 3px;
         }
-
-        #formSummaryModal .summary-table tr {
-            transition: background-color 0.15s;
-        }
-
-        #formSummaryModal .summary-table tr:hover {
-            background-color: #f8f9fe;
-        }
-
-        #formSummaryModal .summary-table td {
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid #e9ecef;
-            vertical-align: top;
-        }
-
-        #formSummaryModal .summary-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        #formSummaryModal .summary-table td:first-child {
+        .narrative-pill {
+            padding: 0.35rem 0.85rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
             font-weight: 600;
-            color: #495057;
-            width: 35%;
-            background-color: #f8f9fa;
+            color: rgba(255,255,255,0.7);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            font-family: 'Inter', sans-serif;
         }
-
-        #formSummaryModal .summary-table td:last-child {
-            color: #212529;
-            background-color: white;
+        .narrative-pill:hover { color: #fff; background: rgba(255,255,255,0.12); }
+        .narrative-pill.active {
+            background: #fff;
+            color: #4f46e5;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-
-        #formSummaryModal h7 {
-            display: block;
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #6c757d;
-            margin: 1rem 0 0.5rem 0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* View Summary Button - Responsive */
-        .summary-button-container {
-            padding: 1.5rem 1rem;
-        }
-
-        #viewSummaryBtn {
-            padding: 0.45rem 1.25rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            border-radius: 5px;
+        .narrative-icon-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
             transition: all 0.2s ease;
         }
-
-        #viewSummaryBtn i {
-            font-size: 0.95rem;
-            margin-right: 0.35rem;
+        .narrative-icon-btn:hover { background: rgba(255,255,255,0.25); }
+        .narrative-body {
+            padding: 1.5rem;
+            min-height: 160px;
+            background: #fafbfc;
         }
-
-        #viewSummaryBtn:hover {
-            box-shadow: 0 2px 6px rgba(0, 102, 204, 0.25);
+        .narrative-text {
+            font-family: 'SF Mono', 'Monaco', 'Consolas', 'Courier New', monospace;
+            font-size: 0.8125rem;
+            line-height: 1.7;
+            color: #1e293b;
+            white-space: pre-wrap;
+            word-break: break-word;
         }
-
-        .summary-help-text {
-            font-size: 0.9rem;
+        .narrative-placeholder-modern {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            text-align: center;
+            min-height: 160px;
         }
-
-        /* Mobile Responsive - Tablets and below */
+        .narrative-placeholder-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+        }
+        .narrative-placeholder-modern p {
+            font-size: 0.8125rem;
+            color: #64748b;
+            margin: 0 0 1rem 0;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-generate-narrative {
+            padding: 0.5rem 1.25rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(79,70,229,0.25);
+        }
+        .btn-generate-narrative:hover {
+            background: linear-gradient(135deg, #4338ca, #4f46e5);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79,70,229,0.35);
+        }
+        .narrative-footer-actions {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-top: 1px solid var(--gray-100, #f1f5f9);
+            background: #fff;
+            flex-wrap: wrap;
+        }
+        .narrative-footer-btn {
+            padding: 0.4rem 0.9rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 6px;
+            background: #fff;
+            border: 1px solid var(--gray-200, #e5e7eb);
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .narrative-footer-btn:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: #1e293b;
+        }
+        .narrative-footer-btn i { font-size: 0.75rem; }
         @media (max-width: 768px) {
-            .summary-button-container {
-                padding: 1.25rem 0.5rem;
-            }
-
-            #viewSummaryBtn {
-                padding: 0.4rem 1.1rem;
-                font-size: 0.85rem;
-            }
-
-            #viewSummaryBtn i {
-                font-size: 0.9rem;
-                margin-right: 0.3rem;
-            }
-
-            .summary-help-text {
-                font-size: 0.85rem;
-                padding: 0 1rem;
-            }
-
-            /* Modal adjustments for tablets */
-            #formSummaryModal .modal-dialog {
-                margin: 0.5rem;
-            }
-
-            #formSummaryModal .modal-body {
-                padding: 1rem !important;
-            }
-
-            #formSummaryModal .summary-section {
-                padding: 1rem;
-                margin-bottom: 1rem;
-            }
-
-            #formSummaryModal .summary-section h6 {
-                font-size: 1rem;
-            }
-
-            #formSummaryModal .summary-table td {
-                padding: 0.5rem 0.75rem;
-                font-size: 0.9rem;
-            }
-
-            #formSummaryModal .modal-footer {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-
-            #formSummaryModal .modal-footer .btn {
-                width: 100%;
-            }
+            .narrative-header-bar { flex-direction: column; align-items: flex-start; padding: 1rem; }
+            .narrative-header-right { width: 100%; }
+            .narrative-pills { width: 100%; }
+            .narrative-pill { flex: 1; text-align: center; }
+            .narrative-body { padding: 1rem; }
+            .narrative-footer-actions { padding: 0.625rem 1rem; }
+            .narrative-footer-btn { flex: 1; justify-content: center; }
         }
 
-        /* Mobile Responsive - Phones */
-        @media (max-width: 576px) {
-            .summary-button-container {
-                padding: 1rem 0.5rem;
-            }
-
-            #viewSummaryBtn {
-                padding: 0.4rem 1rem;
-                font-size: 0.8rem;
-            }
-
-            #viewSummaryBtn i {
-                font-size: 0.85rem;
-            }
-
-            #viewSummaryBtn span {
-                font-size: 0.8rem;
-            }
-
-            .summary-help-text {
-                font-size: 0.8rem;
-            }
-
-            /* Modal full screen on phones */
-            #formSummaryModal .modal-dialog {
-                margin: 0;
-                max-width: 100%;
-                height: 100vh;
-            }
-
-            #formSummaryModal .modal-content {
-                height: 100vh;
-                border-radius: 0;
-            }
-
-            #formSummaryModal .modal-header {
-                padding: 1rem;
-            }
-
-            #formSummaryModal .modal-header h5 {
-                font-size: 1.1rem;
-            }
-
-            #formSummaryModal .modal-body {
-                padding: 0.75rem !important;
-            }
-
-            #formSummaryModal .summary-section {
-                padding: 0.75rem;
-                margin-bottom: 0.75rem;
-                border-radius: 8px;
-            }
-
-            #formSummaryModal .summary-section h6 {
-                font-size: 0.95rem;
-                margin-bottom: 0.75rem;
-            }
-
-            #formSummaryModal .summary-table td {
-                padding: 0.4rem 0.6rem;
-                font-size: 0.85rem;
-                display: block;
-                width: 100% !important;
-                border-bottom: none;
-            }
-
-            #formSummaryModal .summary-table tr {
-                display: block;
-                margin-bottom: 0.5rem;
-                border: 1px solid #e9ecef;
-                border-radius: 6px;
-                overflow: hidden;
-            }
-
-            #formSummaryModal .summary-table td:first-child {
-                background-color: #f8f9fa;
-                border-bottom: 1px solid #dee2e6;
-                font-size: 0.8rem;
-                padding: 0.4rem 0.6rem;
-            }
-
-            #formSummaryModal .summary-table td:last-child {
-                padding: 0.5rem 0.6rem;
-                font-weight: 500;
-            }
-
-            #formSummaryModal h7 {
-                font-size: 0.85rem;
-                margin: 0.75rem 0 0.4rem 0;
-            }
-
-            #formSummaryModal .modal-footer {
-                padding: 0.75rem;
-            }
-
-            #formSummaryModal .modal-footer .btn {
-                padding: 0.6rem 1rem;
-                font-size: 0.9rem;
-            }
-        }
+        /* Header Actions */
+        .header-actions { display: flex; gap: 0.75rem; align-items: center; }
     </style>
 </head>
 <body class="loading">
@@ -737,23 +308,40 @@ $current_user = get_auth_user();
     <?php include '../includes/sidebar.php'; ?>
 
     <div class="content">
-        <div class="form-container">
-        <div class="form-header">
-            <h1><i class="bi bi-file-medical"></i> PRE-HOSPITAL CARE FORM</h1>
-            <p class="subtitle" style="margin-left: 2.15rem;">Emergency Medical Services</p>
-        </div>
+        <div class="container-fluid py-4">
+            <?php show_flash(); ?>
 
+            <!-- ===== PAGE HEADER ===== -->
+            <div class="page-header-inline">
+                <div>
+                    <h1 class="page-title">
+                        <span class="page-title-icon"><i class="bi bi-file-medical"></i></span>
+                        Pre-Hospital Care Form
+                    </h1>
+                    <p class="page-subtitle">Emergency Medical Services &middot; <strong>RESQ-link EMS</strong></p>
+                </div>
+                <div class="header-actions">
+                    <a href="drafts.php" class="btn-ghost">
+                        <i class="bi bi-file-earmark-text"></i> My Drafts
+                    </a>
+                    <button type="button" class="btn-primary" id="manualSaveBtnHeader">
+                        <i class="bi bi-cloud-arrow-up-fill"></i> Save Draft
+                    </button>
+                </div>
+            </div>
+
+        <div class="form-container">
         <div class="progress-container">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                <span style="font-size: 0.85rem; font-weight: 600; color: #0066cc;">
+                <span style="font-size: 0.85rem; font-weight: 600; color: #4f46e5;">
                     <i class="bi bi-list-check"></i> Form Progress
                 </span>
-                <span id="stepIndicator" style="font-size: 0.85rem; font-weight: 500; color: #6c757d;">
+                <span id="stepIndicator" style="font-size: 0.85rem; font-weight: 500; color: #64748b;">
                     Step 1 of 7
                 </span>
             </div>
             <div class="progress">
-                <div class="progress-bar" role="progressbar" id="progressBar" style="width: 14%"></div>
+                <div class="progress-bar" role="progressbar" id="progressBar" style="width: 14%; background: linear-gradient(135deg, #6366f1, #4f46e5);"></div>
             </div>
         </div>
 
@@ -866,9 +454,9 @@ $current_user = get_auth_user();
                         </div>
                         <input type="hidden" name="vehicle_details" id="vehicleDetails">
                         <!-- Selected Vehicle Display -->
-                        <div id="selectedVehicleDisplay" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #e7f3ff; border-left: 4px solid #0066cc; border-radius: 4px;">
-                            <strong style="color: #0066cc;">Selected Vehicle:</strong>
-                            <span id="selectedVehicleText" style="color: #333; margin-left: 0.5rem;"></span>
+                        <div id="selectedVehicleDisplay" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: linear-gradient(90deg, #eff6ff 0%, #dbeafe 100%); border-left: 4px solid #3b82f6; border-radius: 8px;">
+                            <strong style="color: #1e3a5f;">Selected Vehicle:</strong>
+                            <span id="selectedVehicleText" style="color: #1e293b; margin-left: 0.5rem;"></span>
                         </div>
 
                         <div class="mb-section">
@@ -1313,14 +901,14 @@ $current_user = get_auth_user();
                                     <input class="form-check-input" type="checkbox" id="medical" name="emergency_type[]" value="medical">
                                     <label class="form-check-label" for="medical"><strong>Medical</strong></label>
                                 </div>
-                                <input type="text" class="form-control" id="medicalSpecify" name="medical_specify" placeholder="Specify medical condition">
+                                <input type="text" class="form-control" id="medicalSpecify" name="medical_specify" placeholder="Specify medical condition" list="incidentCategoryList">
                             </div>
                             <div>
                                 <div class="form-check mb-2">
                                     <input class="form-check-input" type="checkbox" id="trauma" name="emergency_type[]" value="trauma">
                                     <label class="form-check-label" for="trauma"><strong>Trauma</strong></label>
                                 </div>
-                                <input type="text" class="form-control" id="traumaSpecify" name="trauma_specify" placeholder="Specify trauma type">
+                                <input type="text" class="form-control" id="traumaSpecify" name="trauma_specify" placeholder="Specify trauma type" list="incidentCategoryList">
                             </div>
                             <div>
                                 <div class="form-check mb-2">
@@ -1334,9 +922,14 @@ $current_user = get_auth_user();
                                     <input class="form-check-input" type="checkbox" id="general" name="emergency_type[]" value="general">
                                     <label class="form-check-label" for="general"><strong>General</strong></label>
                                 </div>
-                                <input type="text" class="form-control" id="generalSpecify" name="general_specify" placeholder="Specify general condition">
+                                <input type="text" class="form-control" id="generalSpecify" name="general_specify" placeholder="Specify general condition" list="incidentCategoryList">
                             </div>
                         </div>
+                        <datalist id="incidentCategoryList">
+                            <?php foreach (incident_categories() as $__cat): ?>
+                            <option value="<?php echo e($__cat); ?>"></option>
+                            <?php endforeach; ?>
+                        </datalist>
 
                         <div class="grid-2 mb-section">
                             <div>
@@ -1748,7 +1341,7 @@ $current_user = get_auth_user();
                         <hr class="section-divider">
 
                         <div class="stroke-assessment-card">
-                            <div class="stroke-assessment-header">
+                    <div class="stroke-assessment-header" style="background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);">
                                 <div class="stroke-header-icon">
                                     <i class="bi bi-activity"></i>
                                 </div>
@@ -2098,50 +1691,52 @@ $current_user = get_auth_user();
                             </p>
                         </div>
 
-                        <!-- NARRATIVE REPORT SECTION -->
-                        <div class="section-title" style="margin-top: 2rem;">
-                            <i class="bi bi-file-text"></i> Narrative Report
-                        </div>
-
-                        <div class="narrative-report-container">
-                            <!-- Toolbar -->
-                            <div class="narrative-toolbar">
-                                <div class="narrative-toolbar-left">
-                                    <div class="narrative-format-toggle">
-                                        <button type="button" class="format-btn active" data-format="professional" data-action="switchNarrativeFormat" data-arg="professional">
-                                            <i class="bi bi-journal-text"></i> Professional
-                                        </button>
-                                        <button type="button" class="format-btn" data-format="concise" data-action="switchNarrativeFormat" data-arg="concise">
-                                            <i class="bi bi-list-ul"></i> Concise
-                                        </button>
+                        <!-- NARRATIVE REPORT CARD - Modern Corporate Design -->
+                        <div class="narrative-report-card">
+                            <div class="narrative-header-bar">
+                                <div class="narrative-header-left">
+                                    <div class="narrative-icon-circle">
+                                        <i class="bi bi-file-text-fill"></i>
+                                    </div>
+                                    <div>
+                                        <h5>Narrative Report</h5>
+                                        <span>Auto-generated from form data</span>
                                     </div>
                                 </div>
-                                <button type="button" class="narrative-regenerate-btn" data-action="generateNarrative">
-                                    <i class="bi bi-arrow-clockwise"></i> Regenerate
-                                </button>
-                            </div>
-
-                            <!-- Narrative Content -->
-                            <div class="narrative-content" id="narrativeContent">
-                                <div class="narrative-placeholder">
-                                    <i class="bi bi-file-earmark-text"></i>
-                                    <p>Narrative report will be generated automatically when you complete the form.</p>
-                                    <button type="button" class="narrative-generate-btn" data-action="generateNarrative">
-                                        Generate Now
+                                <div class="narrative-header-right">
+                                    <div class="narrative-pills">
+                                        <button type="button" class="narrative-pill active" data-format="professional" data-action="switchNarrativeFormat" data-arg="professional">
+                                            Professional
+                                        </button>
+                                        <button type="button" class="narrative-pill" data-format="concise" data-action="switchNarrativeFormat" data-arg="concise">
+                                            Concise
+                                        </button>
+                                    </div>
+                                    <button type="button" class="narrative-icon-btn" data-action="generateNarrative" title="Regenerate Report">
+                                        <i class="bi bi-arrow-clockwise"></i>
                                     </button>
                                 </div>
                             </div>
-
-                            <!-- Actions -->
-                            <div class="narrative-actions">
-                                <button type="button" class="narrative-action-btn narrative-action-primary" data-action="copyNarrativeToClipboard">
+                            <div class="narrative-body" id="narrativeContent">
+                                <div class="narrative-placeholder-modern">
+                                    <div class="narrative-placeholder-icon">
+                                        <i class="bi bi-file-earmark-medical"></i>
+                                    </div>
+                                    <p>Narrative report will be generated automatically as you complete each tab.</p>
+                                    <button type="button" class="btn-generate-narrative" data-action="generateNarrative">
+                                        <i class="bi bi-stars me-2"></i>Generate Now
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="narrative-footer-actions">
+                                <button type="button" class="narrative-footer-btn" data-action="copyNarrativeToClipboard">
                                     <i class="bi bi-clipboard"></i> Copy
                                 </button>
-                                <button type="button" class="narrative-action-btn" data-action="printNarrative">
+                                <button type="button" class="narrative-footer-btn" data-action="printNarrative">
                                     <i class="bi bi-printer"></i> Print
                                 </button>
-                                <button type="button" class="narrative-action-btn" data-action="exportNarrativeAsText">
-                                    <i class="bi bi-download"></i> Download
+                                <button type="button" class="narrative-footer-btn" data-action="exportNarrativeAsText">
+                                    <i class="bi bi-download"></i> Download .TXT
                                 </button>
                             </div>
                         </div>
@@ -2155,36 +1750,24 @@ $current_user = get_auth_user();
         <div class="modal fade" id="formSummaryModal" tabindex="-1" aria-labelledby="formSummaryModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
-                    <!-- Modal Header -->
-                    <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-bottom: none;">
-                        <h5 class="modal-title" id="formSummaryModalLabel" style="font-weight: 600; font-size: 1.4rem;">
-                            <i class="bi bi-clipboard-check-fill me-2"></i>
-                            Pre-Hospital Care Form Summary
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-clipboard2-check-fill"></i><span>Pre-Hospital Care Form Summary</span>
                         </h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-
-                    <!-- Modal Body -->
-                    <div class="modal-body" id="summaryModalBody" style="padding: 2rem; background-color: #f8f9fa;">
-                        <!-- Summary content will be populated by JavaScript -->
-                        <div class="text-center text-muted py-5">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                            <p class="mt-3">Generating summary...</p>
-                        </div>
+                    <div class="modal-body" id="summaryModalBody">
+                        <div style="text-align: center; padding: 3rem; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); border-radius: 12px;"></div>
                     </div>
-
-                    <!-- Modal Footer -->
-                    <div class="modal-footer" style="background-color: #fff; border-top: 2px solid #e9ecef; padding: 1rem 1.5rem;">
+                    <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-action="copySummaryToClipboard">
-                            <i class="bi bi-clipboard"></i> Copy to Clipboard
+                            <i class="bi bi-clipboard"></i> Copy
                         </button>
                         <button type="button" class="btn btn-outline-primary" data-action="printSummary">
-                            <i class="bi bi-printer"></i> Print Summary
+                            <i class="bi bi-printer"></i> Print
                         </button>
                         <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
-                            <i class="bi bi-x-circle"></i> Close
+                            <i class="bi bi-check2"></i> Done
                         </button>
                     </div>
                 </div>
@@ -2240,13 +1823,12 @@ $current_user = get_auth_user();
     <script src="js/modules/injury-tracker.js?v=<?php echo asset_version(); ?>"></script>
     <script src="js/modules/camera.js?v=<?php echo asset_version(); ?>"></script>
     <script src="js/modules/form-tabs.js?v=<?php echo asset_version(); ?>"></script>
-    <script src="js/modules/auto-save.js?v=<?php echo asset_version(); ?>"></script>
     <script src="js/modules/validation.js?v=<?php echo asset_version(); ?>"></script>
     <script src="js/prehospital-form.js?v=<?php echo asset_version(); ?>"></script>
     <!-- Custom Date Components - Month/Day/Year dropdowns -->
     <script src="js/custom-date.js?v=<?php echo asset_version(); ?>"></script>
     <script nonce="<?php echo CSP_NONCE; ?>">
-        // Configure Notiflix
+        // Configure Notiflix - Corporate Navy Theme
         Notiflix.Notify.init({
             width: '320px',
             position: 'right-top',
@@ -2255,22 +1837,22 @@ $current_user = get_auth_user();
             fontSize: '15px',
             cssAnimationStyle: 'from-right',
             success: {
-                background: '#28a745',
+                background: '#059669',
                 textColor: '#fff',
                 notiflixIconColor: '#fff',
             },
             failure: {
-                background: '#dc3545',
+                background: '#dc2626',
                 textColor: '#fff',
                 notiflixIconColor: '#fff',
             },
             warning: {
-                background: '#ffc107',
-                textColor: '#333',
-                notiflixIconColor: '#333',
+                background: '#d97706',
+                textColor: '#fff',
+                notiflixIconColor: '#fff',
             },
             info: {
-                background: '#0066cc',
+                background: '#2c5282',
                 textColor: '#fff',
                 notiflixIconColor: '#fff',
             },
@@ -2278,9 +1860,9 @@ $current_user = get_auth_user();
 
         Notiflix.Confirm.init({
             width: '350px',
-            titleColor: '#0066cc',
-            okButtonBackground: '#0066cc',
-            cancelButtonBackground: '#6c757d',
+            titleColor: '#1e3a5f',
+            okButtonBackground: '#2c5282',
+            cancelButtonBackground: '#64748b',
             cssAnimationStyle: 'zoom',
         });
 
@@ -2292,36 +1874,36 @@ $current_user = get_auth_user();
             buttonFontSize: '15px',
             cssAnimationStyle: 'zoom',
             success: {
-                svgColor: '#28a745',
-                titleColor: '#1e7e34',
-                messageColor: '#333',
-                buttonBackground: '#28a745',
+                svgColor: '#059669',
+                titleColor: '#065f46',
+                messageColor: '#1e293b',
+                buttonBackground: '#059669',
                 buttonColor: '#fff',
-                backOverlayColor: 'rgba(0,0,0,0.5)',
+                backOverlayColor: 'rgba(15,23,42,0.5)',
             },
             failure: {
-                svgColor: '#dc3545',
-                titleColor: '#bd2130',
-                messageColor: '#333',
-                buttonBackground: '#dc3545',
+                svgColor: '#dc2626',
+                titleColor: '#991b1b',
+                messageColor: '#1e293b',
+                buttonBackground: '#dc2626',
                 buttonColor: '#fff',
-                backOverlayColor: 'rgba(0,0,0,0.5)',
+                backOverlayColor: 'rgba(15,23,42,0.5)',
             },
             warning: {
-                svgColor: '#ffc107',
-                titleColor: '#856404',
-                messageColor: '#333',
-                buttonBackground: '#ffc107',
-                buttonColor: '#333',
-                backOverlayColor: 'rgba(0,0,0,0.5)',
+                svgColor: '#d97706',
+                titleColor: '#92400e',
+                messageColor: '#1e293b',
+                buttonBackground: '#d97706',
+                buttonColor: '#fff',
+                backOverlayColor: 'rgba(15,23,42,0.5)',
             },
             info: {
-                svgColor: '#0066cc',
-                titleColor: '#004d99',
-                messageColor: '#333',
-                buttonBackground: '#0066cc',
+                svgColor: '#3b82f6',
+                titleColor: '#1e3a5f',
+                messageColor: '#1e293b',
+                buttonBackground: '#2c5282',
                 buttonColor: '#fff',
-                backOverlayColor: 'rgba(0,0,0,0.5)',
+                backOverlayColor: 'rgba(15,23,42,0.5)',
             },
         });
 
@@ -2337,7 +1919,7 @@ $current_user = get_auth_user();
             // ============================================
             // UPPERCASE ALL TEXT INPUTS
             // ============================================
-            const textInputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="url"], textarea');
+            const textInputs = document.querySelectorAll('input[type="text"]:not(.no-uppercase), input[type="email"], input[type="tel"], input[type="url"]');
 
             textInputs.forEach(function(input) {
                 // Convert to uppercase on input
@@ -2364,213 +1946,6 @@ $current_user = get_auth_user();
 
             console.log('Uppercase conversion initialized on ' + textInputs.length + ' text inputs');
 
-            // ============================================
-            // FLATPICKR DISABLED - Using custom dropdowns instead
-            // ============================================
-            /*
-            // FLATPICKR TIME PICKER INITIALIZATION
-            // ============================================
-            // Select all time input fields
-            const timeInputs = document.querySelectorAll('input[type="time"]');
-
-            // Initialize Flatpickr on each time input
-            timeInputs.forEach(function(input) {
-                flatpickr(input, {
-                    enableTime: true,
-                    noCalendar: true,
-                    dateFormat: "h:i K", // 12-hour format with AM/PM for users
-                    time_24hr: false, // Use 12-hour format with AM/PM
-                    minuteIncrement: 1,
-                    // Allow native mobile time picker - easier scrolling interface
-                    disableMobile: true, // Let mobile devices use their native time picker
-                    // Allow manual input
-                    allowInput: true,
-                    // Default time
-                    defaultHour: 12,
-                    defaultMinute: 0,
-                    // Better mobile touch experience
-                    clickOpens: true,
-                    // Position the picker
-                    position: "auto",
-                    // Custom styling for mobile
-                    onReady: function(selectedDates, dateStr, instance) {
-                        // Add mobile-friendly class
-                        instance.calendarContainer.classList.add('flatpickr-mobile');
-                    },
-                    // Convert to 24-hour format for backend storage
-                    onChange: function(selectedDates, dateStr, instance) {
-                        if (selectedDates.length > 0) {
-                            const date = selectedDates[0];
-                            const hours = String(date.getHours()).padStart(2, '0');
-                            const minutes = String(date.getMinutes()).padStart(2, '0');
-                            const time24 = hours + ':' + minutes;
-
-                            // Store 24-hour format as data attribute for backend
-                            input.setAttribute('data-time-24hr', time24);
-                            // Keep the actual value as 24-hour for backend compatibility
-                            input.value = time24;
-                        }
-
-                        // Trigger change event on the input for autosave
-                        const event = new Event('change', { bubbles: true });
-                        input.dispatchEvent(event);
-                    },
-                    // Ensure value is in 24-hour format when closing
-                    onClose: function(selectedDates, dateStr, instance) {
-                        if (selectedDates.length > 0) {
-                            const date = selectedDates[0];
-                            const hours = String(date.getHours()).padStart(2, '0');
-                            const minutes = String(date.getMinutes()).padStart(2, '0');
-                            const time24 = hours + ':' + minutes;
-                            input.value = time24;
-                        }
-                    }
-                });
-            });
-
-            console.log('Flatpickr initialized on ' + timeInputs.length + ' time inputs with 12-hour AM/PM format');
-
-            // Initialize Flatpickr for datetime-local inputs (Date & Time pickers)
-            const datetimeInputs = document.querySelectorAll('input[type="datetime-local"]');
-
-            datetimeInputs.forEach(function(input) {
-                flatpickr(input, {
-                    enableTime: true,
-                    dateFormat: "Y-m-d h:i K", // Date with 12-hour time and AM/PM
-                    time_24hr: false, // Use 12-hour format with AM/PM
-                    minuteIncrement: 1,
-                    // Allow native mobile datetime picker
-                    disableMobile: true,
-                    // Allow manual input
-                    allowInput: true,
-                    // Better mobile touch experience
-                    clickOpens: true,
-                    // Position the picker
-                    position: "auto",
-                    // Set default to current date and time
-                    defaultDate: input.value || null,
-                    // Custom styling for mobile
-                    onReady: function(selectedDates, dateStr, instance) {
-                        // Add mobile-friendly class
-                        instance.calendarContainer.classList.add('flatpickr-mobile');
-
-                        // Make the calendar touch-friendly on mobile
-                        if (window.innerWidth <= 768) {
-                            instance.calendarContainer.style.fontSize = '16px';
-                        }
-                    },
-                    // Format value for backend
-                    onChange: function(selectedDates, dateStr, instance) {
-                        if (selectedDates.length > 0) {
-                            const date = selectedDates[0];
-
-                            // Format as YYYY-MM-DDTHH:MM for datetime-local input
-                            const year = date.getFullYear();
-                            const month = String(date.getMonth() + 1).padStart(2, '0');
-                            const day = String(date.getDate()).padStart(2, '0');
-                            const hours = String(date.getHours()).padStart(2, '0');
-                            const minutes = String(date.getMinutes()).padStart(2, '0');
-
-                            const datetimeValue = `${year}-${month}-${day}T${hours}:${minutes}`;
-                            input.value = datetimeValue;
-                        }
-
-                        // Trigger change event for autosave
-                        const event = new Event('change', { bubbles: true });
-                        input.dispatchEvent(event);
-                    },
-                    // Add backdrop on mobile when calendar opens
-                    onOpen: function(selectedDates, dateStr, instance) {
-                        if (window.innerWidth <= 768) {
-                            document.body.classList.add('flatpickr-mobile-open');
-                        }
-                    },
-                    // Remove backdrop when calendar closes
-                    onClose: function(selectedDates, dateStr, instance) {
-                        document.body.classList.remove('flatpickr-mobile-open');
-
-                        // Ensure datetime value is in correct format for backend
-                        if (selectedDates.length > 0) {
-                            const date = selectedDates[0];
-                            const year = date.getFullYear();
-                            const month = String(date.getMonth() + 1).padStart(2, '0');
-                            const day = String(date.getDate()).padStart(2, '0');
-                            const hours = String(date.getHours()).padStart(2, '0');
-                            const minutes = String(date.getMinutes()).padStart(2, '0');
-                            const datetimeValue = `${year}-${month}-${day}T${hours}:${minutes}`;
-                            input.value = datetimeValue;
-                        }
-                    }
-                });
-            });
-
-            console.log('Flatpickr initialized on ' + datetimeInputs.length + ' datetime inputs with 12-hour AM/PM format');
-
-            // ============================================
-            // FLATPICKR DATE PICKER INITIALIZATION
-            // ============================================
-            // Select all date input fields
-            const dateInputs = document.querySelectorAll('input[type="date"]');
-
-            // Initialize Flatpickr on each date input
-            dateInputs.forEach(function(input) {
-                flatpickr(input, {
-                    dateFormat: "Y-m-d", // Format for date input compatibility
-                    // USE NATIVE MOBILE DATE PICKER - Much easier to use!
-                    disableMobile: true,
-                    // Allow manual input
-                    allowInput: true,
-                    // Better mobile touch experience
-                    clickOpens: true,
-                    // Position the picker
-                    position: "auto",
-                    // Set default to current value if exists
-                    defaultDate: input.value || null,
-                    // Custom styling for mobile
-                    onReady: function(selectedDates, dateStr, instance) {
-                        // Add mobile-friendly class
-                        instance.calendarContainer.classList.add('flatpickr-mobile');
-
-                        // Make the calendar touch-friendly on mobile
-                        if (window.innerWidth <= 768) {
-                            instance.calendarContainer.style.fontSize = '16px';
-                        }
-                    },
-                    // Format value for backend
-                    onChange: function(selectedDates, dateStr, instance) {
-                        if (selectedDates.length > 0) {
-                            const date = selectedDates[0];
-
-                            // Format as YYYY-MM-DD for date input
-                            const year = date.getFullYear();
-                            const month = String(date.getMonth() + 1).padStart(2, '0');
-                            const day = String(date.getDate()).padStart(2, '0');
-
-                            const dateValue = `${year}-${month}-${day}`;
-                            input.value = dateValue;
-                        }
-
-                        // Trigger change event for autosave
-                        const event = new Event('change', { bubbles: true });
-                        input.dispatchEvent(event);
-                    },
-                    // Add backdrop on mobile when calendar opens
-                    onOpen: function(selectedDates, dateStr, instance) {
-                        if (window.innerWidth <= 768) {
-                            document.body.classList.add('flatpickr-mobile-open');
-                        }
-                    },
-                    // Remove backdrop when calendar closes
-                    onClose: function(selectedDates, dateStr, instance) {
-                        document.body.classList.remove('flatpickr-mobile-open');
-                    }
-                });
-            });
-
-            console.log('Flatpickr initialized on ' + dateInputs.length + ' date inputs with mobile optimization');
-        });
-        */
-        // End of Flatpickr (disabled - using custom dropdowns)
         }); // End of DOMContentLoaded event listener
 
         // ============================================
@@ -4137,157 +3512,16 @@ $current_user = get_auth_user();
             });
         }
 
-        // Generate form summary - DISABLED (using external js/prehospital-form.js version instead)
-        function generateFormSummary_OLD_DISABLED() {
-            const summaryContainer = document.getElementById('formSummary');
-
-            // Helper function to get radio button value
-            function getRadioValue(name) {
-                const radio = document.querySelector(`input[name="${name}"]:checked`);
-                return radio ? radio.value : null;
-            }
-
-            // Collect form data
-            const patientName = document.getElementById('patientName')?.value || 'Not provided';
-            const age = document.getElementById('age')?.value || 'Not provided';
-            const genderValue = getRadioValue('gender') || 'Not provided';
-            const gender = genderValue === 'male' ? 'Male' : genderValue === 'female' ? 'Female' : 'Not provided';
-            const formDate = document.getElementById('formDate')?.value || 'Not provided';
-
-            // Get vehicle used (radio button)
-            const vehicleValue = getRadioValue('vehicle_used');
-            let vehicleUsed = 'Not provided';
-            if (vehicleValue === 'ambulance') vehicleUsed = 'Ambulance';
-            else if (vehicleValue === 'fireTruck') vehicleUsed = 'Fire Truck';
-            else if (vehicleValue === 'others') vehicleUsed = 'Others';
-
-            // Get vehicle details if available and parse JSON
-            const vehicleDetailsRaw = document.getElementById('vehicleDetails')?.value;
-            if (vehicleDetailsRaw && vehicleValue === 'ambulance') {
-                try {
-                    const vehicleData = JSON.parse(vehicleDetailsRaw);
-                    if (vehicleData.id && vehicleData.plate) {
-                        vehicleUsed = `Ambulance ${vehicleData.id} (${vehicleData.plate})`;
-                    } else {
-                        vehicleUsed = 'Ambulance';
+        // Auto-generate narrative when entering Sections 5, 6, or 7
+        ['tab5', 'tab6', 'tab7'].forEach(function(tabId) {
+            document.getElementById(tabId).addEventListener('click', function() {
+                setTimeout(function() {
+                    const narrativeContent = document.getElementById('narrativeContent');
+                    if (narrativeContent && narrativeContent.querySelector('.narrative-placeholder')) {
+                        generateNarrative();
                     }
-                } catch (e) {
-                    // If not JSON or parsing fails, just use "Ambulance"
-                    vehicleUsed = 'Ambulance';
-                }
-            }
-
-            const driverName = document.getElementById('driver')?.value || 'Not provided';
-
-            // Vital signs
-            const initialBP = document.getElementById('initialBP')?.value || 'Not taken';
-            const initialTemp = document.getElementById('initialTemp')?.value || 'Not taken';
-            const initialPulse = document.getElementById('initialPulse')?.value || 'Not taken';
-            const initialSPO2 = document.getElementById('initialSPO2')?.value || 'Not taken';
-            const initialConsciousness = document.getElementById('initialConsciousness')?.value || 'Not assessed';
-
-            // Hospital info
-            const hospitalName = document.getElementById('hospital')?.value || 'Not provided';
-
-            // Build summary HTML
-            let summaryHTML = `
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="summary-card">
-                            <h6><i class="bi bi-person-fill"></i> Patient Information</h6>
-                            <table class="summary-table">
-                                <tr><td><strong>Name:</strong></td><td>${patientName}</td></tr>
-                                <tr><td><strong>Age:</strong></td><td>${age} years old</td></tr>
-                                <tr><td><strong>Gender:</strong></td><td>${gender}</td></tr>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="summary-card">
-                            <h6><i class="bi bi-calendar-check"></i> Response Information</h6>
-                            <table class="summary-table">
-                                <tr><td><strong>Date:</strong></td><td>${formDate}</td></tr>
-                                <tr><td><strong>Vehicle:</strong></td><td>${vehicleUsed}</td></tr>
-                                <tr><td><strong>Driver:</strong></td><td>${driverName}</td></tr>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="summary-card">
-                            <h6><i class="bi bi-heart-pulse-fill"></i> Initial Vital Signs</h6>
-                            <table class="summary-table">
-                                <tr><td><strong>Blood Pressure:</strong></td><td>${initialBP}</td></tr>
-                                <tr><td><strong>Temperature:</strong></td><td>${initialTemp !== 'Not taken' ? initialTemp + '°C' : 'Not taken'}</td></tr>
-                                <tr><td><strong>Pulse:</strong></td><td>${initialPulse !== 'Not taken' ? initialPulse + ' BPM' : 'Not taken'}</td></tr>
-                                <tr><td><strong>SPO2:</strong></td><td>${initialSPO2 !== 'Not taken' ? initialSPO2 + '%' : 'Not taken'}</td></tr>
-                                <tr><td><strong>Consciousness:</strong></td><td>${initialConsciousness.charAt(0).toUpperCase() + initialConsciousness.slice(1)}</td></tr>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="summary-card">
-                            <h6><i class="bi bi-hospital"></i> Hospital Information</h6>
-                            <table class="summary-table">
-                                <tr><td><strong>Hospital Name:</strong></td><td>${hospitalName}</td></tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <style>
-                    .summary-card {
-                        background: #f8f9fa;
-                        border: 1px solid #dee2e6;
-                        border-radius: 8px;
-                        padding: 1rem;
-                        height: 100%;
-                    }
-
-                    .summary-card h6 {
-                        color: #0066cc;
-                        font-weight: 600;
-                        margin-bottom: 0.75rem;
-                        padding-bottom: 0.5rem;
-                        border-bottom: 2px solid #0066cc;
-                    }
-
-                    .summary-table {
-                        width: 100%;
-                        font-size: 0.9rem;
-                    }
-
-                    .summary-table td {
-                        padding: 0.25rem 0;
-                        vertical-align: top;
-                    }
-
-                    .summary-table td:first-child {
-                        width: 40%;
-                        color: #6c757d;
-                    }
-
-                    .summary-table td:last-child {
-                        color: #212529;
-                        font-weight: 500;
-                    }
-                </style>
-            `;
-
-            summaryContainer.innerHTML = summaryHTML;
-        }
-
-        // Auto-generate narrative when entering Section 7
-        document.getElementById('tab7').addEventListener('click', function() {
-            setTimeout(() => {
-                // Generate narrative (summary is now shown via modal button)
-                const narrativeContent = document.getElementById('narrativeContent');
-                if (narrativeContent.querySelector('.narrative-placeholder')) {
-                    generateNarrative();
-                }
-            }, 300);
+                }, 300);
+            });
         });
     // CSP-compliant event delegation for data-action attributes
     document.addEventListener('click', function(e) {

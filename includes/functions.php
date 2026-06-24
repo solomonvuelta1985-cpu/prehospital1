@@ -558,6 +558,250 @@ function e($string) {
 }
 
 /**
+ * Normalize a free-text barangay/locality string into a canonical name.
+ * Patient addresses are dirty: trailing ", BAGGAO, CAGAYAN" suffixes, spacing
+ * variants, and common typos all refer to the same barangay. This collapses
+ * those into one label so per-barangay counts (and the map) are accurate.
+ * Display/aggregation only — does not modify stored data.
+ *
+ * @param string|null $raw Raw address/zone string
+ * @return string Canonical UPPERCASE barangay name, or 'UNSPECIFIED'
+ */
+function normalize_barangay($raw) {
+    $s = strtoupper(trim((string)($raw ?? '')));
+    if ($s === '') return 'UNSPECIFIED';
+
+    // Drop municipality/province qualifiers and anything after them.
+    // Handles "REMUS, BAGGAO, CAGAYAN" and unpunctuated "TAGUNTUNGAN BAGGAO CAGAYAN".
+    $s = preg_replace('/[, ]+(BAGGAO|CAGAYAN|LALLO|GATTARAN|LASAM)\b.*$/u', '', $s);
+
+    // Strip purok/zone prefixes and standalone zone numbers tacked onto names.
+    $s = preg_replace('/\b(PUROK|ZONE|BRGY\.?|BARANGAY|P\.)\s*/u', '', $s);
+    $s = preg_replace('/\bZONE\s*\d+\b/u', '', $s);
+
+    // Collapse punctuation/whitespace.
+    $s = preg_replace('/[.,]+/u', ' ', $s);
+    $s = preg_replace('/\s+/u', ' ', trim($s));
+    if ($s === '') return 'UNSPECIFIED';
+
+    // Known typo / variant -> canonical map.
+    static $aliases = [
+        'STA MARGARITA'  => 'STA. MARGARITA',
+        'SANTA MARGARITA'=> 'STA. MARGARITA',
+        'SANTOR BAGGAO'  => 'SANTOR',
+        'CALAMANASI'     => 'CALAMANSI',
+        'IMURING'        => 'IMURUNG',
+        'AWLLAN'         => 'AWALLAN',
+        'SAN JOSR'       => 'SAN JOSE',
+        'TAYTAY BANTAY'  => 'TAYTAY',
+        'AWALLAN KAGURUNGAN' => 'AWALLAN',
+    ];
+    return $aliases[$s] ?? $s;
+}
+
+/**
+ * Detect whether a trauma free-text detail describes a vehicular accident.
+ * There is no structured "VA" field — staff type it into the trauma "specify"
+ * box (stored in emergency_trauma_details). This keyword match derives a VA
+ * category for reporting. Keyword-based: may miss/over-match unusual phrasing.
+ *
+ * @param string|null $text emergency_trauma_details value
+ * @return bool true if the text reads like a vehicular accident
+ */
+function is_vehicular_accident($text) {
+    $t = trim((string)($text ?? ''));
+    if ($t === '') return false;
+    return (bool)preg_match(
+        '/\bVA\b|\bV\/A\b|vehicular|vehicle\s*accident|road\s*traffic|\bRTA\b|motor\s*(cycle|vehicle)|motorcycle|collision|hit\s*and\s*run|sideswipe|run\s*over|loss\s*of\s*control/i',
+        $t
+    );
+}
+
+/**
+ * Canonical "Consolidated Run" incident categories (poster order, minus OPD
+ * which the app does not track). Used by the classifier and the form datalist.
+ */
+function incident_categories() {
+    return [
+        'Vehicular Accident', 'Mauling', 'Fall', 'Goring', 'Gunshot', 'Stabbing',
+        'Hack Wound', 'Animal Bite', 'Burn', 'Drowning', 'Choking', 'Strangulation',
+        'Electrocution', 'Chemical Ingestion', 'Sexual Harassment', 'Stoning',
+    ];
+}
+
+/**
+ * Classify a free-text incident detail into a canonical category.
+ * Ordered keyword map, first match wins. Built for the messy free text staff
+ * type into the emergency *_specify boxes (e.g. "V/A ( LOSS OF CONTROL)",
+ * "MAULING", "FALL INCIDENT"). Returns null when nothing matches so callers
+ * can roll the record into its parent emergency type instead.
+ *
+ * @param string|null $text an emergency_*_details value
+ * @return string|null canonical category label, or null if unclassifiable
+ */
+function classify_incident_category($text) {
+    $t = trim((string)($text ?? ''));
+    if ($t === '') return null;
+
+    // VA reuses the dedicated helper so the rule stays consistent.
+    if (is_vehicular_accident($t)) return 'Vehicular Accident';
+
+    // Burn has a false-positive guard: "burning micturition/urination/sensation"
+    // are medical symptoms, NOT burn incidents — exclude them explicitly.
+    if (preg_match('/fire\s*incident|burned|burnt|scald|flame/i', $t)
+        || (preg_match('/\bburn\b/i', $t) && !preg_match('/burning\s*(micturition|urination|sensation)/i', $t))) {
+        return 'Burn';
+    }
+
+    // Ordered: more specific patterns first. Patterns hardened to avoid common
+    // false positives (e.g. "stone/gallstone" must NOT become Stoning).
+    $map = [
+        'Hack Wound'        => '/\bhack/i',
+        'Gunshot'           => '/gun\s*shot|gunshot|\bgsw\b/i',          // not bare "shot"
+        'Stabbing'          => '/stab|\bstabbed\b|knife|bladed/i',
+        'Mauling'           => '/maul/i',
+        'Goring'            => '/\bgor(e|ed|ing)?\b|carabao/i',
+        'Animal Bite'       => '/\bbite\b|dog\s*bite|snake|rabies/i',
+        'Drowning'          => '/drown|submer/i',
+        'Choking'           => '/chok|foreign\s*body\s*airway|fbao/i',
+        'Strangulation'     => '/strangl|\bhanging\b|\bnoose\b/i',
+        'Electrocution'     => '/electro|electrocut/i',
+        'Chemical Ingestion'=> '/chemical|ingest|poison|lason/i',
+        'Sexual Harassment' => '/sexual|\brape\b|molest/i',
+        'Stoning'           => '/\bstoning\b|pukpok\s*bato/i',           // not "stone/gallstone"
+        'Fall'              => '/\bfall\b|\bfell\b|nahulog|slipped/i',
+    ];
+    foreach ($map as $label => $pattern) {
+        if (preg_match($pattern, $t)) return $label;
+    }
+    return null;
+}
+
+/**
+ * Classify an incident category from ALL of a record's signal fields, not just
+ * the specify boxes. Responders often type the incident ("VEHICULAR ACCIDENT",
+ * "GORING INCIDENT") into the narrative/complaint instead of the specify field,
+ * so this combines them so the category is caught at save time.
+ *
+ * @param array $r record fields (any subset of: emergency_trauma_details,
+ *   emergency_general_details, emergency_medical_details, emergency_ob_details,
+ *   other_complaints, team_leader_notes)
+ * @return string|null canonical category, or null if nothing matched
+ */
+/**
+ * Decode the helmet/risk-factor field into an array, handling BOTH storage
+ * formats: newer JSON (e.g. ["ab","none"]) and legacy plain strings (e.g. "ab").
+ *
+ * NOTE on meaning: this field (initial_helmet) is a multi-select labeled on the
+ * form as "+ AB" (positive Alcohol Breath — patient was intoxicated) and
+ * "No Helmet". Despite the column name, "ab" = alcohol breath, NOT a helmet type.
+ *
+ * @param string|null $value raw initial_helmet column value
+ * @return array list of selected codes (e.g. ['ab','none']); [] if none
+ */
+function decode_helmet($value) {
+    $v = trim((string)($value ?? ''));
+    if ($v === '') return [];
+    $decoded = json_decode($v, true);
+    if (is_array($decoded)) {
+        return array_values(array_filter(array_map('strval', $decoded), 'strlen'));
+    }
+    // Legacy single plain-string value ("ab" / "none").
+    return [strtolower($v)];
+}
+
+/**
+ * Human label for a helmet/risk-factor code.
+ * @param string $code 'ab' | 'none'
+ * @return string
+ */
+function helmet_label($code) {
+    switch (strtolower(trim((string)$code))) {
+        case 'ab':   return '+ AB (Alcohol Breath)';
+        case 'none': return 'No Helmet';
+        default:     return ucfirst((string)$code);
+    }
+}
+
+function classify_incident_from_record(array $r) {
+    $sig = trim(implode(' ', array_filter([
+        $r['emergency_trauma_details']  ?? null,
+        $r['emergency_general_details'] ?? null,
+        $r['emergency_medical_details'] ?? null,
+        $r['emergency_ob_details']      ?? null,
+        $r['other_complaints']          ?? null,
+        $r['team_leader_notes']         ?? null,
+    ], 'strlen')));
+    return $sig === '' ? null : classify_incident_category($sig);
+}
+
+/**
+ * Build a "Consolidated Run" tally from prehospital_forms rows.
+ * Prefers a structured `incident_category` column when present (Phase 2);
+ * otherwise classifies the four *_details free-text fields. Also returns the
+ * parent emergency-type totals (Medical/Trauma/OB/General).
+ *
+ * @param array $rows rows with emergency_* flags, *_details, and optionally incident_category
+ * @return array ['parents' => [...], 'categories' => [label => count], 'uncategorized' => int]
+ */
+function consolidated_run_counts(array $rows) {
+    $parents = ['Medical' => 0, 'Trauma' => 0, 'OB' => 0, 'General' => 0];
+    $categories = [];
+    $uncategorized = 0;
+
+    foreach ($rows as $r) {
+        if (!empty($r['emergency_medical'])) $parents['Medical']++;
+        if (!empty($r['emergency_trauma']))  $parents['Trauma']++;
+        if (!empty($r['emergency_ob']))      $parents['OB']++;
+        if (!empty($r['emergency_general'])) $parents['General']++;
+
+        // Structured column wins if available.
+        $cat = isset($r['incident_category']) && trim((string)$r['incident_category']) !== ''
+            ? trim((string)$r['incident_category'])
+            : null;
+
+        if ($cat === null) {
+            // Classify across all four detail fields; first hit wins.
+            foreach (['emergency_trauma_details', 'emergency_general_details', 'emergency_medical_details', 'emergency_ob_details'] as $f) {
+                if (!empty($r[$f])) {
+                    $hit = classify_incident_category($r[$f]);
+                    if ($hit !== null) { $cat = $hit; break; }
+                }
+            }
+        }
+
+        if ($cat !== null) {
+            $categories[$cat] = ($categories[$cat] ?? 0) + 1;
+        } else {
+            $uncategorized++;
+        }
+    }
+    arsort($categories);
+    return ['parents' => $parents, 'categories' => $categories, 'uncategorized' => $uncategorized];
+}
+
+/**
+ * Get relative time string (e.g., "2 hours ago", "just now")
+ * @param string $datetime MySQL datetime string
+ * @return string Human-readable relative time
+ */
+function time_ago($datetime) {
+    if (empty($datetime)) return 'unknown';
+    $timestamp = strtotime($datetime);
+    if (!$timestamp) return 'unknown';
+    $diff = time() - $timestamp;
+    if ($diff < 0) return 'just now';
+    if ($diff < 60) return 'just now';
+    if ($diff < 3600) { $mins = floor($diff / 60); return $mins . ' min' . ($mins !== 1 ? 's' : '') . ' ago'; }
+    if ($diff < 86400) { $hours = floor($diff / 3600); return $hours . ' hour' . ($hours !== 1 ? 's' : '') . ' ago'; }
+    if ($diff < 604800) { $days = floor($diff / 86400); return $days . ' day' . ($days !== 1 ? 's' : '') . ' ago'; }
+    if ($diff < 2592000) { $weeks = floor($diff / 604800); return $weeks . ' week' . ($weeks !== 1 ? 's' : '') . ' ago'; }
+    if ($diff < 31536000) { $months = floor($diff / 2592000); return $months . ' month' . ($months !== 1 ? 's' : '') . ' ago'; }
+    $years = floor($diff / 31536000);
+    return $years . ' year' . ($years !== 1 ? 's' : '') . ' ago';
+}
+
+/**
  * Verify reCAPTCHA response
  */
 function verify_recaptcha($response) {

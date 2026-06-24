@@ -100,6 +100,12 @@ function submitForm() {
         missingFields.push('Gender');
     }
 
+    // At least one Type of Emergency Call must be selected (Medical/Trauma/OB/General).
+    const emergencyTypeSelected = document.querySelector('input[name="emergency_type[]"]:checked');
+    if (!emergencyTypeSelected) {
+        missingFields.push('Type of Emergency Call (select at least one)');
+    }
+
     if (missingFields.length > 0) {
         const fieldsList = missingFields.map(field => `<strong style="color: #dc3545;">•</strong> <strong>${field}</strong>`).join('<br>');
         Notiflix.Report.warning(

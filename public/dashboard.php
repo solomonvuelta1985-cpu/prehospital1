@@ -136,6 +136,18 @@ for ($i = 11; $i >= 0; $i--) {
     $monthly_labels[] = $label;
     $monthly_data[] = isset($monthly_counts[$month]) ? $monthly_counts[$month] : 0;
 }
+
+// Time-aware greeting
+$hour = (int)date('G');
+if ($hour < 12) {
+    $greeting = 'Good morning';
+} elseif ($hour < 18) {
+    $greeting = 'Good afternoon';
+} else {
+    $greeting = 'Good evening';
+}
+// First name only, for a friendlier greeting
+$first_name = trim(explode(' ', trim($current_user['full_name']))[0]);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -148,29 +160,40 @@ for ($i = 11; $i >= 0; $i--) {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         :root {
-            /* Primary - Muted corporate blue */
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
+            /* Accent - calm corporate indigo (single accent, used sparingly) */
+            --accent: #4f46e5;
+            --accent-hover: #4338ca;
+            --accent-soft: #eef2ff;
+            --accent-border: #e0e7ff;
 
-            /* Semantic colors - Muted, professional */
+            /* Semantic - muted, flat */
             --success: #16a34a;
-            --warning: #ca8a04;
+            --success-soft: #ecfdf5;
+            --warning: #d97706;
+            --warning-soft: #fffbeb;
             --danger: #dc2626;
+            --danger-soft: #fef2f2;
 
-            /* Neutral palette */
-            --gray-50: #fafafa;
-            --gray-100: #f4f4f5;
-            --gray-200: #e4e4e7;
-            --gray-300: #d4d4d8;
-            --gray-400: #a1a1aa;
-            --gray-500: #71717a;
-            --gray-600: #52525b;
-            --gray-700: #3f3f46;
-            --gray-800: #27272a;
-            --gray-900: #18181b;
+            /* Neutral palette (slate) */
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+
+            /* Elevation - soft, low */
+            --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.04);
+            --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08);
+
+            --radius: 12px;
 
             /* Typography */
-            --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, sans-serif;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
             --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
         }
 
@@ -195,21 +218,21 @@ for ($i = 11; $i >= 0; $i--) {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.75rem;
             padding-bottom: 1.25rem;
             border-bottom: 1px solid var(--gray-200);
         }
 
         .page-title {
-            font-size: 1.125rem;
+            font-size: 1.375rem;
             font-weight: 600;
             color: var(--gray-900);
-            margin: 0 0 0.125rem 0;
-            letter-spacing: -0.01em;
+            margin: 0 0 0.25rem 0;
+            letter-spacing: -0.02em;
         }
 
         .page-subtitle {
-            font-size: 0.8125rem;
+            font-size: 0.875rem;
             color: var(--gray-500);
             margin: 0;
             font-weight: 400;
@@ -225,52 +248,60 @@ for ($i = 11; $i >= 0; $i--) {
 
         /* Stat Cards */
         .stat-card {
-            background: white;
+            background: #ffffff;
             border: 1px solid var(--gray-200);
-            border-radius: 6px;
-            padding: 1.25rem;
+            border-radius: var(--radius);
+            padding: 1.5rem;
             height: 100%;
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--gray-300);
+            transform: translateY(-1px);
         }
 
         .stat-card-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 0.75rem;
+            margin-bottom: 1rem;
         }
 
         .stat-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 6px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.125rem;
+            font-size: 1.2rem;
         }
 
         .stat-icon.blue {
-            background: #eff6ff;
-            color: var(--primary);
+            background: var(--accent-soft);
+            color: var(--accent);
         }
 
         .stat-icon.green {
-            background: #f0fdf4;
+            background: var(--success-soft);
             color: var(--success);
         }
 
         .stat-icon.orange {
-            background: #fefce8;
+            background: var(--warning-soft);
             color: var(--warning);
         }
 
         .stat-icon.red {
-            background: #fef2f2;
+            background: var(--danger-soft);
             color: var(--danger);
         }
 
         .stat-icon.purple {
-            background: #faf5ff;
+            background: #f5f3ff;
             color: #7c3aed;
         }
 
@@ -285,14 +316,15 @@ for ($i = 11; $i >= 0; $i--) {
             color: var(--gray-500);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.375rem;
         }
 
         .stat-value {
-            font-size: 1.75rem;
+            font-size: 1.9rem;
             font-weight: 600;
             color: var(--gray-900);
-            line-height: 1.2;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
             font-variant-numeric: tabular-nums;
         }
 
@@ -312,45 +344,48 @@ for ($i = 11; $i >= 0; $i--) {
 
         /* Action Cards */
         .action-card {
-            background: white;
+            background: #ffffff;
             border: 1px solid var(--gray-200);
-            border-radius: 6px;
+            border-radius: var(--radius);
             padding: 1.5rem;
             height: 100%;
             text-align: center;
-            transition: border-color 0.15s ease;
+            transition: box-shadow 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
             text-decoration: none;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            box-shadow: var(--shadow-sm);
         }
 
         .action-card:hover {
             border-color: var(--gray-300);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
         }
 
         .action-card-icon {
             width: 48px;
             height: 48px;
             background: var(--gray-100);
-            border-radius: 8px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.25rem;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.875rem;
             color: var(--gray-600);
-            transition: all 0.15s ease;
+            transition: all 0.18s ease;
         }
 
         .action-card:hover .action-card-icon {
-            background: var(--primary);
+            background: var(--accent);
             color: white;
         }
 
         .action-card-title {
-            font-size: 0.875rem;
+            font-size: 0.9375rem;
             font-weight: 600;
             color: var(--gray-900);
             margin-bottom: 0.25rem;
@@ -364,10 +399,11 @@ for ($i = 11; $i >= 0; $i--) {
 
         /* Recent Activity */
         .activity-card {
-            background: white;
+            background: #ffffff;
             border: 1px solid var(--gray-200);
-            border-radius: 6px;
-            padding: 1.25rem;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
         }
 
         .activity-header {
@@ -375,12 +411,12 @@ for ($i = 11; $i >= 0; $i--) {
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
+            padding-bottom: 0.875rem;
             border-bottom: 1px solid var(--gray-100);
         }
 
         .activity-title {
-            font-size: 0.875rem;
+            font-size: 1rem;
             font-weight: 600;
             color: var(--gray-900);
             margin: 0;
@@ -389,9 +425,9 @@ for ($i = 11; $i >= 0; $i--) {
         .activity-item {
             display: flex;
             align-items: flex-start;
-            padding: 0.75rem;
-            border-radius: 4px;
-            margin-bottom: 0.25rem;
+            padding: 0.875rem 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0.125rem;
             transition: background 0.15s ease;
         }
 
@@ -404,24 +440,24 @@ for ($i = 11; $i >= 0; $i--) {
         }
 
         .activity-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.875rem;
-            margin-right: 0.75rem;
+            font-size: 0.9rem;
+            margin-right: 0.875rem;
             flex-shrink: 0;
         }
 
         .activity-icon.completed {
-            background: #f0fdf4;
+            background: var(--success-soft);
             color: var(--success);
         }
 
         .activity-icon.pending {
-            background: #fefce8;
+            background: var(--warning-soft);
             color: var(--warning);
         }
 
@@ -436,7 +472,7 @@ for ($i = 11; $i >= 0; $i--) {
         }
 
         .activity-title-text {
-            font-size: 0.8125rem;
+            font-size: 0.875rem;
             font-weight: 500;
             color: var(--gray-900);
             margin-bottom: 0.125rem;
@@ -451,8 +487,8 @@ for ($i = 11; $i >= 0; $i--) {
         }
 
         .activity-badge {
-            padding: 0.125rem 0.5rem;
-            border-radius: 4px;
+            padding: 0.2rem 0.625rem;
+            border-radius: 999px;
             font-size: 0.6875rem;
             font-weight: 500;
             text-transform: uppercase;
@@ -460,12 +496,12 @@ for ($i = 11; $i >= 0; $i--) {
         }
 
         .activity-badge.completed {
-            background: #f0fdf4;
+            background: var(--success-soft);
             color: var(--success);
         }
 
         .activity-badge.pending {
-            background: #fefce8;
+            background: var(--warning-soft);
             color: var(--warning);
         }
 
@@ -476,20 +512,21 @@ for ($i = 11; $i >= 0; $i--) {
 
         /* Buttons */
         .btn-primary {
-            background: var(--primary);
-            border: 1px solid var(--primary);
+            background: var(--accent);
+            border: 1px solid var(--accent);
             color: white;
             font-weight: 500;
             font-size: 0.875rem;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            transition: background 0.15s ease;
+            padding: 0.55rem 1.1rem;
+            border-radius: 8px;
+            transition: background 0.15s ease, box-shadow 0.15s ease;
         }
 
         .btn-primary:hover {
-            background: var(--primary-hover);
-            border-color: var(--primary-hover);
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
             color: white;
+            box-shadow: var(--shadow-sm);
         }
 
         .btn-outline-primary {
@@ -498,8 +535,8 @@ for ($i = 11; $i >= 0; $i--) {
             color: var(--gray-700);
             font-weight: 500;
             font-size: 0.8125rem;
-            padding: 0.375rem 0.75rem;
-            border-radius: 6px;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
             transition: all 0.15s ease;
             text-decoration: none;
         }
@@ -512,7 +549,7 @@ for ($i = 11; $i >= 0; $i--) {
 
         /* Section Titles */
         .section-title {
-            font-size: 0.875rem;
+            font-size: 1rem;
             font-weight: 600;
             color: var(--gray-900);
             margin-bottom: 1rem;
@@ -529,7 +566,7 @@ for ($i = 11; $i >= 0; $i--) {
             width: 56px;
             height: 56px;
             background: var(--gray-100);
-            border-radius: 8px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -556,11 +593,12 @@ for ($i = 11; $i >= 0; $i--) {
 
         /* Chart Container */
         .chart-card {
-            background: white;
+            background: #ffffff;
             border: 1px solid var(--gray-200);
-            border-radius: 6px;
-            padding: 1.25rem;
+            border-radius: var(--radius);
+            padding: 1.5rem;
             height: 100%;
+            box-shadow: var(--shadow-sm);
         }
 
         .chart-header {
@@ -568,12 +606,12 @@ for ($i = 11; $i >= 0; $i--) {
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
+            padding-bottom: 0.875rem;
             border-bottom: 1px solid var(--gray-100);
         }
 
         .chart-title {
-            font-size: 0.875rem;
+            font-size: 1rem;
             font-weight: 600;
             color: var(--gray-900);
             margin: 0;
@@ -596,11 +634,12 @@ for ($i = 11; $i >= 0; $i--) {
 
         /* Analytics Cards */
         .analytics-card {
-            background: white;
+            background: #ffffff;
             border: 1px solid var(--gray-200);
-            border-radius: 6px;
-            padding: 1rem;
+            border-radius: var(--radius);
+            padding: 1.25rem;
             height: 100%;
+            box-shadow: var(--shadow-sm);
         }
 
         .analytics-header {
@@ -612,7 +651,7 @@ for ($i = 11; $i >= 0; $i--) {
         .analytics-icon {
             width: 32px;
             height: 32px;
-            border-radius: 6px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -646,17 +685,17 @@ for ($i = 11; $i >= 0; $i--) {
             align-items: center;
             font-size: 0.75rem;
             font-weight: 500;
-            padding: 0.125rem 0.375rem;
-            border-radius: 4px;
+            padding: 0.15rem 0.45rem;
+            border-radius: 999px;
         }
 
         .trend-indicator.up {
-            background: #f0fdf4;
+            background: var(--success-soft);
             color: var(--success);
         }
 
         .trend-indicator.down {
-            background: #fef2f2;
+            background: var(--danger-soft);
             color: var(--danger);
         }
 
@@ -673,33 +712,33 @@ for ($i = 11; $i >= 0; $i--) {
             }
 
             .page-title {
-                font-size: 1rem;
+                font-size: 1.15rem;
             }
 
             .page-subtitle {
-                font-size: 0.75rem;
-            }
-
-            .stat-card {
-                padding: 1rem;
-            }
-
-            .stat-value {
-                font-size: 1.5rem;
-            }
-
-            .stat-icon {
-                width: 32px;
-                height: 32px;
-                font-size: 1rem;
-            }
-
-            .section-title {
                 font-size: 0.8125rem;
             }
 
+            .stat-card {
+                padding: 1.15rem;
+            }
+
+            .stat-value {
+                font-size: 1.6rem;
+            }
+
+            .stat-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 1.05rem;
+            }
+
+            .section-title {
+                font-size: 0.9375rem;
+            }
+
             .activity-card, .chart-card {
-                padding: 1rem;
+                padding: 1.15rem;
             }
 
             .chart-container {
@@ -713,11 +752,11 @@ for ($i = 11; $i >= 0; $i--) {
 
         @media (max-width: 576px) {
             .stat-card {
-                padding: 0.875rem;
+                padding: 1rem;
             }
 
             .stat-value {
-                font-size: 1.25rem;
+                font-size: 1.4rem;
             }
 
             .stat-label {
@@ -729,7 +768,7 @@ for ($i = 11; $i >= 0; $i--) {
             }
 
             .chart-card {
-                padding: 0.875rem;
+                padding: 1rem;
             }
 
             .chart-container {
@@ -753,8 +792,8 @@ for ($i = 11; $i >= 0; $i--) {
             <!-- Page Header -->
             <div class="page-header-inline">
                 <div>
-                    <h1 class="page-title">Dashboard</h1>
-                    <p class="page-subtitle">Welcome back, <?php echo e($current_user['full_name']); ?></p>
+                    <h1 class="page-title"><?php echo $greeting; ?>, <?php echo e($first_name); ?></h1>
+                    <p class="page-subtitle">Here's an overview of your pre-hospital care activity.</p>
                 </div>
                 <a href="prehospital_form.php" class="btn btn-primary">
                     <i class="bi bi-plus me-1"></i>New Form

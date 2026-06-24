@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Login Page - Modern Corporate Design
  */
@@ -52,6 +52,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $csrf_token = generate_token();
+
+// Time-of-day greeting (Asia/Manila, UTC+8)
+$manila_hour = (int) (new DateTime('now', new DateTimeZone('Asia/Manila')))->format('G');
+if ($manila_hour < 12) {
+    $greeting = $manila_hour < 5 ? 'Good evening' : 'Good morning';
+} elseif ($manila_hour < 18) {
+    $greeting = 'Good afternoon';
+} else {
+    $greeting = 'Good evening';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -64,861 +74,1252 @@ $csrf_token = generate_token();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
+    <!-- Global Responsive Styles -->
+    <link href="css/global-responsive.css" rel="stylesheet">
 
     <!-- Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --brand-primary: #0284c7;
-            --brand-primary-light: #38bdf8;
-            --brand-primary-hover: #0369a1;
-            --brand-dark: #0c1222;
-            --brand-dark-mid: #162032;
-            --brand-surface: #ffffff;
-            --brand-surface-alt: #f8fafc;
-            --text-primary: #0f172a;
-            --text-secondary: #334155;
-            --text-muted: #64748b;
-            --border-subtle: #e2e8f0;
-            --border-focus: rgba(2, 132, 199, 0.12);
-            --accent-cyan: #06b6d4;
-            --accent-emerald: #10b981;
+            --ink-950: #060E1A;
+            --ink-900: #0B1B2B;
+            --ink-850: #0F2238;
+            --ink-800: #0F172A;
+            --ink-600: #334155;
+            --ink-400: #64748B;
+            --line: #E2E8F0;
+            --surface: #FFFFFF;
+            --surface-alt: #F8FAFC;
+            --rescue: #E11D48;
+            --rescue-hover: #BE123C;
+            --rescue-ring: rgba(225, 29, 72, 0.18);
+            --accent: #0284C7;
+            --accent-hover: #0369A1;
+            --accent-ring: rgba(2, 132, 199, 0.15);
+            --signal: #22C55E;
+            --danger: #DC2626;
+            --success: #059669;
+            --mono: 'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+            --radius: 10px;
+            --radius-sm: 8px;
         }
 
         * { box-sizing: border-box; }
 
-        body {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background-color: var(--brand-surface-alt);
-            min-height: 100vh;
-            display: flex;
+        html, body {
             margin: 0;
             padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--surface);
+            color: var(--ink-800);
+            min-height: 100vh;
+            display: flex;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-feature-settings: "ss01", "cv11";
+            animation: fadeIn 240ms ease-out both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            body { animation: none; }
         }
 
         /* ============================================
-           LEFT PANEL: Brand Visual
+           LEFT: Brand panel — dispatch console aesthetic
            ============================================ */
-        .brand-section {
+        .brand-panel {
             flex: 1;
-            background: linear-gradient(160deg, #0c1222 0%, #0f2847 40%, #0c4a6e 70%, #0c1222 100%);
-            position: relative;
+            min-height: 100vh;
+            background:
+                radial-gradient(1200px 600px at 20% 30%, rgba(225, 29, 72, 0.08), transparent 60%),
+                radial-gradient(900px 500px at 80% 80%, rgba(2, 132, 199, 0.10), transparent 65%),
+                linear-gradient(160deg, var(--ink-950) 0%, var(--ink-900) 45%, var(--ink-850) 100%);
+            color: #FFFFFF;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             padding: 56px 72px;
-            overflow: hidden;
-            color: white;
-            transform: translateZ(0);
-        }
-
-        /* Animated Gradient Orbs */
-        .brand-orbs {
-            position: absolute;
-            inset: 0;
-            z-index: 1;
-            overflow: hidden;
-            pointer-events: none;
-        }
-
-        .brand-orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            will-change: transform;
-        }
-
-        .brand-orb:nth-child(1) {
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(2, 132, 199, 0.5), transparent 70%);
-            top: -15%;
-            left: -10%;
-            animation: orbFloat1 25s ease-in-out infinite;
-        }
-
-        .brand-orb:nth-child(2) {
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(6, 182, 212, 0.4), transparent 70%);
-            bottom: -10%;
-            right: -8%;
-            animation: orbFloat2 20s ease-in-out infinite;
-        }
-
-        .brand-orb:nth-child(3) {
-            width: 250px;
-            height: 250px;
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.3), transparent 70%);
-            top: 40%;
-            left: 30%;
-            animation: orbFloat3 22s ease-in-out infinite;
-        }
-
-        /* Subtle Grid Pattern */
-        .brand-grid-pattern {
-            position: absolute;
-            inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 60V0h60' fill='none' stroke='rgba(255,255,255,0.03)' stroke-width='1'/%3E%3C/svg%3E");
-            z-index: 2;
-            pointer-events: none;
-        }
-
-        /* Particles Container */
-        #tsparticles {
-            position: absolute;
-            inset: 0;
-            z-index: 3;
-        }
-
-        .brand-content {
             position: relative;
-            z-index: 10;
-            max-width: 560px;
+            overflow: hidden;
         }
 
-        .logo-wrapper {
+        /* Topographic line texture */
+        .brand-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 64px),
+                repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 64px);
+            mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+            -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+            pointer-events: none;
+        }
+
+        /* Vignette / scanline whisper */
+        .brand-panel::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(180deg, rgba(0,0,0,0.20) 0%, transparent 12%, transparent 88%, rgba(0,0,0,0.25) 100%);
+            pointer-events: none;
+        }
+
+        .brand-panel > * { position: relative; z-index: 1; }
+
+        /* Top row: logo + LIVE pill */
+        .brand-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .brand-head-left {
             display: flex;
             align-items: center;
             gap: 14px;
-            margin-bottom: 48px;
-            animation: fadeInDown 0.7s ease-out;
         }
 
-        .logo-img {
-            height: 44px;
+        .brand-head img {
+            height: 40px;
             width: auto;
-            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2));
+            display: block;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.4));
         }
 
-        .logo-text {
+        .brand-wordmark {
+            font-size: 13px;
             font-weight: 700;
-            font-size: 1.125rem;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.18em;
             text-transform: uppercase;
             color: rgba(255, 255, 255, 0.9);
         }
 
-        .brand-title {
-            font-size: clamp(2.5rem, 4vw, 3.25rem);
+        .brand-wordmark small {
+            display: block;
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 2px;
+        }
+
+        .live-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px 6px 10px;
+            background: rgba(225, 29, 72, 0.12);
+            border: 1px solid rgba(225, 29, 72, 0.35);
+            border-radius: 999px;
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            color: #FECDD3;
+            text-transform: uppercase;
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--rescue);
+            position: relative;
+            box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.8);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.7); }
+            50% { box-shadow: 0 0 0 6px rgba(225, 29, 72, 0); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .live-dot { animation: none; }
+        }
+
+        /* Middle: editorial quote */
+        .brand-middle {
+            max-width: 520px;
+            position: relative;
+        }
+
+        .brand-middle::before {
+            content: '\201C';
+            position: absolute;
+            top: -64px;
+            left: -28px;
+            font-family: 'Plus Jakarta Sans', serif;
+            font-size: 200px;
+            line-height: 1;
             font-weight: 800;
-            line-height: 1.08;
+            color: rgba(225, 29, 72, 0.14);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .brand-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.55);
             margin-bottom: 20px;
-            letter-spacing: -0.04em;
-            background: linear-gradient(135deg, #ffffff 0%, #bae6fd 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: fadeInLeft 0.7s ease-out 0.15s backwards;
+        }
+
+        .brand-eyebrow::before {
+            content: '';
+            width: 24px;
+            height: 1px;
+            background: var(--rescue);
+        }
+
+        .brand-quote {
+            font-size: clamp(2.125rem, 3.2vw, 2.75rem);
+            line-height: 1.15;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: #FFFFFF;
+            margin: 0 0 24px;
+            max-width: 500px;
+        }
+
+        .brand-quote em {
+            font-style: normal;
+            color: #FCA5A5;
+            position: relative;
         }
 
         .brand-desc {
-            font-size: 1.0625rem;
-            color: rgba(255, 255, 255, 0.7);
-            line-height: 1.7;
-            margin-bottom: 40px;
+            font-size: 16px;
+            line-height: 1.65;
             font-weight: 400;
+            color: rgba(255, 255, 255, 0.65);
             max-width: 440px;
-            animation: fadeIn 0.8s ease-out 0.3s backwards;
-        }
-
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-            animation: fadeInUp 0.7s ease-out 0.45s backwards;
-        }
-
-        .feature-card {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            padding: 22px 20px;
-            border-radius: 14px;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .feature-card:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.12);
-            transform: translateY(-3px);
-            box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.3);
-        }
-
-        .feature-card .feature-icon {
-            font-size: 1.5rem;
-            margin-bottom: 12px;
-            display: inline-block;
-            background: linear-gradient(135deg, var(--brand-primary-light), var(--accent-cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .feature-card h5 {
-            font-size: 0.875rem;
-            font-weight: 700;
-            margin-bottom: 4px;
-            letter-spacing: 0.01em;
-            color: rgba(255, 255, 255, 0.95);
-        }
-
-        .feature-card p {
-            font-size: 0.8125rem;
-            color: rgba(255, 255, 255, 0.5);
             margin: 0;
-            line-height: 1.5;
         }
 
-        .brand-footer {
-            position: relative;
-            z-index: 10;
-            font-size: 0.8125rem;
-            color: rgba(255, 255, 255, 0.35);
-            letter-spacing: 0.01em;
+        /* Footer: KPIs + live clock */
+        .brand-foot {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .brand-kpis {
+            display: flex;
+            gap: 32px;
+            margin-bottom: 20px;
+        }
+
+        .kpi {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .kpi-value {
+            font-family: var(--mono);
+            font-size: 18px;
+            font-weight: 600;
+            color: #FFFFFF;
+            letter-spacing: -0.01em;
+            line-height: 1;
+        }
+
+        .kpi-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.45);
+        }
+
+        .brand-divider {
+            height: 1px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02));
+            margin-bottom: 16px;
+        }
+
+        .brand-bottomrow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .brand-copy {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: 500;
+        }
+
+        .brand-clock {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.45);
+            letter-spacing: 0.08em;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-clock::before {
+            content: '';
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--signal);
+            box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
         }
 
         /* ============================================
-           RIGHT PANEL: Login Form
+           RIGHT: Form panel
            ============================================ */
-        .form-section {
-            width: 540px;
-            min-width: 540px;
-            background: var(--brand-surface);
+        .form-panel {
+            width: 520px;
+            min-width: 520px;
+            background: var(--surface);
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding: 64px 56px;
+            padding: 64px;
+            min-height: 100vh;
             position: relative;
-            z-index: 20;
-            box-shadow: -1px 0 0 var(--border-subtle), -24px 0 48px rgba(0, 0, 0, 0.03);
-            overflow-y: auto;
-            animation: fadeInScale 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.1s backwards;
         }
 
-        /* Top accent bar */
-        .form-decoration {
+        /* Thin vertical accent strip running down the left edge of the form panel */
+        .form-panel::before {
+            content: '';
             position: absolute;
-            top: 0;
-            left: 56px;
-            right: 56px;
-            height: 3px;
-            background: linear-gradient(90deg, var(--brand-primary), var(--accent-cyan), var(--brand-primary));
-            border-radius: 0 0 3px 3px;
-            opacity: 0.8;
+            top: 64px;
+            bottom: 64px;
+            left: 0;
+            width: 2px;
+            background: linear-gradient(180deg, var(--rescue) 0%, var(--accent) 60%, transparent 100%);
+            opacity: 0.9;
         }
 
-        .mobile-branding {
-            display: none;
-            text-align: center;
-            margin-bottom: 32px;
+
+        .form-inner {
+            width: 100%;
+            max-width: 360px;
+            margin: 0 auto;
         }
 
-        .mobile-branding img {
-            height: 56px;
-            margin-bottom: 12px;
-        }
-
-        .mobile-branding h3 {
-            font-weight: 800;
-            color: var(--text-primary);
-            margin: 0 0 4px 0;
-            font-size: 1.375rem;
-            letter-spacing: -0.02em;
-        }
-
-        .mobile-branding p {
-            color: var(--text-muted);
-            font-size: 0.8125rem;
-            margin: 0;
-        }
+        /* Mobile-only hero + footer (hidden on desktop) */
+        .mobile-hero { display: none; }
+        .mobile-footer { display: none; }
 
         .form-header {
             margin-bottom: 32px;
         }
 
-        .form-header h2 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            letter-spacing: -0.02em;
+        .form-header h1 {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            color: var(--ink-800);
+            margin: 0 0 10px;
+            line-height: 1.1;
+        }
+
+        .form-header-accent {
+            color: var(--rescue);
+            font-weight: 800;
         }
 
         .form-header p {
-            color: var(--text-muted);
-            font-size: 0.9375rem;
-            line-height: 1.5;
-            margin: 0;
-        }
-
-        /* Floating Label Input Groups */
-        .form-floating-group {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        .form-floating-group .input-icon {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            font-size: 1.125rem;
-            pointer-events: none;
-            transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 2;
-        }
-
-        .form-floating-group .form-control {
-            height: 56px;
-            padding: 22px 16px 8px 48px;
-            border: 1.5px solid var(--border-subtle);
-            border-radius: 12px;
-            font-size: 0.9375rem;
+            font-size: 15px;
             font-weight: 500;
-            background: var(--brand-surface-alt);
-            color: var(--text-primary);
+            color: var(--ink-400);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .form-header p.restricted {
+            color: var(--danger);
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Inline notice for restriction */
+        .notice {
+            background: var(--surface-alt);
+            border: 1px solid var(--line);
+            border-left: 3px solid var(--danger);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            margin-bottom: 24px;
+            font-size: 13px;
+            color: var(--ink-600);
+            line-height: 1.5;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .notice i {
+            color: var(--danger);
+            font-size: 16px;
+            margin-top: 1px;
+        }
+
+        .notice strong {
+            color: var(--ink-800);
+            font-weight: 600;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        /* Form fields — labels above inputs */
+        .field {
+            margin-bottom: 18px;
+        }
+
+        .field-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 6px;
+        }
+
+        .field label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink-600);
+            display: block;
+        }
+
+        .field-input-wrap {
+            position: relative;
+        }
+
+        .field input {
             width: 100%;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 48px;
+            padding: 0 14px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--surface);
+            color: var(--ink-800);
+            font-size: 15px;
+            font-weight: 500;
+            font-family: inherit;
+            transition: border-color 150ms ease, box-shadow 150ms ease;
             -webkit-appearance: none;
         }
 
-        .form-floating-group .form-control::placeholder {
-            color: transparent;
+        .field input::placeholder {
+            color: #94A3B8;
+            font-weight: 400;
         }
 
-        .form-floating-group .form-control:focus {
-            border-color: var(--brand-primary);
-            box-shadow: 0 0 0 4px var(--border-focus);
-            background: var(--brand-surface);
+        .field input:focus {
             outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-ring);
         }
 
-        .form-floating-group .form-control:focus ~ .input-icon {
-            color: var(--brand-primary);
+        .field input:disabled {
+            background: var(--surface-alt);
+            color: var(--ink-400);
+            cursor: not-allowed;
         }
 
-        .form-floating-group .form-label {
+        .field.has-toggle input {
+            padding-right: 64px;
+        }
+
+        .pw-toggle {
             position: absolute;
+            right: 12px;
             top: 50%;
-            left: 48px;
             transform: translateY(-50%);
-            font-size: 0.9375rem;
-            font-weight: 500;
-            color: #94a3b8;
-            pointer-events: none;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 2;
-            margin: 0;
-        }
-
-        .form-floating-group .form-control:focus ~ .form-label,
-        .form-floating-group .form-control:not(:placeholder-shown) ~ .form-label {
-            top: 14px;
-            transform: translateY(0);
-            font-size: 0.6875rem;
+            background: transparent;
+            border: 0;
+            padding: 4px 6px;
+            font-size: 12px;
             font-weight: 600;
-            color: var(--brand-primary);
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
+            color: var(--ink-400);
+            cursor: pointer;
+            font-family: inherit;
+            border-radius: 6px;
+            transition: color 150ms ease, background 150ms ease;
         }
 
-        /* Login Button */
-        .btn-login {
+        .pw-toggle:hover {
+            color: var(--ink-800);
+            background: var(--surface-alt);
+        }
+
+        .pw-toggle:focus {
+            outline: none;
+            color: var(--accent);
+        }
+
+        /* Buttons */
+        .btn-primary-cta {
             width: 100%;
-            height: 54px;
-            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-hover) 100%);
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.9375rem;
-            color: white;
-            letter-spacing: 0.01em;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
+            height: 52px;
+            background: var(--rescue);
+            background-image: linear-gradient(180deg, #F43F5E 0%, var(--rescue) 100%);
+            border: 0;
+            border-radius: var(--radius);
+            color: #FFFFFF;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            font-family: inherit;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            margin-top: 4px;
-            position: relative;
-            overflow: hidden;
             cursor: pointer;
+            transition: transform 120ms ease, box-shadow 180ms ease, background-color 150ms ease;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.15) inset, 0 6px 16px -6px rgba(225, 29, 72, 0.5);
         }
 
-        .btn-login::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
-            transform: translateX(-100%);
-            transition: transform 0.6s ease;
-        }
-
-        .btn-login:hover:not(:disabled)::before {
-            transform: translateX(100%);
-        }
-
-        .btn-login:hover:not(:disabled) {
-            box-shadow: 0 8px 24px -4px rgba(2, 132, 199, 0.45);
+        .btn-primary-cta:hover:not(:disabled) {
+            background: var(--rescue-hover);
+            background-image: linear-gradient(180deg, var(--rescue) 0%, var(--rescue-hover) 100%);
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.15) inset, 0 10px 24px -8px rgba(225, 29, 72, 0.6);
             transform: translateY(-1px);
         }
 
-        .btn-login:active:not(:disabled) {
+        .btn-primary-cta:active:not(:disabled) {
             transform: translateY(0);
-            box-shadow: 0 4px 12px -2px rgba(2, 132, 199, 0.35);
         }
 
-        .btn-login:disabled {
-            background: #cbd5e1;
+        .btn-primary-cta:focus-visible {
+            outline: none;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.15) inset, 0 0 0 3px var(--rescue-ring);
+        }
+
+        .btn-primary-cta:disabled {
+            background: #94A3B8;
+            background-image: none;
             cursor: not-allowed;
-            transform: none;
             box-shadow: none;
         }
 
-        .btn-login:disabled::before {
-            display: none;
+        .btn-primary-cta i {
+            font-size: 16px;
         }
 
-        /* Biometric Button */
-        .btn-biometric {
+        .btn-secondary-cta {
             width: 100%;
-            height: 54px;
-            border-radius: 12px;
+            height: 48px;
+            background: var(--surface-alt);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            color: var(--ink-800);
+            font-size: 15px;
             font-weight: 600;
-            font-size: 0.9375rem;
-            border: 1.5px solid var(--border-subtle);
-            background: var(--brand-surface-alt);
-            color: var(--text-secondary);
-            display: flex;
+            font-family: inherit;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
+            transition: background-color 150ms ease, border-color 150ms ease;
         }
 
-        .btn-biometric:hover {
-            border-color: var(--brand-primary);
-            background: rgba(2, 132, 199, 0.04);
-            color: var(--brand-primary);
-            box-shadow: 0 4px 16px -4px rgba(2, 132, 199, 0.15);
+        .btn-secondary-cta:hover:not(:disabled) {
+            background: #F1F5F9;
         }
 
-        .btn-biometric .bi-fingerprint {
-            font-size: 1.25rem;
-            background: linear-gradient(135deg, var(--brand-primary), var(--accent-cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .btn-secondary-cta:focus-visible {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-ring);
         }
 
-        /* Alert */
-        .alert-custom {
-            border-radius: 12px;
-            padding: 16px 18px;
-            margin-bottom: 24px;
-            font-size: 0.875rem;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            line-height: 1.5;
-            animation: slideDown 0.3s ease-out;
+        .btn-secondary-cta:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
-        .alert-error {
-            background: #fef2f2;
-            color: #991b1b;
-            border: 1px solid #fecaca;
-            border-left: 4px solid #ef4444;
+        .btn-secondary-cta i {
+            font-size: 20px;
+            color: var(--ink-600);
         }
 
-        .recaptcha-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 24px;
-            transform-origin: center;
-        }
-
-        .divider {
-            height: 1px;
-            background: var(--border-subtle);
-            margin: 32px 0 24px 0;
+        /* Divider */
+        .or-divider {
             position: relative;
+            text-align: center;
+            margin: 28px 0 20px;
         }
 
-        .divider span {
+        .or-divider::before {
+            content: '';
             position: absolute;
             top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--brand-surface);
-            padding: 0 14px;
-            color: var(--text-muted);
-            font-size: 0.6875rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--line);
         }
 
+        .or-divider span {
+            position: relative;
+            background: var(--surface);
+            padding: 0 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--ink-400);
+        }
+
+        /* WebAuthn status */
         #webauthn-status {
             text-align: center;
-            margin-top: 8px;
-            font-size: 0.8125rem;
-            color: var(--text-muted);
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--ink-400);
         }
 
-        .sys-info {
+        /* SSL footer line */
+        .ssl-line {
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 8px;
-            color: var(--text-muted);
-            font-size: 0.8125rem;
+            margin-top: 28px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--ink-400);
         }
 
-        .sys-info i {
-            color: var(--accent-emerald);
-            font-size: 0.875rem;
-        }
-
-        /* ============================================
-           ANIMATIONS
-           ============================================ */
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeInLeft { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-
-        @keyframes fadeInScale {
-            from { opacity: 0; transform: scale(0.97) translateY(8px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        @keyframes orbFloat1 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            25% { transform: translate(40px, -30px) scale(1.05); }
-            50% { transform: translate(-20px, 40px) scale(0.95); }
-            75% { transform: translate(30px, 20px) scale(1.02); }
-        }
-
-        @keyframes orbFloat2 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(-30px, -25px) scale(1.04); }
-            66% { transform: translate(25px, 30px) scale(0.96); }
-        }
-
-        @keyframes orbFloat3 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            25% { transform: translate(-20px, 20px) scale(1.06); }
-            50% { transform: translate(30px, -15px) scale(0.94); }
-            75% { transform: translate(-10px, -25px) scale(1.03); }
+        .ssl-line i {
+            font-size: 13px;
+            color: var(--success);
         }
 
         /* ============================================
-           RESPONSIVE DESIGN
+           RESPONSIVE — mobile-first redesign
            ============================================ */
 
-        /* 1. Small Desktop */
+        /* Mid-desktop tighten */
         @media (max-width: 1200px) {
-            .brand-section { padding: 40px 48px; }
-            .brand-title { font-size: clamp(2rem, 3vw, 2.5rem); }
-            .form-section { min-width: 480px; width: 480px; padding: 48px 40px; }
-            .form-decoration { left: 40px; right: 40px; }
+            .brand-panel { padding: 48px 56px; }
+            .form-panel { width: 480px; min-width: 480px; padding: 48px; }
         }
 
-        /* 2. Tablets */
+        /* ============================================
+           TABLET & PHONE (< 992px)
+           Single-column: navy hero strip on top, white form below
+           ============================================ */
         @media (max-width: 992px) {
             body {
+                display: block;
+                background: var(--surface);
+                min-height: 100vh;
+                min-height: 100dvh;
+                /* iOS safe area */
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+
+            .brand-panel { display: none; }
+
+            .form-panel {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                min-height: 100vh;
+                min-height: 100dvh;
+                padding: 0;
+                margin: 0;
+                background: var(--surface);
+                border: 0;
+                border-radius: 0;
+                box-shadow: none;
+                display: block;
+                justify-content: flex-start;
+            }
+
+            /* Vertical accent strip changes to horizontal under the hero */
+            .form-panel::before {
+                top: auto;
+                bottom: auto;
+                left: 0;
+                right: 0;
+                width: 100%;
+                height: 2px;
+                background: linear-gradient(90deg, var(--rescue) 0%, var(--accent) 60%, transparent 100%);
+            }
+
+            .form-inner {
+                width: 100%;
+                max-width: 100%;
+                padding: 0 24px 0;
+                min-height: 100vh;
+                min-height: 100dvh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            /* Middle wrapper: holds form-header through ssl-line, vertically centers in remaining space */
+            .form-main {
+                flex: 1 1 auto;
+                display: flex;
                 flex-direction: column;
                 justify-content: center;
-                align-items: center;
-                background: linear-gradient(160deg, #0c1222 0%, #0f2847 50%, #0c4a6e 100%);
-                min-height: 100vh;
+                padding: 28px 0 24px;
+                position: relative;
+                margin: 0 -24px;
+                padding-left: 24px;
+                padding-right: 24px;
+                overflow: hidden;
             }
 
-            .brand-section {
-                display: none;
+            /* Decorative seal watermark — bleeds off the top-right of the form area */
+            .form-main::before {
+                content: '';
+                position: absolute;
+                top: 24px;
+                right: -160px;
+                width: 280px;
+                height: 280px;
+                background-image: url('uploads/logo.png');
+                background-repeat: no-repeat;
+                background-position: center;
+                background-size: contain;
+                opacity: 0.12;
+                pointer-events: none;
+                z-index: 0;
             }
 
-            .form-section {
-                width: 100%;
-                max-width: 440px;
-                min-width: auto;
-                height: auto;
-                min-height: auto;
-                border-radius: 24px;
-                padding: 40px 32px;
-                box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.25);
-                margin: 24px;
+            .form-main > * {
+                position: relative;
+                z-index: 1;
             }
 
-            .form-decoration {
-                left: 32px;
-                right: 32px;
-                border-radius: 0 0 2px 2px;
+            .form-header {
+                margin-top: 0;
             }
 
-            .mobile-branding {
+            /* === Mobile hero (navy strip with logo + LIVE pill) === */
+            .mobile-hero {
                 display: block;
+                position: relative;
+                margin: 0 -24px 0;
+                padding: 28px 24px;
+                background:
+                    radial-gradient(800px 300px at 80% 100%, rgba(2, 132, 199, 0.18), transparent 60%),
+                    linear-gradient(160deg, var(--ink-950) 0%, var(--ink-900) 60%, var(--ink-850) 100%);
+                color: #FFFFFF;
+                overflow: hidden;
+                /* Move the form-panel's top accent strip down so it sits under the hero */
+            }
+
+            /* Move the top accent strip from form-panel::before to bottom of hero */
+            .form-panel::before {
+                top: 0;
+                height: 0;
+            }
+
+            .mobile-hero-bg {
+                position: absolute;
+                inset: 0;
+                background-image:
+                    repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 48px),
+                    repeating-linear-gradient(90deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 48px);
+                pointer-events: none;
+                mask-image: radial-gradient(ellipse at 80% 50%, #000 30%, transparent 80%);
+                -webkit-mask-image: radial-gradient(ellipse at 80% 50%, #000 30%, transparent 80%);
+            }
+
+            .mobile-hero-glow {
+                position: absolute;
+                top: -40px;
+                left: -40px;
+                width: 200px;
+                height: 200px;
+                border-radius: 50%;
+                background: radial-gradient(circle, rgba(225, 29, 72, 0.25), transparent 70%);
+                filter: blur(20px);
+                pointer-events: none;
+            }
+
+            /* Red bottom accent line on hero */
+            .mobile-hero::after {
+                content: '';
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                height: 2px;
+                background: linear-gradient(90deg, var(--rescue) 0%, var(--accent) 70%, transparent 100%);
+            }
+
+            .mobile-hero-row {
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                z-index: 1;
+            }
+
+            .mobile-hero-brand {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .mobile-hero-brand img {
+                height: 36px;
+                width: auto;
+                filter: drop-shadow(0 4px 10px rgba(0,0,0,0.4));
+            }
+
+            .mobile-hero-label span {
+                display: block;
+                font-size: 14px;
+                font-weight: 700;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                color: #FFFFFF;
+                line-height: 1.2;
+            }
+
+            .mobile-hero-label small {
+                display: block;
+                font-family: var(--mono);
+                font-size: 9px;
+                font-weight: 500;
+                letter-spacing: 0.18em;
+                color: rgba(255, 255, 255, 0.5);
+                margin-top: 3px;
+            }
+
+            /* Form header */
+            .form-header { margin-bottom: 24px; }
+            .form-header h1 { font-size: 24px; }
+            .form-header p { font-size: 14px; }
+
+            /* Touch-friendly inputs (≥ 52px, 16px font to prevent iOS zoom) */
+            .field { margin-bottom: 22px; }
+            .field-label-row { margin-bottom: 8px; }
+            .field input {
+                height: 52px;
+                font-size: 16px;
+                border-radius: 12px;
+                padding: 0 16px;
+            }
+            .field.has-toggle input { padding-right: 76px; }
+            .pw-toggle {
+                font-size: 13px;
+                padding: 8px 10px;
+                right: 8px;
+            }
+
+            /* Bigger buttons for gloved hands */
+            .btn-primary-cta {
+                height: 56px;
+                font-size: 16px;
+                border-radius: 12px;
+            }
+            .btn-secondary-cta {
+                height: 52px;
+                font-size: 15px;
+                border-radius: 12px;
+            }
+
+            .or-divider { margin: 24px 0 16px; }
+
+            .ssl-line { margin-top: 24px; }
+
+            /* SSL line stays centered as its own block */
+            .ssl-line {
+                margin-top: 24px;
+                justify-content: center;
+            }
+
+            /* === Mobile footer dock — pinned to bottom with KPIs + clock + copy === */
+            .mobile-footer {
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0;
+                margin: 0 -24px;
+                padding: 0;
+                background: var(--surface-alt);
+                border-top: 1px solid var(--line);
+                font-size: 11px;
+                color: var(--ink-400);
+                text-align: center;
+            }
+
+            .mobile-footer-meta {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                padding: 12px 20px 14px;
+            }
+
+            .mobile-footer-clock {
+                font-family: var(--mono);
+                font-size: 11px;
+                font-weight: 600;
+                letter-spacing: 0.08em;
+                color: var(--ink-600);
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .mobile-footer-clock::before {
+                content: '';
+                width: 5px;
+                height: 5px;
+                border-radius: 50%;
+                background: var(--signal);
+                box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
+            }
+
+            .mobile-footer-copy {
+                font-size: 11px;
+                font-weight: 500;
+                color: var(--ink-400);
+            }
+
+            .mobile-footer-tagline {
+                font-size: 10px;
+                font-weight: 600;
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+                color: #94A3B8;
             }
         }
 
-        /* 3. Mobile Phones */
-        @media (max-width: 576px) {
-            body {
-                background: var(--brand-surface);
-                align-items: flex-start;
-            }
-
-            .form-section {
-                box-shadow: none;
+        /* ============================================
+           SMALL PHONES (< 480px)
+           Tighter spacing, more breathing room for thumb zone
+           ============================================ */
+        @media (max-width: 480px) {
+            .mobile-hero {
+                margin: 0 -20px 0;
                 padding: 24px 20px;
-                margin: 0;
-                border-radius: 0;
-                max-width: 100%;
-                min-height: 100vh;
+            }
+
+            .form-inner {
+                padding: 0 20px 0;
+            }
+
+            .form-main {
+                margin: 0 -20px;
+                padding: 24px 20px 20px;
+            }
+
+            .form-main::before {
+                top: 20px;
+                right: -140px;
+                width: 240px;
+                height: 240px;
+            }
+
+            .form-header h1 { font-size: 22px; }
+            .form-header p { font-size: 13px; }
+
+            .mobile-hero-brand img { height: 32px; }
+            .mobile-hero-label span { font-size: 13px; }
+
+            .live-pill {
+                padding: 5px 10px 5px 9px;
+                font-size: 9px;
+                letter-spacing: 0.12em;
+            }
+            .live-dot { width: 6px; height: 6px; }
+
+            .mobile-footer { margin: 0 -20px; }
+            .mobile-footer-meta { padding: 10px 18px 12px; }
+        }
+
+        /* ============================================
+           VERY SMALL PHONES (< 360px)
+           ============================================ */
+        @media (max-width: 360px) {
+            .mobile-hero {
+                margin: 0 -16px 0;
+                padding: 20px 16px;
+            }
+            .mobile-hero-row { gap: 8px; }
+            .mobile-hero-label span { font-size: 12px; }
+            .mobile-hero-brand img { height: 28px; }
+            .form-inner { padding: 0 16px 0; }
+            .form-main {
+                margin: 0 -16px;
+                padding: 20px 16px 16px;
+            }
+            .form-main::before {
+                top: 16px;
+                right: -120px;
+                width: 200px;
+                height: 200px;
+            }
+            .form-header h1 { font-size: 20px; }
+
+            .mobile-footer { margin: 0 -16px; }
+            .mobile-footer-meta { padding: 10px 14px 12px; }
+            .mobile-footer-copy { font-size: 10px; }
+        }
+
+        /* ============================================
+           LANDSCAPE PHONES (short viewport)
+           ============================================ */
+        @media (max-width: 992px) and (max-height: 600px) and (orientation: landscape) {
+            body { min-height: 0; }
+            .form-panel { min-height: 0; }
+            .form-inner { min-height: 0; }
+            .form-main {
+                flex: 0 0 auto;
                 justify-content: flex-start;
-                overflow-y: auto;
+                margin: 0 -24px;
+                padding: 4px 24px 16px;
             }
-
-            .form-decoration { left: 20px; right: 20px; }
-            .mobile-branding { margin-top: 16px; }
-            .form-header h2 { font-size: 1.5rem; }
-
-            .recaptcha-container {
-                transform: scale(0.88);
+            .form-main::before { display: none; }
+            .mobile-hero {
+                padding: 16px 24px 14px;
+                margin-bottom: 0;
             }
-        }
-
-        /* 4. Landscape Mobile */
-        @media (max-height: 700px) and (orientation: landscape) {
-            body {
-                align-items: flex-start;
-                padding: 20px 0;
-                background: var(--brand-surface-alt);
-            }
-
-            .form-section {
-                margin: 0 auto;
-                padding: 28px 32px;
-                height: auto;
-            }
-
-            .form-decoration { left: 32px; right: 32px; }
-        }
-
-        /* Accessibility: Reduced Motion */
-        @media (prefers-reduced-motion: reduce) {
-            .brand-orb { animation: none !important; }
-            .form-section { animation: none !important; }
-            .brand-content * { animation: none !important; }
-            .btn-login::before { transition: none !important; }
+            .mobile-hero-brand img { height: 28px; }
+            .form-header { margin-bottom: 16px; }
+            .form-header h1 { font-size: 20px; margin-bottom: 4px; }
+            .form-header p { font-size: 13px; }
+            .field { margin-bottom: 12px; }
+            .field input { height: 46px; }
+            .btn-primary-cta { height: 48px; }
+            .mobile-footer-meta { padding: 8px 18px 10px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- LEFT PANEL: Visual & Branding -->
-    <div class="brand-section">
-        <!-- Animated Gradient Orbs -->
-        <div class="brand-orbs">
-            <div class="brand-orb"></div>
-            <div class="brand-orb"></div>
-            <div class="brand-orb"></div>
-        </div>
-        <!-- Grid Pattern -->
-        <div class="brand-grid-pattern"></div>
-        <!-- Particles -->
-        <div id="tsparticles"></div>
-
-        <div class="brand-content">
-            <div class="logo-wrapper">
-                <img src="uploads/logo.png" alt="Baggao Rescue Logo" class="logo-img">
-                <span class="logo-text">Baggao Rescue</span>
+    <!-- LEFT: Brand panel — dispatch console -->
+    <aside class="brand-panel">
+        <div class="brand-head">
+            <div class="brand-head-left">
+                <img src="uploads/logo.png" alt="">
+                <span class="brand-wordmark">
+                    Baggao Rescue
+                    <small>RESQ-LINK / PRE-HOSPITAL CARE</small>
+                </span>
             </div>
+            <span class="live-pill" aria-label="System status: dispatch online">
+                <span class="live-dot" aria-hidden="true"></span>
+                Dispatch Online
+            </span>
+        </div>
 
-            <h1 class="brand-title">Rescue 116<br>Operations</h1>
+        <div class="brand-middle">
+            <span class="brand-eyebrow">Field-tested emergency response</span>
+            <h2 class="brand-quote">Every second counts.<br>Be ready when <em>it does</em>.</h2>
             <p class="brand-desc">
-                Advanced Pre-Hospital Care & Emergency Response Management System.
+                A unified pre-hospital care platform built for the emergency response teams of Baggao Municipality. Triage, dispatch, vitals, and reporting — one console, end to end.
             </p>
+        </div>
 
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <i class="bi bi-shield-check feature-icon"></i>
-                    <h5>Secure Access</h5>
-                    <p>End-to-end encrypted data</p>
+        <div class="brand-foot">
+            <div class="brand-kpis">
+                <div class="kpi">
+                    <span class="kpi-value">24/7</span>
+                    <span class="kpi-label">Operations</span>
                 </div>
-                <div class="feature-card">
-                    <i class="bi bi-activity feature-icon"></i>
-                    <h5>Real-time Vitals</h5>
-                    <p>Live patient monitoring</p>
+                <div class="kpi">
+                    <span class="kpi-value">&lt; 90s</span>
+                    <span class="kpi-label">Avg. Dispatch</span>
                 </div>
-                <div class="feature-card">
-                    <i class="bi bi-geo-alt feature-icon"></i>
-                    <h5>GPS Tracking</h5>
-                    <p>Response team dispatch</p>
+                <div class="kpi">
+                    <span class="kpi-value">2024</span>
+                    <span class="kpi-label">In service</span>
                 </div>
-                <div class="feature-card">
-                    <i class="bi bi-clipboard2-pulse feature-icon"></i>
-                    <h5>Digital Records</h5>
-                    <p>Paperless documentation</p>
+            </div>
+            <div class="brand-divider"></div>
+            <div class="brand-bottomrow">
+                <div class="brand-copy">&copy; <?php echo date('Y'); ?> MDRRMO Baggao &middot; Authorized personnel only</div>
+                <div class="brand-clock" id="brandClock" aria-label="Local time">
+                    --:--:-- UTC+8
                 </div>
             </div>
         </div>
+    </aside>
 
-        <div class="brand-footer">
-            &copy; <?php echo date('Y'); ?> Municipality of Baggao &mdash; Authorized Personnel Only
-        </div>
-    </div>
+    <!-- RIGHT: Form panel -->
+    <main class="form-panel">
+        <div class="form-inner">
 
-    <!-- RIGHT PANEL: Login Form -->
-    <div class="form-section">
-        <div class="form-decoration"></div>
+            <div class="mobile-hero" aria-hidden="false">
+                <div class="mobile-hero-bg">
+                    <div class="mobile-hero-glow"></div>
+                </div>
+                <div class="mobile-hero-row">
+                    <div class="mobile-hero-brand">
+                        <img src="uploads/logo.png" alt="">
+                        <div class="mobile-hero-label">
+                            <span>Baggao Rescue</span>
+                            <small>RESQ-LINK</small>
+                        </div>
+                    </div>
+                    <span class="live-pill" aria-label="System status: dispatch online">
+                        <span class="live-dot" aria-hidden="true"></span>
+                        Online
+                    </span>
+                </div>
+            </div>
 
-        <!-- Mobile Branding -->
-        <div class="mobile-branding">
-            <img src="uploads/logo.png" alt="Logo">
-            <h3>Rescue 116</h3>
-            <p>Official Operations Portal</p>
-        </div>
+            <div class="form-main">
 
-        <div class="form-header">
-            <h2>Welcome Back</h2>
+            <div class="form-header">
+                <h1><?php echo htmlspecialchars($greeting); ?>,<br><span class="form-header-accent">responder</span>.</h1>
+                <?php if ($is_restricted): ?>
+                    <p class="restricted"><i class="bi bi-lock-fill"></i> Account access restricted</p>
+                <?php endif; ?>
+            </div>
+
             <?php if ($is_restricted): ?>
-                <p class="text-danger fw-bold"><i class="bi bi-lock-fill"></i> Account Access Restricted</p>
-            <?php else: ?>
-                <p>Sign in to access your dashboard.</p>
-            <?php endif; ?>
-        </div>
-
-        <!-- Restricted Alert -->
-        <?php if ($is_restricted): ?>
-            <div class="alert-custom alert-error">
-                <i class="bi bi-exclamation-triangle-fill" style="margin-top: 2px;"></i>
-                <div>
-                    <strong>Security Lockout</strong><br>
-                    Your account has been temporarily restricted due to excessive failed attempts. Please contact the IT administrator.
+                <div class="notice" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <div>
+                        <strong>Security lockout</strong>
+                        Your account has been temporarily restricted due to excessive failed attempts. Please contact the IT administrator.
+                    </div>
                 </div>
-            </div>
-        <?php endif; ?>
+            <?php endif; ?>
 
-        <form method="POST" action="" id="loginForm">
-            <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+            <form method="POST" action="" id="loginForm" novalidate>
+                <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
 
-            <div class="form-floating-group">
-                <input type="text" class="form-control" id="username" name="username"
-                       placeholder=" "
-                       value="<?php echo htmlspecialchars($restricted_username); ?>"
-                       <?php echo $is_restricted ? 'disabled' : 'required autofocus'; ?>>
-                <i class="bi bi-person input-icon"></i>
-                <label for="username" class="form-label">Username</label>
-            </div>
-
-            <div class="form-floating-group">
-                <input type="password" class="form-control" id="password" name="password"
-                       placeholder=" "
-                       <?php echo $is_restricted ? 'disabled' : 'required'; ?>>
-                <i class="bi bi-key input-icon"></i>
-                <label for="password" class="form-label">Password</label>
-            </div>
-
-            <?php if (!$is_restricted): ?>
-                <div class="recaptcha-container">
-                    <div class="g-recaptcha" data-sitekey="<?php echo RECAPTCHA_SITE_KEY; ?>"></div>
+                <div class="field">
+                    <div class="field-label-row">
+                        <label for="username">Username</label>
+                    </div>
+                    <div class="field-input-wrap">
+                        <input type="text" id="username" name="username"
+                               autocomplete="username"
+                               placeholder="Enter your username"
+                               value="<?php echo htmlspecialchars($restricted_username); ?>"
+                               <?php echo $is_restricted ? 'disabled' : 'required autofocus'; ?>>
+                    </div>
                 </div>
 
-                <button type="submit" class="btn btn-login">
-                    <span>Sign In</span>
-                    <i class="bi bi-arrow-right"></i>
-                </button>
-            <?php else: ?>
-                <button type="button" class="btn btn-login" disabled>
-                    <i class="bi bi-lock"></i>
-                    <span>Account Locked</span>
-                </button>
-            <?php endif; ?>
-        </form>
+                <div class="field has-toggle">
+                    <div class="field-label-row">
+                        <label for="password">Password</label>
+                    </div>
+                    <div class="field-input-wrap">
+                        <input type="password" id="password" name="password"
+                               autocomplete="current-password"
+                               placeholder="Enter your password"
+                               <?php echo $is_restricted ? 'disabled' : 'required'; ?>>
+                        <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password" aria-pressed="false" <?php echo $is_restricted ? 'disabled' : ''; ?>>Show</button>
+                    </div>
+                </div>
 
-        <!-- Biometric Login Section (shown by JS if WebAuthn is available) -->
-        <div id="webauthn-section" style="display: none;">
-            <div class="divider">
-                <span>OR</span>
+                <?php if (!$is_restricted): ?>
+                    <button type="submit" class="btn-primary-cta">
+                        <span>Sign in</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                <?php else: ?>
+                    <button type="button" class="btn-primary-cta" disabled>
+                        <i class="bi bi-lock"></i>
+                        <span>Account locked</span>
+                    </button>
+                <?php endif; ?>
+            </form>
+
+            <!-- Biometric login (shown by JS if WebAuthn / Flutter biometric is available) -->
+            <div id="webauthn-section" style="display: none;">
+                <div class="or-divider"><span>or</span></div>
+                <button type="button" id="webauthn-login-btn" class="btn-secondary-cta" aria-label="Sign in with biometric authentication">
+                    <i class="bi bi-fingerprint"></i>
+                    <span>Sign in with biometrics</span>
+                </button>
+                <div id="webauthn-status" style="display: none;"></div>
             </div>
-            <button type="button" id="webauthn-login-btn" class="btn btn-biometric" aria-label="Sign in with biometric authentication">
-                <i class="bi bi-fingerprint"></i>
-                <span>Sign in with Biometrics</span>
-            </button>
-            <div id="webauthn-status" style="display: none;"></div>
-        </div>
 
-        <div class="divider">
-            <span>Secure System</span>
-        </div>
+            <div class="ssl-line">
+                <i class="bi bi-shield-lock-fill"></i>
+                <span>256-bit SSL secured &middot; CSRF protected</span>
+            </div>
 
-        <div class="sys-info">
-            <i class="bi bi-shield-lock-fill"></i>
-            <span>256-bit SSL Encrypted</span>
+            </div><!-- /.form-main -->
+
+            <div class="mobile-footer" aria-hidden="false">
+                <div class="mobile-footer-meta">
+                    <div class="mobile-footer-clock" id="mobileClock">--:--:-- UTC+8</div>
+                    <div class="mobile-footer-copy">&copy; <?php echo date('Y'); ?> MDRRMO Baggao &middot; Authorized personnel only</div>
+                </div>
+            </div>
+
         </div>
-    </div>
+    </main>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-
-    <!-- TSParticles Library -->
-    <script src="https://cdn.jsdelivr.net/npm/tsparticles-slim@2.0.6/tsparticles.slim.bundle.min.js"></script>
-
     <!-- WebAuthn Biometric Login -->
     <script src="js/webauthn.js"></script>
 
     <script nonce="<?php echo CSP_NONCE; ?>">
-        // 1. Initialize Particles (Refined medical network effect)
-        (async () => {
-            await tsParticles.load("tsparticles", {
-                particles: {
-                    number: { value: 40, density: { enable: true, value_area: 1000 } },
-                    color: { value: ["#38bdf8", "#06b6d4", "#ffffff"] },
-                    shape: { type: "circle" },
-                    opacity: { value: 0.15, random: { enable: true, minimumValue: 0.05 } },
-                    size: { value: 2.5, random: { enable: true, minimumValue: 1 } },
-                    move: {
-                        enable: true,
-                        speed: 0.8,
-                        direction: "none",
-                        random: true,
-                        straight: false,
-                        out_mode: "out",
-                        bounce: false,
-                    },
-                    links: {
-                        enable: true,
-                        distance: 180,
-                        color: "#38bdf8",
-                        opacity: 0.07,
-                        width: 1
-                    },
-                },
-                interactivity: {
-                    detect_on: "canvas",
-                    events: {
-                        onhover: { enable: true, mode: "grab" },
-                        onclick: { enable: false },
-                        resize: true
-                    },
-                    modes: {
-                        grab: { distance: 160, line_linked: { opacity: 0.2 } }
-                    }
-                },
-                retina_detect: true
-            });
+        // 1. Show/Hide password toggle
+        (function() {
+            var toggle = document.getElementById('pwToggle');
+            var pw = document.getElementById('password');
+            if (toggle && pw) {
+                toggle.addEventListener('click', function() {
+                    var shown = pw.type === 'text';
+                    pw.type = shown ? 'password' : 'text';
+                    toggle.textContent = shown ? 'Show' : 'Hide';
+                    toggle.setAttribute('aria-label', shown ? 'Show password' : 'Hide password');
+                    toggle.setAttribute('aria-pressed', shown ? 'false' : 'true');
+                });
+            }
+        })();
+
+        // 1b. Live clock (desktop brand footer + mobile footer, UTC+8 Manila)
+        (function() {
+            var desktop = document.getElementById('brandClock');
+            var mobile = document.getElementById('mobileClock');
+            if (!desktop && !mobile) return;
+            function pad(n) { return n < 10 ? '0' + n : '' + n; }
+            function tick() {
+                var now = new Date();
+                var utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+                var ph = new Date(utc + 8 * 3600000);
+                var text = pad(ph.getHours()) + ':' + pad(ph.getMinutes()) + ':' + pad(ph.getSeconds()) + ' UTC+8';
+                if (desktop) desktop.textContent = text;
+                if (mobile) mobile.textContent = text;
+            }
+            tick();
+            setInterval(tick, 1000);
         })();
 
         // 2. Configure Notifications
@@ -973,7 +1374,7 @@ $csrf_token = generate_token();
             function resetBtn(btn, statusEl) {
                 statusEl.style.display = 'none';
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-fingerprint"></i> <span>Sign in with Biometrics</span>';
+                btn.innerHTML = '<i class="bi bi-fingerprint"></i> <span>Sign in with biometrics</span>';
             }
 
             // ── Flutter Native Biometric ──────────────────────────────────

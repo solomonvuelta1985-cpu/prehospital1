@@ -333,7 +333,18 @@ try {
     $emergency_ob_details = !empty($_POST['ob_specify']) ? sanitize($_POST['ob_specify']) : null;
     $emergency_general = isset($_POST['emergency_type']) && in_array('general', $_POST['emergency_type']) ? 1 : 0;
     $emergency_general_details = !empty($_POST['general_specify']) ? sanitize($_POST['general_specify']) : null;
-    
+
+    // A completed form must have at least one emergency type. This endpoint always
+    // saves as 'completed' (drafts go through autosave_draft.php), so enforce here —
+    // this closes the loophole that let records save with no type at all.
+    if ($emergency_medical + $emergency_trauma + $emergency_ob + $emergency_general === 0) {
+        throw new Exception('Please select at least one Type of Emergency Call (Medical, Trauma, OB, or General).');
+    }
+
+    // Structured incident category: explicit value if provided, else auto-classify
+    // below (after narrative/complaint are parsed) so the narrative is included.
+    $incident_category = !empty($_POST['incident_category']) ? sanitize($_POST['incident_category']) : null;
+
     // Care Management
     $care_management = isset($_POST['care_management']) ? $_POST['care_management'] : [];
     if (!is_array($care_management)) {
@@ -663,7 +674,24 @@ try {
 
         $form_id = $pdo->lastInsertId();
     }
-    
+
+    // Persist the structured incident category. When no explicit value was chosen,
+    // auto-classify from ALL signal fields (specify boxes + complaint + narrative),
+    // so incidents typed into the narrative are caught at save time.
+    if ($incident_category === null) {
+        $incident_category = classify_incident_from_record([
+            'emergency_trauma_details'  => $emergency_trauma_details,
+            'emergency_general_details' => $emergency_general_details,
+            'emergency_medical_details' => $emergency_medical_details,
+            'emergency_ob_details'      => $emergency_ob_details,
+            'other_complaints'          => $other_complaints,
+            'team_leader_notes'         => $team_leader_notes,
+        ]);
+    }
+    if ($form_id) {
+        db_query("UPDATE prehospital_forms SET incident_category = ? WHERE id = ?", [$incident_category, $form_id], true);
+    }
+
     // Insert injuries if any
     if (!empty($injuries_data) && is_array($injuries_data)) {
         $injury_sql = "INSERT INTO injuries (form_id, injury_number, injury_type, body_view, body_part, coordinate_x, coordinate_y, notes)

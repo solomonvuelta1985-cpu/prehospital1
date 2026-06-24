@@ -32,8 +32,8 @@
     }
 
     // Global Chart.js config
-    Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", system-ui, sans-serif';
-    Chart.defaults.color = '#71717a';
+    Chart.defaults.font.family = '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif';
+    Chart.defaults.color = '#64748b';
     Chart.defaults.font.size = 11;
 
     // Weekly Activity Chart (Bar)
@@ -47,9 +47,10 @@
                     datasets: [{
                         label: 'Forms Created',
                         data: weeklyData,
-                        backgroundColor: '#2563eb',
+                        backgroundColor: '#4f46e5',
+                        hoverBackgroundColor: '#4338ca',
                         borderWidth: 0,
-                        borderRadius: 4,
+                        borderRadius: 6,
                         barThickness: 32
                     }]
                 },
@@ -76,7 +77,7 @@
                         y: {
                             beginAtZero: true,
                             ticks: { stepSize: 1 },
-                            grid: { color: '#f4f4f5' },
+                            grid: { color: '#eef2f6' },
                             border: { display: false }
                         },
                         x: {
@@ -101,8 +102,9 @@
                     labels: ['Completed', 'Draft', 'Archived'],
                     datasets: [{
                         data: [completed, drafts, archived],
-                        backgroundColor: ['#16a34a', '#ca8a04', '#a1a1aa'],
-                        borderWidth: 0,
+                        backgroundColor: ['#16a34a', '#d97706', '#cbd5e1'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
                         spacing: 1
                     }]
                 },
@@ -115,6 +117,7 @@
                             position: 'bottom',
                             labels: {
                                 padding: 12,
+                                color: '#475569',
                                 font: { size: 11, weight: '500' },
                                 usePointStyle: true,
                                 pointStyle: 'circle'
@@ -152,12 +155,12 @@
                     datasets: [{
                         label: 'Forms Created',
                         data: monthlyData,
-                        borderColor: '#2563eb',
-                        backgroundColor: 'rgba(37, 99, 235, 0.04)',
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.06)',
                         borderWidth: 2,
                         fill: true,
                         tension: 0.3,
-                        pointBackgroundColor: '#2563eb',
+                        pointBackgroundColor: '#4f46e5',
                         pointBorderColor: '#ffffff',
                         pointBorderWidth: 2,
                         pointRadius: 4,
@@ -185,7 +188,7 @@
                         y: {
                             beginAtZero: true,
                             ticks: { stepSize: 1 },
-                            grid: { color: '#f4f4f5' },
+                            grid: { color: '#eef2f6' },
                             border: { display: false }
                         },
                         x: {
