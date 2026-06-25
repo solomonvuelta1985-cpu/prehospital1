@@ -131,14 +131,25 @@ try {
         'emergency_ob_details' => $data['ob_specify'] ?? null,
         'emergency_general' => isset($data['emergency_type']) && in_array('general', $data['emergency_type']) ? 1 : 0,
         'emergency_general_details' => $data['general_specify'] ?? null,
+        // Resolve the full category chain (incident -> medical/OB) so even drafts
+        // are categorized; mirrors save_prehospital_form.php / update_record.php.
         'incident_category' => !empty($data['incident_category']) ? $data['incident_category']
-            : classify_incident_from_record([
+            : resolve_record_category([
+                'incident_category'         => null,
                 'emergency_trauma_details'  => $data['trauma_specify']  ?? null,
                 'emergency_general_details' => $data['general_specify'] ?? null,
                 'emergency_medical_details' => $data['medical_specify'] ?? null,
                 'emergency_ob_details'      => $data['ob_specify']      ?? null,
                 'other_complaints'          => $data['other_complaints'] ?? null,
                 'team_leader_notes'         => $data['team_leader_notes'] ?? null,
+                'emergency_ob'              => isset($data['emergency_type']) && in_array('ob', $data['emergency_type']) ? 1 : 0,
+                'chief_complaints'          => isset($data['chief_complaints']) ? json_encode($data['chief_complaints']) : null,
+                'care_management'           => isset($data['care_management']) && is_array($data['care_management']) ? implode(' ', $data['care_management']) : ($data['care_management'] ?? null),
+                'initial_consciousness'     => isset($data['initial_consciousness']) && is_array($data['initial_consciousness']) ? json_encode($data['initial_consciousness']) : ($data['initial_consciousness'] ?? null),
+                'fast_face_drooping'        => $data['face_drooping']    ?? null,
+                'fast_arm_weakness'         => $data['arm_weakness']     ?? null,
+                'fast_speech_difficulty'    => $data['speech_difficulty'] ?? null,
+                'fast_time_to_call'         => $data['time_to_call']     ?? null,
             ]),
         'care_management' => isset($data['care_management']) ? json_encode($data['care_management']) : null,
         'oxygen_lpm' => $data['oxygen_lpm'] ?? null,

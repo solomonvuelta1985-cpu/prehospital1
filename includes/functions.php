@@ -736,6 +736,102 @@ function classify_incident_from_record(array $r) {
 }
 
 /**
+ * Medical/OB clinical categories for runs that are NOT a trauma incident
+ * (no V/A, Fall, Mauling, etc.). Derived from the chief complaint, narrative,
+ * and the structured FAST / consciousness / care_management signals. Ordered
+ * most-specific first so e.g. a stroke is not mislabelled "Generalized Weakness".
+ * Returns one of medical_categories(), or 'Other Medical (unspecified)'.
+ *
+ * @param array $r a prehospital_forms row (any subset of the read fields)
+ * @return string a medical/OB category label
+ */
+function medical_categories() {
+    return [
+        'Labor/Delivery (OB)', 'Stroke/CVA', 'Cardiac Arrest', 'Chest Pain/Cardiac',
+        'Difficulty of Breathing', 'Seizure', 'Hypertension', 'Diabetic/Glucose',
+        'GI/Abdominal', 'Fever/Infection', 'Dizziness/Headache', 'Generalized Weakness',
+        'Trauma (unspecified)', 'Other Medical (unspecified)',
+    ];
+}
+
+function classify_medical_category(array $r) {
+    // Combine the same free-text signal used by the incident classifier, plus
+    // the chief-complaint list (JSON) which carries the clearest medical signal.
+    $sig = strtoupper(trim(implode(' ', array_filter([
+        $r['emergency_trauma_details']  ?? null,
+        $r['emergency_general_details'] ?? null,
+        $r['emergency_medical_details'] ?? null,
+        $r['emergency_ob_details']      ?? null,
+        $r['other_complaints']          ?? null,
+        $r['team_leader_notes']         ?? null,
+    ], 'strlen'))));
+
+    // chief_complaints is stored as a JSON array (e.g. ["CHEST PAIN","COUGH"]).
+    $cc = $r['chief_complaints'] ?? null;
+    if (is_string($cc) && $cc !== '') {
+        $decoded = json_decode($cc, true);
+        if (is_array($decoded)) $sig .= ' ' . strtoupper(implode(' ', $decoded));
+    }
+
+    // Consciousness text (e.g. UNCONSCIOUS) is a Cardiac Arrest signal — include it.
+    $cons = $r['initial_consciousness'] ?? null;
+    if (is_string($cons) && $cons !== '') $sig .= ' ' . strtoupper($cons);
+
+    // care_management mentioning CPR is a Cardiac Arrest signal — inject a token.
+    $care = $r['care_management'] ?? null;
+    if (is_string($care) && stripos($care, 'CPR') !== false) $sig .= ' CPR';
+
+    // Structured stroke signal: any positive FAST field => Stroke/CVA.
+    $fast_positive = false;
+    foreach (['fast_face_drooping', 'fast_arm_weakness', 'fast_speech_difficulty', 'fast_time_to_call'] as $f) {
+        if (strtolower((string)($r[$f] ?? '')) === 'positive') { $fast_positive = true; break; }
+    }
+    $flag_ob = !empty($r['emergency_ob']);
+
+    // OB first (incl. vaginal bleeding in an obstetric context).
+    if ($flag_ob || preg_match('/LABOR|DELIVERY|BAG OF WATER|WATER DISCHARGE|MUCUS DISCHARGE|\bG[0-9]P[0-9]|AMNIOTIC|OBSTETRIC|PREGNAN|VAGINAL BLEED/', $sig)) {
+        return 'Labor/Delivery (OB)';
+    }
+    // Generic trauma residue: wounds/injuries with no specific incident keyword.
+    if (preg_match('/LACERAT|LACEATED|WOUND|ABRASION|CONTUSION|SPORTS INJURY|WORK ?RELATED INJURY|WORK INJURY|FRACTURE|DISLOCAT|PUNCTURE/', $sig)
+        && !preg_match('/CHEST PAIN|ABDOMIN|EPIGASTR/', $sig)) {
+        return 'Trauma (unspecified)';
+    }
+    if ($fast_positive || preg_match('/\bCVA\b|STROKE|FACIAL DROOP|SLURRED|ARM WEAKNESS|HEMIPARE|FACE DROOP/', $sig)) return 'Stroke/CVA';
+    if (preg_match('/UNRESPONSIVE|UNCONSCIOUS|UNCONCIOUS|\(-\) ?PULSE|NO PULSE|NEGATIVE PULSE|CARDIAC ARREST|\bCPR\b|ASYSTOLE/', $sig)) return 'Cardiac Arrest';
+    if (preg_match('/CHEST PAIN|ANGINA|MYOCARD|\bMI\b|PALPITATION/', $sig)) return 'Chest Pain/Cardiac';
+    if (preg_match('/DIFFICULTY ?OF ?BREATHING|SHORTNESS OF BREATH|\bDOB\b|DYSPNEA|ASTHMA|BREATHING/', $sig)) return 'Difficulty of Breathing';
+    if (preg_match('/SEIZURE|CONVULS|EPILEP/', $sig)) return 'Seizure';
+    if (preg_match('/HYPERTEN|HIGH BLOOD|ELEVATED BP|\bHPN\b/', $sig)) return 'Hypertension';
+    if (preg_match('/HYPOGLYCEM|HYPERGLYCEM|DIABET|HIGH SUGAR|LOW SUGAR|BLOOD SUGAR/', $sig)) return 'Diabetic/Glucose';
+    if (preg_match('/VOMIT|DIARRHEA|LOOSE STOOL|ABDOMINAL|STOMACH|GASTRO|HYPERACID|EPIGASTR|FLANK PAIN|\bRLQ\b|LOWER QUADRANT|BACK ?PAIN/', $sig)) return 'GI/Abdominal';
+    if (preg_match('/FEVER|CHILL|FLU|COUGH|COLDS|INFLUENZA|INFECTION/', $sig)) return 'Fever/Infection';
+    if (preg_match('/DIZZ|HEAD ?ACHE|VERTIGO|BLURRED VISION|FAINT|SYNCOPE/', $sig)) return 'Dizziness/Headache';
+    if (preg_match('/BODY ?WEAK|MALAISE|BODY ?PAIN|GENERALIZED WEAK|NUMBNESS|WEAKNESS/', $sig)) return 'Generalized Weakness';
+    return 'Other Medical (unspecified)';
+}
+
+/**
+ * Resolve the single best category for a record, in priority order:
+ *   1. a saved incident_category (trauma incident persisted on the row),
+ *   2. a trauma incident inferred from the free text,
+ *   3. a medical/OB clinical category from the complaint + structured signals.
+ * Always returns a non-empty label (worst case 'Other Medical (unspecified)').
+ *
+ * @param array $r a prehospital_forms row
+ * @return string the resolved category label
+ */
+function resolve_record_category(array $r) {
+    $saved = isset($r['incident_category']) ? trim((string)$r['incident_category']) : '';
+    if ($saved !== '') return $saved;
+
+    $incident = classify_incident_from_record($r);
+    if ($incident !== null) return $incident;
+
+    return classify_medical_category($r);
+}
+
+/**
  * Build a "Consolidated Run" tally from prehospital_forms rows.
  * Prefers a structured `incident_category` column when present (Phase 2);
  * otherwise classifies the four *_details free-text fields. Also returns the
@@ -755,22 +851,12 @@ function consolidated_run_counts(array $rows) {
         if (!empty($r['emergency_ob']))      $parents['OB']++;
         if (!empty($r['emergency_general'])) $parents['General']++;
 
-        // Structured column wins if available.
-        $cat = isset($r['incident_category']) && trim((string)$r['incident_category']) !== ''
-            ? trim((string)$r['incident_category'])
-            : null;
+        // Resolve to a single category: saved incident_category -> trauma incident
+        // from text -> medical/OB clinical category. Always non-empty, so a record
+        // only stays "uncategorized" when it carries no usable signal at all.
+        $cat = resolve_record_category($r);
 
-        if ($cat === null) {
-            // Classify across all four detail fields; first hit wins.
-            foreach (['emergency_trauma_details', 'emergency_general_details', 'emergency_medical_details', 'emergency_ob_details'] as $f) {
-                if (!empty($r[$f])) {
-                    $hit = classify_incident_category($r[$f]);
-                    if ($hit !== null) { $cat = $hit; break; }
-                }
-            }
-        }
-
-        if ($cat !== null) {
+        if ($cat !== '') {
             $categories[$cat] = ($categories[$cat] ?? 0) + 1;
         } else {
             $uncategorized++;

@@ -148,9 +148,13 @@ if ($va_stmt) {
 }
 $emergency_trauma_nonva = max(0, (int)$emergency_data['trauma'] - $emergency_va);
 
-// ===== CONSOLIDATED RUN (incident categories, classified from notes; respects filters) =====
+// ===== CONSOLIDATED RUN (run categories — saved incident_category, else resolved
+// from the complaint/narrative + FAST/consciousness/care signals; respects filters) =====
 $cr_sql = "SELECT emergency_medical, emergency_trauma, emergency_ob, emergency_general,
-                  emergency_medical_details, emergency_trauma_details, emergency_ob_details, emergency_general_details
+                  emergency_medical_details, emergency_trauma_details, emergency_ob_details, emergency_general_details,
+                  incident_category, other_complaints, team_leader_notes, chief_complaints,
+                  initial_consciousness, fast_face_drooping, fast_arm_weakness, fast_speech_difficulty, fast_time_to_call,
+                  care_management
            FROM prehospital_forms pf WHERE $where_clause";
 $cr_stmt = db_query($cr_sql, $params);
 $cr = consolidated_run_counts($cr_stmt ? $cr_stmt->fetchAll() : []);
@@ -854,7 +858,7 @@ $rpt_type_total = array_sum(array_column($rpt_type_rows, 1));
             <div class="rpt-grid-2-1">
                 <div class="rpt-section">
                     <div class="rpt-section-header">
-                        <h2 class="rpt-section-title"><i class="bi bi-clipboard2-data"></i> Incident Categories</h2>
+                        <h2 class="rpt-section-title"><i class="bi bi-clipboard2-data"></i> Run Categories</h2>
                         <span class="rpt-section-badge"><?php echo number_format($cr_total); ?> classified</span>
                     </div>
                     <div class="rpt-section-body">
@@ -870,7 +874,7 @@ $rpt_type_total = array_sum(array_column($rpt_type_rows, 1));
                             </li>
                             <?php endforeach; ?>
                         </ul>
-                        <p style="margin:0.85rem 0 0;font-size:0.7rem;color:var(--rpt-gray-400);">Categorized from incident notes — counts may differ from free-text spelling variants.</p>
+                        <p style="margin:0.85rem 0 0;font-size:0.7rem;color:var(--rpt-gray-400);">Trauma incidents, medical &amp; OB — from the saved category or the complaint/narrative and FAST/consciousness signals. Free-text spelling variants may affect counts.</p>
                         <?php else: ?>
                         <div class="rpt-empty-state"><div class="rpt-empty-icon"><i class="bi bi-clipboard2-x"></i></div><div class="rpt-empty-title">No categorized incidents</div><div class="rpt-empty-desc">No records in this period matched a known incident category.</div></div>
                         <?php endif; ?>
@@ -889,11 +893,13 @@ $rpt_type_total = array_sum(array_column($rpt_type_rows, 1));
                                 <span class="rpt-rank-count"><?php echo number_format($pc); ?></span>
                             </li>
                             <?php endforeach; ?>
+                            <?php if (!empty($cr['uncategorized'])): // only when records genuinely carry no usable signal ?>
                             <li>
                                 <span class="rpt-rank-badge" style="background:var(--rpt-gray-200);color:var(--rpt-gray-500);"><i class="bi bi-question"></i></span>
-                                <span class="rpt-rank-name">Uncategorized</span>
+                                <span class="rpt-rank-name">No type set</span>
                                 <span class="rpt-rank-count"><?php echo number_format($cr['uncategorized']); ?></span>
                             </li>
+                            <?php endif; ?>
                         </ul>
                     </div>
                 </div>

@@ -136,9 +136,14 @@ if ($va_stmt) {
 }
 $emergency_trauma_nonva = max(0, $emergency_trauma - $emergency_va);
 
-// Consolidated Run (incident categories classified from notes; all-time)
+// Consolidated Run (incident categories — uses the saved incident_category when
+// present, else resolves from the complaint/narrative + FAST/consciousness/care
+// signals via consolidated_run_counts() -> resolve_record_category()).
 $cr_stmt = db_query("SELECT emergency_medical, emergency_trauma, emergency_ob, emergency_general,
-                            emergency_medical_details, emergency_trauma_details, emergency_ob_details, emergency_general_details
+                            emergency_medical_details, emergency_trauma_details, emergency_ob_details, emergency_general_details,
+                            incident_category, other_complaints, team_leader_notes, chief_complaints,
+                            initial_consciousness, fast_face_drooping, fast_arm_weakness, fast_speech_difficulty, fast_time_to_call,
+                            care_management
                      FROM prehospital_forms");
 $cr = consolidated_run_counts($cr_stmt ? $cr_stmt->fetchAll() : []);
 $cr_total = array_sum($cr['categories']);
@@ -945,8 +950,8 @@ $type_rows = [
                     <div class="card-panel">
                         <div class="card-head">
                             <div>
-                                <h3 class="card-title">Incident Categories</h3>
-                                <p class="card-sub">Classified from incident notes</p>
+                                <h3 class="card-title">Run Categories</h3>
+                                <p class="card-sub">Incident, medical &amp; OB — classified from notes</p>
                             </div>
                             <span class="card-badge"><?php echo number_format($cr_total); ?> classified</span>
                         </div>
@@ -963,7 +968,7 @@ $type_rows = [
                                 </li>
                                 <?php endforeach; ?>
                             </ul>
-                            <p style="margin:0.85rem 0 0;font-size:0.7rem;color:var(--gray-400);">Categorized from incident notes — free-text spelling variants may affect counts.</p>
+                            <p style="margin:0.85rem 0 0;font-size:0.7rem;color:var(--gray-400);">Trauma incidents, medical &amp; OB — derived from the saved category or the complaint/narrative and FAST/consciousness signals. Free-text spelling variants may affect counts.</p>
                             <?php else: ?>
                             <p class="clinical-no-data">No categorized incidents recorded yet.</p>
                             <?php endif; ?>
@@ -987,11 +992,13 @@ $type_rows = [
                                     <span class="rank-count"><?php echo number_format($pc); ?></span>
                                 </li>
                                 <?php endforeach; ?>
+                                <?php if (!empty($cr['uncategorized'])): // only when records genuinely carry no usable signal ?>
                                 <li>
                                     <span class="rank-badge" style="background:var(--gray-100);color:var(--gray-500);">–</span>
-                                    <span class="rank-name">Uncategorized</span>
+                                    <span class="rank-name">No type set</span>
                                     <span class="rank-count"><?php echo number_format($cr['uncategorized']); ?></span>
                                 </li>
+                                <?php endif; ?>
                             </ul>
                         </div>
                     </div>

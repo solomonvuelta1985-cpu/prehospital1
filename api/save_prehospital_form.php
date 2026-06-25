@@ -676,16 +676,28 @@ try {
     }
 
     // Persist the structured incident category. When no explicit value was chosen,
-    // auto-classify from ALL signal fields (specify boxes + complaint + narrative),
-    // so incidents typed into the narrative are caught at save time.
+    // auto-classify from ALL signal fields so the run is categorized at save time:
+    //   saved value -> trauma incident from text -> medical/OB clinical category
+    // (uses the complaint, narrative, FAST, consciousness and care_management signals).
     if ($incident_category === null) {
-        $incident_category = classify_incident_from_record([
+        $incident_category = resolve_record_category([
+            'incident_category'         => null,
             'emergency_trauma_details'  => $emergency_trauma_details,
             'emergency_general_details' => $emergency_general_details,
             'emergency_medical_details' => $emergency_medical_details,
             'emergency_ob_details'      => $emergency_ob_details,
             'other_complaints'          => $other_complaints,
             'team_leader_notes'         => $team_leader_notes,
+            'emergency_ob'              => $emergency_ob,
+            // chief_complaints/care_management are arrays here; classify_medical_category
+            // expects a JSON string for chief_complaints and a plain string elsewhere.
+            'chief_complaints'          => is_array($chief_complaints) ? json_encode($chief_complaints) : $chief_complaints,
+            'care_management'           => is_array($care_management) ? implode(' ', $care_management) : (string)$care_management,
+            'initial_consciousness'     => $initial_consciousness,
+            'fast_face_drooping'        => $fast_face_drooping,
+            'fast_arm_weakness'         => $fast_arm_weakness,
+            'fast_speech_difficulty'    => $fast_speech_difficulty,
+            'fast_time_to_call'         => $fast_time_to_call,
         ]);
     }
     if ($form_id) {

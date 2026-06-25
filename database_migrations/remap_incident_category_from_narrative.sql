@@ -66,11 +66,11 @@ ORDER BY inferred_category, pf.id;
 -- ----------------------------------------------------------------------------
 -- STEP 2 — BACKUP (optional): snapshot before changing.
 -- ----------------------------------------------------------------------------
--- CREATE TABLE backup_incidentcat_20260624 AS
--- SELECT id, incident_category, other_complaints, team_leader_notes,
---        emergency_trauma_details, emergency_general_details,
---        emergency_medical_details, emergency_ob_details
--- FROM prehospital_forms WHERE incident_category IS NULL;
+CREATE TABLE backup_incidentcat_20260624 AS
+SELECT id, incident_category, other_complaints, team_leader_notes,
+       emergency_trauma_details, emergency_general_details,
+       emergency_medical_details, emergency_ob_details
+FROM prehospital_forms WHERE incident_category IS NULL;
 
 
 -- ----------------------------------------------------------------------------

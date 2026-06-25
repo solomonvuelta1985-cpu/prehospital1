@@ -727,15 +727,25 @@ try {
     $stmt = db_query($sql, $params, true);
 
     // Persist structured incident category. When not explicitly set, auto-classify
-    // from all signal fields (specify boxes + complaint + narrative).
+    // from all signal fields: saved value -> trauma incident from text -> medical/OB
+    // clinical category (complaint, narrative, FAST, consciousness, care_management).
     if ($incident_category === null) {
-        $incident_category = classify_incident_from_record([
+        $incident_category = resolve_record_category([
+            'incident_category'         => null,
             'emergency_trauma_details'  => $emergency_trauma_details,
             'emergency_general_details' => $emergency_general_details,
             'emergency_medical_details' => $emergency_medical_details,
             'emergency_ob_details'      => $emergency_ob_details,
             'other_complaints'          => $other_complaints,
             'team_leader_notes'         => $team_leader_notes,
+            'emergency_ob'              => $emergency_ob,
+            'chief_complaints'          => is_array($chief_complaints) ? json_encode($chief_complaints) : $chief_complaints,
+            'care_management'           => is_array($care_management) ? implode(' ', $care_management) : (string)$care_management,
+            'initial_consciousness'     => $initial_consciousness,
+            'fast_face_drooping'        => $fast_face_drooping,
+            'fast_arm_weakness'         => $fast_arm_weakness,
+            'fast_speech_difficulty'    => $fast_speech_difficulty,
+            'fast_time_to_call'         => $fast_time_to_call,
         ]);
     }
     db_query("UPDATE prehospital_forms SET incident_category = ? WHERE id = ?", [$incident_category, $record_id], true);
