@@ -1820,6 +1820,7 @@ $current_user = get_auth_user();
     <script src="js/modules/injury-tracker.js?v=<?php echo asset_version(); ?>"></script>
     <script src="js/modules/camera.js?v=<?php echo asset_version(); ?>"></script>
     <script src="js/modules/form-tabs.js?v=<?php echo asset_version(); ?>"></script>
+    <script src="js/modules/auto-save.js?v=<?php echo asset_version(); ?>"></script>
     <script src="js/modules/validation.js?v=<?php echo asset_version(); ?>"></script>
     <script src="js/prehospital-form.js?v=<?php echo asset_version(); ?>"></script>
     <!-- Custom Date Components - Month/Day/Year dropdowns -->
@@ -2216,14 +2217,15 @@ fetch(API_BASE + 'autosave_draft.php', {
                         const oldDraftId = currentDraftId;
                         if (!currentDraftId || currentDraftId !== result.draft_id) {
                             currentDraftId = result.draft_id;
-                            // Update URL without reload
-                            const newUrl = window.location.pathname + '?draft_id=' + currentDraftId;
-                            window.history.replaceState({}, '', newUrl);
+                            // Update URL without reload (use full URL constructor to avoid cross-origin errors)
+                            const url = new URL(window.location.href);
+                            url.searchParams.set('draft_id', currentDraftId);
+                            window.history.replaceState({}, '', url.toString());
                             // Also update the hidden field
                             document.getElementById('draftIdField').value = currentDraftId;
                             console.log('Draft ID UPDATED: from', oldDraftId, 'to', currentDraftId);
                             console.log('Form number:', result.form_number);
-                            console.log('URL updated to:', newUrl);
+                            console.log('URL updated to:', url.toString());
                             console.log('Hidden field value:', document.getElementById('draftIdField').value);
                         } else {
                             console.log('Draft ID unchanged:', currentDraftId);
@@ -2296,9 +2298,9 @@ fetch(API_BASE + 'autosave_draft.php', {
                             document.getElementById('draftIdField').value = '';
 
                             // Clear URL parameter
-                            const url = new URL(window.location);
+                            const url = new URL(window.location.href);
                             url.searchParams.delete('draft_id');
-                            window.history.replaceState({}, '', url);
+                            window.history.replaceState({}, '', url.toString());
 
                             // Don't show error, just start with fresh form
                             return;
