@@ -1,0 +1,162 @@
+
+[1m┌──────────────────────────────────────────────────────────────────────┐
+[0m[1m│[0m  PRE-HOSPITAL CARE SYSTEM — BACKEND SAVE & DATA INTEGRITY TEST     [1m│[0m
+[1m│[0m  2026-07-01 10:01:43                                                 [1m│[0m
+[1m└──────────────────────────────────────────────────────────────────────┘
+[0m
+  [33m⚠  ALL TESTS USE TRANSACTIONS — NOTHING IS PERSISTED TO THE DATABASE[0m
+
+────────────────────────────────────────────────────────────────────────
+  [36m[1mPART 1: DIRECT DATABASE INSERTION TESTS[0m[0m
+
+  Using test user_id: 1
+
+  [32m✅ PASS[0m  1.1  Insert minimal valid record
+  [32m✅ PASS[0m  1.1b Default age_unit is "years"
+  [32m✅ PASS[0m  1.2  Insert full record (all optional columns)
+  [32m✅ PASS[0m  1.2b persons_present stored as valid JSON
+  [32m✅ PASS[0m  1.2c chief_complaints stored as valid JSON
+  [32m✅ PASS[0m  1.2d care_management stored as valid JSON
+  [32m✅ PASS[0m  1.3  Insert record with 3 injuries (foreign key relation)
+  [32m✅ PASS[0m  1.3b Injury data matches inserted values
+Database Query Error: SQLSTATE[HY000]: General error: 1364 Field 'form_number' doesn't have a default value
+SQL: INSERT INTO prehospital_forms (form_date, age, age_unit, gender,
+                emergency_medical, patient_name, status, created_by)
+            VALUES (?, ?, ?, ?, ?, ?, 'completed', ?)
+  [32m✅ PASS[0m  1.4  Insert NULL form_number (SHOULD FAIL — NOT NULL constraint)
+Database Query Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'TEST-DUP-20260701-2CA6710D' for key 'form_number'
+SQL: INSERT INTO prehospital_forms (
+                form_number, form_date, age, age_unit, gender,
+                emergency_medical, patient_name, status, created_by
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, 'completed', ?)
+  [32m✅ PASS[0m  1.5  Duplicate form_number (SHOULD FAIL if UNIQUE index exists)
+Database Query Error: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'vehicle_used' at row 1
+SQL: INSERT INTO prehospital_forms (
+                form_number, form_date, age, age_unit, gender, vehicle_used,
+                emergency_medical, patient_name, status, created_by
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'completed', ?)
+  [32m✅ PASS[0m  1.6  Insert invalid enum value "spaceship" for vehicle_used (SHOULD FAIL)
+Database Query Error: SQLSTATE[23000]: Integrity constraint violation: 1452 Cannot add or update a child row: a foreign key constraint fails (`pre_hospital_db`.`prehospital_forms`, CONSTRAINT `prehospital_forms_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL)
+SQL: INSERT INTO prehospital_forms (
+                form_number, form_date, age, age_unit, gender,
+                emergency_medical, patient_name, status, created_by
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, 'completed', ?)
+  [32m✅ PASS[0m  1.7  Foreign key enforcement on created_by
+  [32m✅ PASS[0m  1.8a Insert visible within transaction
+  [32m✅ PASS[0m  1.8b Transaction rolled back successfully
+  [32m✅ PASS[0m  1.8c Rollback actually removed the record (no dirty data)
+
+────────────────────────────────────────────────────────────────────────
+  [36m[1mPART 2: FUNCTION-LEVEL TESTS[0m[0m
+
+  [32m✅ PASS[0m  2.1.1 Encrypt/decrypt round-trip: "JOHN DOE"
+  [32m✅ PASS[0m  2.1.2 Encrypt/decrypt round-trip: "123 MAIN STREET, BAGGAO, CAGAYAN"
+  [32m✅ PASS[0m  2.1.3 Encrypt/decrypt round-trip: "TEST WITH SPECIAL CHARS: !@#$%^&*()_+-=["
+  [32m✅ PASS[0m  2.1.4 Encrypt/decrypt round-trip: "empty string"
+  [32m✅ PASS[0m  2.2a resolve_record_category — explicit vehicular accident
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+  [32m✅ PASS[0m  2.2b resolve_record_category — detects "MAULING" from trauma_details
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+  [32m✅ PASS[0m  2.2c resolve_record_category — detects "FALL INCIDENT" from trauma_details
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+  [32m✅ PASS[0m  2.2d classify_medical_category — detects stroke from FAST positive
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+  [32m✅ PASS[0m  2.2e classify_medical_category — detects chest pain
+  [32m✅ PASS[0m  2.2f classify_incident_category — "GUNSHOT WOUND"
+  [32m✅ PASS[0m  2.2g classify_incident_category — "ELECTROCUTION"
+  [32m✅ PASS[0m  2.2h classify_incident_category — null input returns null
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 727
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\prehospital\includes\functions.php on line 760
+  [32m✅ PASS[0m  2.2i resolve_record_category — falls back to medical for plain text
+  [32m✅ PASS[0m  2.3a sanitize handles null
+  [32m✅ PASS[0m  2.3b sanitize handles empty string
+  [32m✅ PASS[0m  2.3c sanitize strips HTML, escapes quotes, and uppercases
+  [32m✅ PASS[0m  2.3d sanitize with uppercase=false preserves case
+  [32m✅ PASS[0m  2.3e sanitize handles array input (uppercases each element)
+  [32m✅ PASS[0m  2.4a check_daily_form_limit returns true when under limit
+  [32m✅ PASS[0m  2.5a JSON persons_present column accepts valid JSON array
+
+────────────────────────────────────────────────────────────────────────
+  [36m[1mPART 3: BULK INSERT STRESS TEST[0m[0m
+
+  [32m✅ PASS[0m  3.1  Bulk insert 10 records in transaction
+  [32m✅ PASS[0m  3.2  Verify all bulk records exist within transaction
+  [32m✅ PASS[0m  3.3  Zero bulk records persist after rollback
+
+────────────────────────────────────────────────────────────────────────
+  [36m[1mPART 4: EDGE CASES & ERROR HANDLING[0m[0m
+
+Database Query Error: SQLSTATE[22001]: String data, right truncated: 1406 Data too long for column 'patient_name' at row 1
+SQL: INSERT INTO prehospital_forms (
+                form_number, form_date, age, age_unit, gender,
+                emergency_medical, patient_name, narrative_report, status, created_by
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'completed', ?)
+  [32m✅ PASS[0m  4.1a Insert 5000-char patient_name (should be rejected — VARCHAR(500))
+  [32m✅ PASS[0m  4.2  Unicode / special characters in patient_name
+  [32m✅ PASS[0m  4.3  Negative age accepted (no DB constraint — app layer must validate)
+  [32m✅ PASS[0m  4.4  Empty JSON arrays stored correctly
+Database Query Error: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'pre_hospital_db.non_existent_table_xyz' doesn't exist
+SQL: SELECT * FROM non_existent_table_xyz
+  [32m✅ PASS[0m  4.5  db_query returns false on SQL error (without throw)
+
+────────────────────────────────────────────────────────────────────────
+  [36m[1mPART 5: GLOBAL CLEANUP[0m[0m
+
+  [32m✅ No leaked test records found — all transactions properly rolled back[0m
+
+[1m┌──────────────────────────────────────────────────────────────────────┐
+[0m[1m│[0m  TEST RESULTS SUMMARY                                                    [1m│[0m
+[1m├──────────────────────────────────────────────────────────────────────┤
+[0m[1m│[0m  [32mPASSED:  43[0m [31mFAILED:  0[0m                            [1m│[0m
+[1m│[0m  TOTAL:   43          PASS RATE: 100%                          [1m│[0m
+[1m└──────────────────────────────────────────────────────────────────────┘
+[0m
+  [32m[1m🎉 ALL TESTS PASSED — BACKEND IS HEALTHY[0m[0m
+

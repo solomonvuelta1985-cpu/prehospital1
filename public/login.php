@@ -25,13 +25,10 @@ $restricted_username = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = sanitize($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
-    $recaptcha_response = $_POST['g-recaptcha-response'] ?? '';
-
     if (!verify_token($_POST['csrf_token'] ?? '')) {
         set_flash('Invalid security token', 'error');
     } else {
-        // reCAPTCHA verification is handled inside login_user()
-        $result = login_user($username, $password, $recaptcha_response);
+        $result = login_user($username, $password);
 
         if ($result['success']) {
             if (is_admin()) {

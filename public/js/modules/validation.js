@@ -95,15 +95,33 @@ function submitForm() {
         }
     }
 
-    const genderSelected = document.querySelector('input[name="gender"]:checked');
-    if (!genderSelected) {
+    const genderSelect = document.getElementById('gender');
+    if (!genderSelect || !genderSelect.value) {
         missingFields.push('Gender');
     }
 
-    // At least one Type of Emergency Call must be selected (Medical/Trauma/OB/General).
+    // At least one Type of Emergency Call must be selected (Medical/Trauma/OB/General),
+    // and any checked type MUST have its corresponding "specify" field filled.
     const emergencyTypeSelected = document.querySelector('input[name="emergency_type[]"]:checked');
     if (!emergencyTypeSelected) {
         missingFields.push('Type of Emergency Call (select at least one)');
+    } else {
+        const emergencySpecifyMap = {
+            'medical': { id: 'medicalSpecify', label: 'Medical specify' },
+            'trauma':  { id: 'traumaSpecify',  label: 'Trauma specify' },
+            'ob':      { id: 'obSpecify',      label: 'OB specify' },
+            'general': { id: 'generalSpecify', label: 'General specify' }
+        };
+        const checkedEmergencies = document.querySelectorAll('input[name="emergency_type[]"]:checked');
+        checkedEmergencies.forEach(function(cb) {
+            const map = emergencySpecifyMap[cb.value];
+            if (map) {
+                const specifyField = document.getElementById(map.id);
+                if (!specifyField || !specifyField.value.trim()) {
+                    missingFields.push(map.label + ' (must fill when checked)');
+                }
+            }
+        });
     }
 
     if (missingFields.length > 0) {

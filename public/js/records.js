@@ -20,6 +20,7 @@
         initSearch();
         initBatchActions();
         initEventDelegation();
+        initActionMenuPositioning();
         initAJAX();
         initColumnToggle();
         initBackToTop();
@@ -271,6 +272,52 @@
         });
     }
 
+    // ===== ACTIONS MENU POSITIONING (mobile) =====
+    function initActionMenuPositioning() {
+        var MOBILE_MAX = 768;
+        function isMobile() { return window.innerWidth <= MOBILE_MAX; }
+        function placeMenu(btn, menu) {
+            var r = btn.getBoundingClientRect();
+            var mw = menu.offsetWidth || 200;
+            var mh = menu.offsetHeight || 0;
+            var left = Math.max(8, r.right - mw);
+            if (left + mw > window.innerWidth - 8) left = window.innerWidth - mw - 8;
+            var top = r.bottom + 4;
+            if (mh && top + mh > window.innerHeight - 8) top = Math.max(8, r.top - mh - 4);
+            menu.style.setProperty('top', top + 'px', 'important');
+            menu.style.setProperty('left', left + 'px', 'important');
+        }
+        document.addEventListener('show.bs.dropdown', function(e) {
+            var dd = e.target.closest('.action-dropdown');
+            if (!dd || !isMobile()) return;
+            var menu = dd.querySelector('.dropdown-menu');
+            if (!menu) return;
+            menu.classList.add('action-menu-floating');
+        });
+        document.addEventListener('shown.bs.dropdown', function(e) {
+            var dd = e.target.closest('.action-dropdown');
+            if (!dd || !isMobile()) return;
+            var menu = dd.querySelector('.dropdown-menu.show');
+            if (!menu) return;
+            placeMenu(e.target, menu);
+            menu._floatingBtn = e.target;
+        });
+        document.addEventListener('hide.bs.dropdown', function(e) {
+            var dd = e.target.closest('.action-dropdown');
+            if (!dd || !isMobile()) return;
+            var menu = dd.querySelector('.dropdown-menu.show');
+            if (!menu) return;
+            menu.classList.remove('action-menu-floating');
+            ['top', 'left'].forEach(function(p) { menu.style.removeProperty(p); });
+            delete menu._floatingBtn;
+        });
+        window.addEventListener('scroll', function() {
+            if (!isMobile()) return;
+            var openMenu = document.querySelector('.action-dropdown .dropdown-menu.action-menu-floating.show');
+            if (openMenu && openMenu._floatingBtn) placeMenu(openMenu._floatingBtn, openMenu);
+        }, true);
+    }
+
     // ===== DELETE CONFIRMATION =====
     var confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
     if (confirmDeleteBtn) {
@@ -304,8 +351,34 @@
         viewRecordModal.show();
         fetch('../api/get_record.php?id=' + id)
             .then(function(r) { return r.json(); })
-            .then(function(data) { modalContent.innerHTML = data.success ? data.html : '<div class="alert" style="background:var(--danger-light);color:var(--danger);border:1px solid var(--danger-border);border-radius:8px;padding:1rem;"><i class="bi bi-exclamation-triangle-fill"></i> Error: ' + escapeHtml(data.message) + '</div>'; })
+            .then(function(data) {
+                if (data.success) {
+                    modalContent.innerHTML = data.html;
+                    initModalTabs();
+                } else {
+                    modalContent.innerHTML = '<div class="alert" style="background:var(--danger-light);color:var(--danger);border:1px solid var(--danger-border);border-radius:8px;padding:1rem;"><i class="bi bi-exclamation-triangle-fill"></i> Error: ' + escapeHtml(data.message) + '</div>';
+                }
+            })
             .catch(function() { modalContent.innerHTML = '<div class="alert" style="background:var(--danger-light);color:var(--danger);border:1px solid var(--danger-border);border-radius:8px;padding:1rem;"><i class="bi bi-exclamation-triangle-fill"></i> Failed to load record.</div>'; });
+    }
+
+    // ===== MODAL TAB SWITCHING =====
+    function initModalTabs() {
+        var tabs = document.querySelectorAll('#modalRecordContent .mv-tab');
+        var panes = document.querySelectorAll('#modalRecordContent .mv-tab-content');
+
+        tabs.forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                var target = this.getAttribute('data-mv-tab');
+
+                tabs.forEach(function(t) { t.classList.remove('active'); });
+                panes.forEach(function(p) { p.classList.remove('active'); });
+
+                this.classList.add('active');
+                var targetPane = document.getElementById('mv-tab-' + target);
+                if (targetPane) targetPane.classList.add('active');
+            });
+        });
     }
 
     // ===== MARK AS COMPLETED =====

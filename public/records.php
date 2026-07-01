@@ -550,35 +550,80 @@ $completion_rate = $total_records > 0 ? round(($completed_count / $total_records
                 'sort' => $sort_by !== 'newest' ? $sort_by : '',
                 'per_page' => $per_page !== 20 ? $per_page : '',
             ]));
+            $showing_from = $total_records > 0 ? $offset + 1 : 0;
+            $showing_to = min($offset + $per_page, $total_records);
             ?>
-            <?php if ($total_pages > 1): ?>
-                <nav class="pagination-nav" aria-label="Page navigation">
-                    <ul class="pagination justify-content-center">
-                        <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
-                            <a class="page-link" href="?page=<?php echo $page - 1; ?>&<?php echo $filter_params; ?>" aria-label="Previous">
-                                <i class="bi bi-chevron-left"></i>
-                            </a>
-                        </li>
-
-                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                            <?php if ($i == 1 || $i == $total_pages || abs($i - $page) <= 2): ?>
-                                <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
-                                    <a class="page-link" href="?page=<?php echo $i; ?>&<?php echo $filter_params; ?>">
-                                        <?php echo $i; ?>
-                                    </a>
-                                </li>
-                            <?php elseif (abs($i - $page) == 3): ?>
-                                <li class="page-item disabled"><span class="page-link">...</span></li>
-                            <?php endif; ?>
-                        <?php endfor; ?>
-
-                        <li class="page-item <?php echo $page >= $total_pages ? 'disabled' : ''; ?>">
-                            <a class="page-link" href="?page=<?php echo $page + 1; ?>&<?php echo $filter_params; ?>" aria-label="Next">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
+            <?php if ($total_pages > 1 || $total_records > 0): ?>
+                <div class="pagination-bar">
+                    <div class="pagination-info">
+                        <span class="pagination-info-text">
+                            Showing <strong><?php echo number_format($showing_from); ?></strong>–<strong><?php echo number_format($showing_to); ?></strong> of <strong><?php echo number_format($total_records); ?></strong> records
+                        </span>
+                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination-modern">
+                            <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
+                                <a class="page-link page-link-icon" href="?page=1&<?php echo $filter_params; ?>" aria-label="First page" title="First page">
+                                    <i class="bi bi-chevron-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
+                                <a class="page-link page-link-icon" href="?page=<?php echo $page - 1; ?>&<?php echo $filter_params; ?>" aria-label="Previous" title="Previous page">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                                <?php if ($i == 1 || $i == $total_pages || abs($i - $page) <= 2): ?>
+                                    <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
+                                        <a class="page-link" href="?page=<?php echo $i; ?>&<?php echo $filter_params; ?>">
+                                            <?php echo $i; ?>
+                                        </a>
+                                    </li>
+                                <?php elseif (abs($i - $page) == 3): ?>
+                                    <li class="page-item disabled page-ellipsis"><span class="page-link">…</span></li>
+                                <?php endif; ?>
+                            <?php endfor; ?>
+                            <li class="page-item <?php echo $page >= $total_pages ? 'disabled' : ''; ?>">
+                                <a class="page-link page-link-icon" href="?page=<?php echo $page + 1; ?>&<?php echo $filter_params; ?>" aria-label="Next" title="Next page">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item <?php echo $page >= $total_pages ? 'disabled' : ''; ?>">
+                                <a class="page-link page-link-icon" href="?page=<?php echo $total_pages; ?>&<?php echo $filter_params; ?>" aria-label="Last page" title="Last page">
+                                    <i class="bi bi-chevron-double-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                    <div class="pagination-jump">
+                        <span class="pagination-jump-label">Go to</span>
+                        <form method="GET" action="" class="pagination-jump-form" onsubmit="var p=parseInt(this.elements.page.value,10);if(p<1||p><?php echo $total_pages; ?>||isNaN(p)){this.elements.page.value='';return false;}return true;">
+                            <?php
+                            $jump_params = array_filter([
+                                'search' => $search,
+                                'status' => $status_filter,
+                                'date_from' => $date_from,
+                                'date_to' => $date_to,
+                                'month' => $month_filter ?: '',
+                                'year' => $year_filter ?: '',
+                                'emergency' => $emergency_filter,
+                                'vehicle' => $vehicle_filter,
+                                'sort' => $sort_by !== 'newest' ? $sort_by : '',
+                                'per_page' => $per_page !== 20 ? $per_page : '',
+                            ]);
+                            foreach ($jump_params as $key => $val):
+                                if ($val !== ''): ?>
+                                    <input type="hidden" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars((string)$val); ?>">
+                                <?php endif;
+                            endforeach; ?>
+                            <input type="number" name="page" class="pagination-jump-input"
+                                   min="1" max="<?php echo $total_pages; ?>"
+                                   placeholder="<?php echo $page; ?>"
+                                   aria-label="Go to page number">
+                            <span class="pagination-jump-total">/ <?php echo $total_pages; ?></span>
+                        </form>
+                    </div>
+                </div>
             <?php endif; ?>
         </div>
     </div>
@@ -594,7 +639,15 @@ $completion_rate = $total_records > 0 ? round(($completed_count / $total_records
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="bi bi-file-earmark-medical me-2"></i>View Record</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="modal-header-actions">
+                        <button type="button" class="btn-ghost btn-sm" id="viewFullDetailsBtn">
+                            <i class="bi bi-arrows-fullscreen"></i> Full Details
+                        </button>
+                        <button type="button" class="btn-primary btn-sm" id="editRecordBtn">
+                            <i class="bi bi-pencil"></i> Edit
+                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
                 </div>
                 <div class="modal-body" id="modalRecordContent">
                     <div class="text-center py-5">
@@ -604,15 +657,10 @@ $completion_rate = $total_records > 0 ? round(($completed_count / $total_records
                         <p class="mt-3" style="color:var(--gray-500);">Loading record details...</p>
                     </div>
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer modal-footer-record">
+                    <span class="modal-footer-hint"><i class="bi bi-info-circle"></i> Use the tabs to navigate sections</span>
                     <button type="button" class="btn-ghost btn-sm" data-bs-dismiss="modal">
                         <i class="bi bi-x-lg"></i> Close
-                    </button>
-                    <button type="button" class="btn-ghost btn-sm" id="viewFullDetailsBtn">
-                        <i class="bi bi-arrows-fullscreen"></i> Full Details
-                    </button>
-                    <button type="button" class="btn-primary btn-sm" id="editRecordBtn">
-                        <i class="bi bi-pencil"></i> Edit
                     </button>
                 </div>
             </div>

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Pre-Hospital Care Form - PHP Version
  * Maintains exact HTML design with PHP security features
@@ -40,19 +40,18 @@ $current_user = get_auth_user();
     <link href="css/records-style.css?v=<?php echo asset_version(); ?>" rel="stylesheet">
     <link href="css/prehospital-form.css?v=<?php echo asset_version(); ?>" rel="stylesheet">
     <style>
-        /* Indigo Design System Overrides — matching records/dashboard aesthetic */
-        :root {
-            --brand-accent: #4f46e5;
-            --brand-accent-light: #6366f1;
-            --brand-accent-muted: #a5b4fc;
-            --primary-color: #4f46e5;
-            --secondary-color: #4338ca;
-        }
+        /* Indigo design tokens now live in css/prehospital-form.css (:root).
+           Only page-specific layout/overrides remain inline below. */
 
         /* Sidebar Layout Compatibility - Corporate Design 2026 */
         body { overflow: auto !important; height: auto !important; }
-        .content { overflow-y: auto !important; overflow-x: hidden !important; padding-bottom: 0 !important; min-height: 100vh; max-height: 100vh; position: relative; }
-        .form-container { overflow: visible !important; height: auto !important; max-width: 100%; margin-bottom: 0; padding-bottom: 0; }
+        /* Flat full-bleed form: kill the gray gutter + inset so the form is NOT a card.
+           The form fills the content area edge-to-edge on a single white surface. */
+        .content { overflow-y: auto !important; overflow-x: hidden !important; padding-bottom: 0 !important; min-height: 100vh; max-height: 100vh; position: relative; background: #ffffff !important; }
+        .content > .container-fluid { padding: 0 !important; max-width: 100% !important; }
+        /* Header keeps comfortable side padding now that the container gutter is gone */
+        .content > .container-fluid > .page-header-inline { padding: var(--space-page, 1.25rem) var(--space-page, 1.5rem) 0; margin-bottom: 1rem; }
+        .form-container { overflow: visible !important; height: auto !important; max-width: 100%; margin-bottom: 0; padding-bottom: 0; background: #ffffff !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; }
         .form-body { overflow: visible !important; max-height: none !important; padding-bottom: 2rem !important; min-height: calc(100vh - 400px) !important; }
         .tab-content { overflow: visible !important; padding-bottom: 0 !important; }
         .tab-pane { padding-bottom: 0 !important; }
@@ -79,7 +78,7 @@ $current_user = get_auth_user();
         .nav-tabs { border-bottom: 2px solid var(--gray-200, #e5e7eb); display: flex; flex-wrap: nowrap; gap: 0; padding: 0; position: relative; }
         .nav-item { flex: 0 0 auto; min-width: auto; position: relative; margin: 0; }
         .nav-link { background: transparent; color: #64748b; border: none; border-bottom: 3px solid transparent; padding: 0.75rem 0.875rem; font-weight: 600; font-size: 0.875rem; font-style: normal; text-align: center; position: relative; border-radius: 0; transition: all .2s ease; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 0.35rem; }
-        .nav-item:not(:last-child) .nav-link::after { content: '›'; position: absolute; right: -4px; font-size: 1.25rem; color: #cbd5e1; font-weight: 300; z-index: 1; }
+        .nav-item:not(:last-child) .nav-link::after { content: 'â€º'; position: absolute; right: -4px; font-size: 1.25rem; color: #cbd5e1; font-weight: 300; z-index: 1; }
         .nav-link:hover { color: #4f46e5; background: rgba(79,70,229,0.05); border-bottom-color: #a5b4fc; }
         .nav-link.active { color: #4f46e5; background: transparent; border-bottom-color: #4f46e5; font-weight: 700; }
         .nav-link.active::after { color: #4f46e5 !important; }
@@ -93,8 +92,8 @@ $current_user = get_auth_user();
         @media (max-width: 576px) { input[type="time"], input[type="datetime-local"], input[type="date"] { font-size: 16px !important; min-height: 50px !important; } }
 
         /* Uppercase Inputs */
-        input[type="text"]:not(.no-uppercase), input[type="email"], input[type="tel"], input[type="url"], select { text-transform: uppercase !important; }
-        textarea, input[type="text"].no-uppercase { text-transform: none !important; }
+        input[type="text"]:not(.no-uppercase), input[type="email"], input[type="tel"], input[type="url"], select, #teamLeaderNotes { text-transform: uppercase !important; }
+        textarea:not(#teamLeaderNotes), input[type="text"].no-uppercase { text-transform: none !important; }
         input::placeholder, textarea::placeholder { text-transform: none !important; }
 
         /* Vehicle Display Bar - Indigo */
@@ -405,6 +404,8 @@ $current_user = get_auth_user();
                         <div class="subsection-title">
                             <i class="bi bi-calendar-event"></i> Date & Vehicle
                         </div>
+
+                        <!-- Date + Vehicle Used â€” side by side -->
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="formDate" class="form-label required-field">Date</label>
@@ -412,7 +413,7 @@ $current_user = get_auth_user();
                             </div>
                             <div>
                                 <label class="form-label">Vehicle Used</label>
-                                <div class="inline-group">
+                                <div class="inline-group" style="min-height: var(--input-h); align-items: center;">
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="vehicle_used" id="ambulance" value="ambulance">
                                         <label class="form-check-label" for="ambulance">Ambulance</label>
@@ -426,42 +427,32 @@ $current_user = get_auth_user();
                                         <label class="form-check-label" for="othersVehicle">Others</label>
                                     </div>
                                 </div>
-                                <!-- Ambulance Dropdown -->
-                                <div id="ambulanceDropdownContainer" style="display: none; margin-top: 0.5rem;">
-                                    <select class="form-select" id="ambulanceSelect">
-                                        <option value="">-- Select Ambulance --</option>
-                                        <option value="V1">V1</option>
-                                        <option value="V2">V2</option>
-                                        <option value="V3">V3</option>
-                                        <option value="V4">V4</option>
-                                        <option value="V5">V5</option>
-                                        <option value="V6">V6</option>
-                                        <option value="V7">V7</option>
-                                        <option value="V8">V8</option>
-                                        <option value="V9">V9</option>
-                                        <option value="V10">V10</option>
-                                        <option value="V11">V11</option>
-                                        <option value="V12">V12</option>
-                                        <option value="V13">V13</option>
-                                        <option value="V14">V14</option>
-                                        <option value="V15">V15</option>
-                                        <option value="V16">V16</option>
-                                        <option value="V17">V17</option>
-                                        <option value="V18">V18</option>
-                                    </select>
-                                </div>
                             </div>
                         </div>
-                        <input type="hidden" name="vehicle_details" id="vehicleDetails">
-                        <!-- Selected Vehicle Display -->
-                        <div id="selectedVehicleDisplay" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: linear-gradient(90deg, #eff6ff 0%, #dbeafe 100%); border-left: 4px solid #3b82f6; border-radius: 8px;">
-                            <strong style="color: #1e3a5f;">Selected Vehicle:</strong>
-                            <span id="selectedVehicleText" style="color: #1e293b; margin-left: 0.5rem;"></span>
+
+                        <!-- Ambulance Unit â€” own row; opens a modal picker -->
+                        <div id="ambulanceDropdownContainer" class="mb-section" style="display: none; max-width: 24rem;">
+                            <label class="form-label">Ambulance Unit</label>
+                            <!-- Hidden select preserves the existing JS/save/resume contract:
+                                 the modal writes its value and dispatches 'change'. -->
+                            <select id="ambulanceSelect" tabindex="-1" aria-hidden="true" style="display:none !important;">
+                                <option value="">-- Select Ambulance --</option>
+                                <?php for ($__v = 1; $__v <= 18; $__v++): ?>
+                                <option value="V<?php echo $__v; ?>">V<?php echo $__v; ?></option>
+                                <?php endfor; ?>
+                            </select>
+                            <!-- Trigger: shows current pick, opens the picker modal -->
+                            <button type="button" class="unit-trigger" id="ambulanceUnitTrigger" data-bs-toggle="modal" data-bs-target="#ambulanceUnitModal">
+                                <span class="unit-trigger-value" id="ambulanceUnitTriggerText">Select unitâ€¦</span>
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
                         </div>
 
-                        <div class="mb-section">
-                            <label for="driver" class="form-label">Driver</label>
-                            <input type="text" class="form-control" id="driver" name="driver" placeholder="Driver name">
+                        <input type="hidden" name="vehicle_details" id="vehicleDetails">
+                        <!-- Selected Vehicle Display -->
+                        <div id="selectedVehicleDisplay" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: linear-gradient(90deg, #eef2ff 0%, #e0e7ff 100%); border-left: 4px solid #4f46e5; border-radius: 8px;">
+                            <strong style="color: #3730a3;">Selected Vehicle:</strong>
+                            <span id="selectedVehicleText" style="color: #1e293b; margin-left: 0.5rem;"></span>
                         </div>
 
                         <hr class="section-divider-light">
@@ -471,13 +462,44 @@ $current_user = get_auth_user();
                             <i class="bi bi-clock-history"></i> Response Timeline
                         </div>
 
-                        <!-- 1. Departure Time -->
-                        <div class="mb-section">
-                            <label for="depTime" class="form-label required-field">Departure Time</label>
-                            <input type="text" class="form-control time-input-12hr" id="depTime" name="departure_time" placeholder="2:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true" required>
+                        <!-- Walk In / Call + Call/Arrival Time + Contact Number -->
+                        <div class="grid-3 mb-section">
+                            <div>
+                                <label class="form-label">Walk In / Call</label>
+                                <div class="inline-group">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="arrival_type" id="walkIn" value="walkIn">
+                                        <label class="form-check-label" for="walkIn">Walk In</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="arrival_type" id="call" value="call">
+                                        <label class="form-check-label" for="call">Call</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="callArrTime" class="form-label">Call/Arrival Time</label>
+                                <input type="text" class="form-control time-input-12hr" id="callArrTime" name="call_arrival_time" placeholder="--:-- --" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                            </div>
+                            <div>
+                                <label for="cpNumber" class="form-label">Contact Number</label>
+                                <input type="tel" class="form-control" id="cpNumber" name="contact_number" placeholder="Contact number">
+                            </div>
+                        </div>
+
+                        <!-- 1. Driver + Departure Time -->
+                        <div class="grid-2 mb-section">
+                            <div>
+                                <label for="driver" class="form-label">Driver</label>
+                                <input type="text" class="form-control" id="driver" name="driver" placeholder="Driver name">
+                            </div>
+                            <div>
+                                <label for="depTime" class="form-label required-field">Departure Time</label>
+                                <input type="text" class="form-control time-input-12hr" id="depTime" name="departure_time" placeholder="--:-- --" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true" required>
+                            </div>
                             <!-- <div>
                                 <label for="arrTime" class="form-label">Arrival Time</label>
-                                <input type="text" class="form-control time-input-12hr" id="arrTime" name="arrival_time" placeholder="3:45 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                                <input type="text" class="form-control time-input-12hr" id="arrTime" name="arrival_time" placeholder="--:-- --" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div> -->
                         </div>
 
@@ -489,7 +511,7 @@ $current_user = get_auth_user();
                             </div>
                             <div>
                                 <label for="arrSceneTime" class="form-label">Arrival at Scene - Time</label>
-                                <input type="text" class="form-control time-input-12hr" id="arrSceneTime" name="arrival_scene_time" placeholder="4:15 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                                <input type="text" class="form-control time-input-12hr" id="arrSceneTime" name="arrival_scene_time" placeholder="--:-- --" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
 
@@ -501,7 +523,7 @@ $current_user = get_auth_user();
                             </div>
                             <div>
                                 <label for="depSceneTime" class="form-label">Departure from Scene - Time</label>
-                                <input type="text" class="form-control time-input-12hr" id="depSceneTime" name="departure_scene_time" placeholder="5:00 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                                <input type="text" class="form-control time-input-12hr" id="depSceneTime" name="departure_scene_time" placeholder="--:-- --" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
 
@@ -513,20 +535,20 @@ $current_user = get_auth_user();
                             </div>
                             <div>
                                 <label for="arrHospTime" class="form-label">Arrival at Hospital - Time</label>
-                                <input type="text" class="form-control time-input-12hr" id="arrHospTime" name="arrival_hospital_time" placeholder="5:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                                <input type="text" class="form-control time-input-12hr" id="arrHospTime" name="arrival_hospital_time" placeholder="--:-- --" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
 
-                        <!-- 5. Departure from Hospital -->
-                        <div class="mb-section">
-                            <label for="depHospTime" class="form-label">Departure from Hospital - Time</label>
-                            <input type="text" class="form-control time-input-12hr" id="depHospTime" name="departure_hospital_time" placeholder="6:00 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
-                        </div>
-
-                        <!-- 6. Arrival at Station -->
-                        <div class="mb-section">
-                            <label for="arrStation" class="form-label">Arrival at Station</label>
-                            <input type="text" class="form-control time-input-12hr" id="arrStation" name="arrival_station_time" placeholder="6:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                        <!-- 5-6. Departure from Hospital + Arrival at Station -->
+                        <div class="grid-2 mb-section">
+                            <div>
+                                <label for="depHospTime" class="form-label">Departure from Hospital - Time</label>
+                                <input type="text" class="form-control time-input-12hr" id="depHospTime" name="departure_hospital_time" placeholder="--:-- --" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                            </div>
+                            <div>
+                                <label for="arrStation" class="form-label">Arrival at Station</label>
+                                <input type="text" class="form-control time-input-12hr" id="arrStation" name="arrival_station_time" placeholder="--:-- --" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                            </div>
                         </div>
 
                         <hr class="section-divider-light">
@@ -574,27 +596,26 @@ $current_user = get_auth_user();
                         <div class="subsection-title">
                             <i class="bi bi-person-badge"></i> Personal Details
                         </div>
-                        <div class="grid-2 mb-section">
-                            <div style="grid-column: span 2;">
-                                <label for="patientName" class="form-label required-field">Patient Name</label>
-                                <input type="text" class="form-control" id="patientName" name="patient_name" placeholder="Last Name, First Name, Middle Initial" required>
+                        <!-- Patient Name â€” own row -->
+                        <div class="mb-section">
+                            <label for="patientName" class="form-label required-field">Patient Name</label>
+                            <input type="text" class="form-control" id="patientName" name="patient_name" placeholder="Last Name, First Name, Middle Initial" required>
+                        </div>
+
+                        <!-- DOB Â· Age Â· Growth Status â€” balanced row -->
+                        <div class="grid-3 mb-section">
+                            <div>
+                                <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="dateOfBirth" name="date_of_birth">
                             </div>
-                            <div style="grid-column: span 2;">
-                                <div class="grid-2">
-                                    <div>
-                                        <label for="dateOfBirth" class="form-label">Date of Birth</label>
-                                        <input type="date" class="form-control" id="dateOfBirth" name="date_of_birth">
-                                    </div>
-                                    <div>
-                                        <label for="age" class="form-label required-field">Age</label>
-                                        <div class="input-group">
-                                            <input type="number" class="form-control" id="age" name="age" min="0" max="150" placeholder="Enter age" required>
-                                            <select class="form-select" id="ageUnit" name="age_unit" style="max-width: 110px;">
-                                                <option value="years" selected>Years</option>
-                                                <option value="months">Months</option>
-                                            </select>
-                                        </div>
-                                    </div>
+                            <div>
+                                <label for="age" class="form-label required-field">Age</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="age" name="age" min="0" max="150" placeholder="Enter age" required>
+                                    <select class="form-select" id="ageUnit" name="age_unit" style="max-width: 110px;">
+                                        <option value="years" selected>Years</option>
+                                        <option value="months">Months</option>
+                                    </select>
                                 </div>
                             </div>
                             <div>
@@ -611,42 +632,23 @@ $current_user = get_auth_user();
 
                         <div class="grid-2 mb-section">
                             <div>
-                                <label class="form-label required-field">Gender</label>
-                                <div class="inline-group">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="gender" id="male" value="male" required>
-                                        <label class="form-check-label" for="male">Male</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="gender" id="female" value="female" required>
-                                        <label class="form-check-label" for="female">Female</label>
-                                    </div>
-                                </div>
+                                <label for="gender" class="form-label required-field">Gender</label>
+                                <select class="form-select" id="gender" name="gender" required>
+                                    <option value="">Select Gender...</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                </select>
                             </div>
                             <div>
-                                <label class="form-label">Civil Status</label>
-                                <div class="inline-group inline-group-compact">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="civil_status" id="single" value="single">
-                                        <label class="form-check-label" for="single">Single</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="civil_status" id="married" value="married">
-                                        <label class="form-check-label" for="married">Married</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="civil_status" id="widowed" value="widowed">
-                                        <label class="form-check-label" for="widowed">Widowed</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="civil_status" id="divorced" value="divorced">
-                                        <label class="form-check-label" for="divorced">Divorced</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="civil_status" id="separated" value="separated">
-                                        <label class="form-check-label" for="separated">Separated</label>
-                                    </div>
-                                </div>
+                                <label for="civilStatus" class="form-label">Civil Status</label>
+                                <select class="form-select" id="civilStatus" name="civil_status">
+                                    <option value="">Select Civil Status...</option>
+                                    <option value="single">Single</option>
+                                    <option value="married">Married</option>
+                                    <option value="widowed">Widowed</option>
+                                    <option value="divorced">Divorced</option>
+                                    <option value="separated">Separated</option>
+                                </select>
                             </div>
                         </div>
 
@@ -690,7 +692,7 @@ $current_user = get_auth_user();
                             </div>
                             <div>
                                 <label for="incidentTime" class="form-label">Time of Incident</label>
-                                <input type="text" class="form-control time-input-12hr" id="incidentTime" name="incident_time" placeholder="3:00 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                                <input type="text" class="form-control time-input-12hr" id="incidentTime" name="incident_time" placeholder="--:-- --" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                         </div>
                         -->
@@ -712,29 +714,6 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
-                        <div class="grid-3 mb-section">
-                            <div>
-                                <label class="form-label">Walk In / Call</label>
-                                <div class="inline-group">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="arrival_type" id="walkIn" value="walkIn">
-                                        <label class="form-check-label" for="walkIn">Walk In</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="arrival_type" id="call" value="call">
-                                        <label class="form-check-label" for="call">Call</label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <label for="callArrTime" class="form-label">Call/Arrival Time</label>
-                                <input type="text" class="form-control time-input-12hr" id="callArrTime" name="call_arrival_time" placeholder="2:45 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
-                            </div>
-                            <div>
-                                <label for="cpNumber" class="form-label">Contact Number</label>
-                                <input type="tel" class="form-control" id="cpNumber" name="contact_number" placeholder="Contact number">
-                            </div>
-                        </div>
 
                         <hr class="section-divider-light">
 
@@ -746,6 +725,8 @@ $current_user = get_auth_user();
                             <div>
                                 <label for="relationshipVictim" class="form-label">Relationship to Victim</label>
                                 <input type="text" class="form-control" id="relationshipVictim" name="relationship_victim" placeholder="e.g., Spouse, Parent, Sibling">
+                                <label for="otherBelongings" class="form-label" style="margin-top: 1rem;">Other Belongings (specify)</label>
+                                <input type="text" class="form-control" id="otherBelongings" name="other_belongings" placeholder="List other belongings not mentioned above">
                             </div>
                             <div>
                                 <label for="personalBelongings" class="form-label">Personal Belongings</label>
@@ -762,11 +743,6 @@ $current_user = get_auth_user();
                                 </select>
                                 <small class="text-muted">Hold Ctrl/Cmd to select multiple items</small>
                             </div>
-                        </div>
-                        
-                        <div class="mb-section">
-                            <label for="otherBelongings" class="form-label">Other Belongings (specify)</label>
-                            <input type="text" class="form-control" id="otherBelongings" name="other_belongings" placeholder="List other belongings not mentioned above">
                         </div>
 
                         <hr class="section-divider">
@@ -892,7 +868,7 @@ $current_user = get_auth_user();
                 <div class="tab-pane fade" id="section3" role="tabpanel">
                     <div class="form-section">
                         <div class="section-title">
-                            <i class="bi bi-telephone-fill"></i> Type of Emergency Call
+                            <i class="bi bi-telephone-fill"></i> Type of Emergency Call <span class="required-field"></span>
                         </div>
 
                         <div class="grid-2 mb-section">
@@ -931,11 +907,9 @@ $current_user = get_auth_user();
                             <?php endforeach; ?>
                         </datalist>
 
-                        <div class="grid-2 mb-section">
-                            <div>
-                                <label for="incidentTime" class="form-label">Time of Incident</label>
-                                <input type="text" class="form-control time-input-12hr" id="incidentTime" name="incident_time" placeholder="3:00 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
-                            </div>
+                        <div class="mb-section" style="max-width: 24rem;">
+                            <label for="incidentTime" class="form-label">Time of Incident</label>
+                            <input type="text" class="form-control time-input-12hr" id="incidentTime" name="incident_time" placeholder="--:-- --" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                         </div>
 
                         <hr class="section-divider">
@@ -981,7 +955,7 @@ $current_user = get_auth_user();
 
                         <div class="grid-2 mb-section">
                             <div>
-                                <label for="o2LPM" class="form-label">O² (LPM via)</label>
+                                <label for="o2LPM" class="form-label">OÂ² (LPM via)</label>
                                 <input type="text" class="form-control" id="o2LPM" name="oxygen_lpm" placeholder="Oxygen delivery method and rate">
                             </div>
                             <div>
@@ -1002,14 +976,14 @@ $current_user = get_auth_user();
                         <div class="grid-4 mb-section">
                             <div>
                                 <label for="initialTime" class="form-label">Time</label>
-                                <input type="text" class="form-control time-input-12hr" id="initialTime" name="initial_time" placeholder="4:00 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                                <input type="text" class="form-control time-input-12hr" id="initialTime" name="initial_time" placeholder="--:-- --" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                             <div>
                                 <label for="initialBP" class="form-label">Blood Pressure</label>
                                 <input type="text" class="form-control" id="initialBP" name="initial_bp" placeholder="120/80">
                             </div>
                             <div>
-                                <label for="initialTemp" class="form-label">Temp (°C)</label>
+                                <label for="initialTemp" class="form-label">Temp (Â°C)</label>
                                 <input type="number" class="form-control" id="initialTemp" name="initial_temp" step="0.1" placeholder="36.5">
                             </div>
                             <div>
@@ -1085,8 +1059,9 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
-                        <hr class="section-divider">
+                    </div>
 
+                    <div class="form-section">
                         <div class="section-title">
                             <i class="bi bi-arrow-repeat"></i> Follow-up Vital Signs
                         </div>
@@ -1094,14 +1069,14 @@ $current_user = get_auth_user();
                         <div class="grid-4 mb-section">
                             <div>
                                 <label for="followupTime" class="form-label">Time</label>
-                                <input type="text" class="form-control time-input-12hr" id="followupTime" name="followup_time" placeholder="4:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                                <input type="text" class="form-control time-input-12hr" id="followupTime" name="followup_time" placeholder="--:-- --" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                             <div>
                                 <label for="followupBP" class="form-label">Blood Pressure</label>
                                 <input type="text" class="form-control" id="followupBP" name="followup_bp" placeholder="120/80">
                             </div>
                             <div>
-                                <label for="followupTemp" class="form-label">Temp (°C)</label>
+                                <label for="followupTemp" class="form-label">Temp (Â°C)</label>
                                 <input type="number" class="form-control" id="followupTemp" name="followup_temp" step="0.1" placeholder="36.5">
                             </div>
                             <div>
@@ -1140,7 +1115,7 @@ $current_user = get_auth_user();
 
                         <hr class="section-divider-light">
 
-                        <div>
+                        <div class="mb-section">
                             <label class="form-label">Level of Consciousness</label>
                             <div class="inline-group">
                                 <div class="form-check">
@@ -1365,7 +1340,7 @@ $current_user = get_auth_user();
                                                     <input type="radio" name="face_drooping" id="facePos" value="positive" class="toggle-input">
                                                     <label for="facePos" class="toggle-btn toggle-positive">(+)</label>
                                                     <input type="radio" name="face_drooping" id="faceNeg" value="negative" class="toggle-input">
-                                                    <label for="faceNeg" class="toggle-btn toggle-negative">(−)</label>
+                                                    <label for="faceNeg" class="toggle-btn toggle-negative">(âˆ’)</label>
                                                 </div>
                                             </div>
                                         </div>
@@ -1377,7 +1352,7 @@ $current_user = get_auth_user();
                                                     <input type="radio" name="arm_weakness" id="armPos" value="positive" class="toggle-input">
                                                     <label for="armPos" class="toggle-btn toggle-positive">(+)</label>
                                                     <input type="radio" name="arm_weakness" id="armNeg" value="negative" class="toggle-input">
-                                                    <label for="armNeg" class="toggle-btn toggle-negative">(−)</label>
+                                                    <label for="armNeg" class="toggle-btn toggle-negative">(âˆ’)</label>
                                                 </div>
                                             </div>
                                         </div>
@@ -1389,7 +1364,7 @@ $current_user = get_auth_user();
                                                     <input type="radio" name="speech_difficulty" id="speechPos" value="positive" class="toggle-input">
                                                     <label for="speechPos" class="toggle-btn toggle-positive">(+)</label>
                                                     <input type="radio" name="speech_difficulty" id="speechNeg" value="negative" class="toggle-input">
-                                                    <label for="speechNeg" class="toggle-btn toggle-negative">(−)</label>
+                                                    <label for="speechNeg" class="toggle-btn toggle-negative">(âˆ’)</label>
                                                 </div>
                                             </div>
                                         </div>
@@ -1401,7 +1376,7 @@ $current_user = get_auth_user();
                                                     <input type="radio" name="time_to_call" id="timePos" value="positive" class="toggle-input">
                                                     <label for="timePos" class="toggle-btn toggle-positive">(+)</label>
                                                     <input type="radio" name="time_to_call" id="timeNeg" value="negative" class="toggle-input">
-                                                    <label for="timeNeg" class="toggle-btn toggle-negative">(−)</label>
+                                                    <label for="timeNeg" class="toggle-btn toggle-negative">(âˆ’)</label>
                                                 </div>
                                             </div>
                                         </div>
@@ -1467,7 +1442,7 @@ $current_user = get_auth_user();
                                 </div>
                                 <div>
                                     <label for="timeOfDelivery" class="form-label">Delivery Time</label>
-                                    <input type="text" class="form-control time-input-12hr" id="timeOfDelivery" name="ob_delivery_time" placeholder="11:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                                    <input type="text" class="form-control time-input-12hr" id="timeOfDelivery" name="ob_delivery_time" placeholder="--:-- --" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                                 </div>
                                 <div>
                                     <label class="form-label">Placenta</label>
@@ -1555,11 +1530,10 @@ $current_user = get_auth_user();
                                 <label for="hospital" class="form-label">Hospital Name</label>
                                 <input type="text" class="form-control" id="hospital" name="hospital_name" placeholder="Hospital name">
                             </div>
-                        </div>
-
-                        <div class="mb-section">
-                            <label for="dateTime" class="form-label">Endorsement Date & Time</label>
-                            <input type="datetime-local" class="form-control" id="dateTime" name="endorsement_datetime" style="max-width: 300px;">
+                            <div>
+                                <label for="dateTime" class="form-label">Endorsement Date & Time</label>
+                                <input type="datetime-local" class="form-control" id="dateTime" name="endorsement_datetime">
+                            </div>
                         </div>
 
                         <!-- Endorsement Attachment - Corporate Design -->
@@ -1788,11 +1762,34 @@ $current_user = get_auth_user();
     </div>
 
     <!-- Fire Truck Selection Modal -->
-    <div class="modal fade" id="fireTruckModal" tabindex="-1" aria-labelledby="fireTruckModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+    <!-- Ambulance Unit Picker Modal -->
+    <div class="modal fade" id="ambulanceUnitModal" tabindex="-1" aria-labelledby="ambulanceUnitModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="fireTruckModalLabel">Select Fire Truck Type</h5>
+                    <h5 class="modal-title" id="ambulanceUnitModalLabel">
+                        <i class="bi bi-truck-front-fill me-2"></i>Select Ambulance Unit
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="unit-grid" id="ambulanceUnitGrid" role="radiogroup" aria-label="Ambulance Unit">
+                        <?php for ($__v = 1; $__v <= 18; $__v++): ?>
+                        <button type="button" class="unit-btn" data-unit="V<?php echo $__v; ?>" data-bs-dismiss="modal" role="radio" aria-checked="false">V<?php echo $__v; ?></button>
+                        <?php endfor; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="fireTruckModal" tabindex="-1" aria-labelledby="fireTruckModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="fireTruckModalLabel">
+                        <i class="bi bi-truck me-2"></i>Select Fire Truck Type
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -1827,8 +1824,27 @@ $current_user = get_auth_user();
     <script src="js/prehospital-form.js?v=<?php echo asset_version(); ?>"></script>
     <!-- Custom Date Components - Month/Day/Year dropdowns -->
     <script src="js/custom-date.js?v=<?php echo asset_version(); ?>"></script>
+    <!-- Material Design Time Picker Modal -->
+    <script src="js/time-picker-modal.js?v=<?php echo asset_version(); ?>"></script>
     <script nonce="<?php echo CSP_NONCE; ?>">
-        // Configure Notiflix - Corporate Navy Theme
+        // ============================================================
+        // SKELETON REMOVAL â€” runs FIRST, before anything that can throw.
+        // If a CDN script (e.g. Notiflix) fails to load, the code below
+        // must still clear the loading skeleton so labels/text are never
+        // left greyed out. Runs immediately + on DOM/load + a 1.2s safety.
+        // ============================================================
+        (function clearSkeleton() {
+            var off = function () { document.body.classList.remove('loading'); };
+            off(); // body already exists (script is at end of <body>)
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', off);
+            }
+            window.addEventListener('load', off);
+            setTimeout(off, 1200);
+        })();
+
+        // Configure Notiflix â€” wrapped so a CDN load failure can't halt the page
+        try {
         Notiflix.Notify.init({
             width: '320px',
             position: 'right-top',
@@ -1852,7 +1868,7 @@ $current_user = get_auth_user();
                 notiflixIconColor: '#fff',
             },
             info: {
-                background: '#2c5282',
+                background: '#4f46e5',
                 textColor: '#fff',
                 notiflixIconColor: '#fff',
             },
@@ -1860,8 +1876,8 @@ $current_user = get_auth_user();
 
         Notiflix.Confirm.init({
             width: '350px',
-            titleColor: '#1e3a5f',
-            okButtonBackground: '#2c5282',
+            titleColor: '#3730a3',
+            okButtonBackground: '#4f46e5',
             cancelButtonBackground: '#64748b',
             cssAnimationStyle: 'zoom',
         });
@@ -1898,19 +1914,18 @@ $current_user = get_auth_user();
                 backOverlayColor: 'rgba(15,23,42,0.5)',
             },
             info: {
-                svgColor: '#3b82f6',
-                titleColor: '#1e3a5f',
+                svgColor: '#6366f1',
+                titleColor: '#3730a3',
                 messageColor: '#1e293b',
-                buttonBackground: '#2c5282',
+                buttonBackground: '#4f46e5',
                 buttonColor: '#fff',
                 backOverlayColor: 'rgba(15,23,42,0.5)',
             },
         });
-
-        // Remove skeleton loading once page is fully loaded (OPTIMIZED: No artificial delay)
-        window.addEventListener('load', function() {
-            document.body.classList.remove('loading');
-        });
+        } catch (e) {
+            // Notiflix unavailable (e.g. CDN blocked) â€” non-fatal, keep going.
+            console.warn('Notiflix init skipped:', e);
+        }
 
         // ============================================
         // FLATPICKR TIME PICKER INITIALIZATION
@@ -1992,14 +2007,14 @@ $current_user = get_auth_user();
             console.log('Hidden field set to:', document.getElementById('draftIdField').value);
             loadDraft(resumeDraftId);
         } else {
-            // No draft_id in URL — ensure we start completely fresh
+            // No draft_id in URL â€” ensure we start completely fresh
             resetFormCompletely('no draft_id in URL');
         }
 
         // Handle bfcache restoration (back/forward navigation)
         window.addEventListener('pageshow', function(event) {
             if (event.persisted) {
-                // Page was restored from bfcache — check if we should be on a fresh form
+                // Page was restored from bfcache â€” check if we should be on a fresh form
                 const freshParams = new URLSearchParams(window.location.search);
                 if (!freshParams.get('draft_id')) {
                     resetFormCompletely('bfcache restore without draft_id');
@@ -2167,13 +2182,13 @@ $current_user = get_auth_user();
                     }
                 });
                 if (sectionHasData) {
-                    console.log(`✓ ${sectionId} has data`);
+                    console.log(`âœ“ ${sectionId} has data`);
                 }
             });
 
             // Show saving indicator
             Notiflix.Loading.circle('Saving draft...', {
-                svgColor: '#0066cc',
+                svgColor: '#4f46e5',
                 backgroundColor: 'rgba(0,0,0,0.8)',
             });
 
@@ -2229,7 +2244,7 @@ $current_user = get_auth_user();
                     });
 
                     // Log for debugging
-                    console.log('✓ DRAFT SAVED SUCCESSFULLY');
+                    console.log('âœ“ DRAFT SAVED SUCCESSFULLY');
                     console.log('  Draft ID:', result.draft_id);
                     console.log('  Form Number:', result.form_number);
                     console.log('  View at: drafts.php');
@@ -2252,7 +2267,7 @@ $current_user = get_auth_user();
         // Function to load draft data
         function loadDraft(draftId) {
             Notiflix.Loading.circle('Loading draft...', {
-                svgColor: '#0066cc',
+                svgColor: '#4f46e5',
             });
 
             fetch(`../api/get_draft.php?id=${draftId}`)
@@ -2782,7 +2797,7 @@ $current_user = get_auth_user();
                             },
                             {
                                 width: '450px',
-                                titleColor: '#0066cc',
+                                titleColor: '#4f46e5',
                                 okButtonBackground: '#28a745',
                                 cancelButtonBackground: '#dc3545',
                             }
@@ -2823,7 +2838,7 @@ $current_user = get_auth_user();
             right: 20px;
             z-index: 1001;
             box-shadow: 0 4px 16px rgba(30, 58, 95, 0.25);
-            background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+            background: linear-gradient(135deg, #3730a3 0%, #4f46e5 100%);
             color: #ffffff;
             border: none;
             padding: 0;
@@ -2858,13 +2873,13 @@ $current_user = get_auth_user();
 
         // Add hover effect
         manualSaveBtn.addEventListener('mouseenter', () => {
-            manualSaveBtn.style.background = 'linear-gradient(135deg, #2c5282 0%, #3d6a9f 100%)';
+            manualSaveBtn.style.background = 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)';
             manualSaveBtn.style.transform = 'translateY(-2px)';
             manualSaveBtn.style.boxShadow = '0 6px 20px rgba(30, 58, 95, 0.35)';
         });
 
         manualSaveBtn.addEventListener('mouseleave', () => {
-            manualSaveBtn.style.background = 'linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%)';
+            manualSaveBtn.style.background = 'linear-gradient(135deg, #3730a3 0%, #4f46e5 100%)';
             manualSaveBtn.style.transform = 'translateY(0)';
             manualSaveBtn.style.boxShadow = '0 4px 16px rgba(30, 58, 95, 0.25)';
         });
@@ -2936,6 +2951,11 @@ $current_user = get_auth_user();
                 return field ? field.value : '';
             };
 
+            const getSelectValue = (id) => {
+                const field = document.getElementById(id);
+                return field ? field.value : '';
+            };
+
             const getCheckboxValues = (name) => {
                 const fields = document.querySelectorAll(`[name="${name}"]:checked`);
                 return Array.from(fields).map(f => f.value);
@@ -2957,7 +2977,7 @@ $current_user = get_auth_user();
                 // Patient Info
                 patientName: getFieldValue('patient_name'),
                 age: getFieldValue('age'),
-                gender: getRadioValue('gender'),
+                gender: getSelectValue('gender'),
                 address: getFieldValue('address'),
                 zone: getFieldValue('zone'),
 
@@ -3181,7 +3201,7 @@ $current_user = get_auth_user();
             if (data.initialBP || data.initialTemp || data.initialPulse) {
                 assessment += `\nInitial Vital Signs:\n`;
                 if (data.initialBP) assessment += `- Blood Pressure: ${data.initialBP}\n`;
-                if (data.initialTemp) assessment += `- Temperature: ${data.initialTemp}°C\n`;
+                if (data.initialTemp) assessment += `- Temperature: ${data.initialTemp}Â°C\n`;
                 if (data.initialPulse) assessment += `- Pulse: ${data.initialPulse} BPM\n`;
                 if (data.initialResp) assessment += `- Respiratory Rate: ${data.initialResp}\n`;
                 if (data.initialSPO2) assessment += `- SPO2: ${data.initialSPO2}%\n`;
@@ -3201,7 +3221,7 @@ $current_user = get_auth_user();
                 if (data.followupBP || data.followupTemp || data.followupPulse) {
                     assessment += `\n`;
                     if (data.followupBP) assessment += `- Blood Pressure: ${data.followupBP}\n`;
-                    if (data.followupTemp) assessment += `- Temperature: ${data.followupTemp}°C\n`;
+                    if (data.followupTemp) assessment += `- Temperature: ${data.followupTemp}Â°C\n`;
                     if (data.followupPulse) assessment += `- Pulse: ${data.followupPulse} BPM\n`;
                     if (data.followupResp) assessment += `- Respiratory Rate: ${data.followupResp}\n`;
                     if (data.followupSPO2) assessment += `- SPO2: ${data.followupSPO2}%\n`;
@@ -3557,6 +3577,75 @@ $current_user = get_auth_user();
             case 'submitForm': submitForm(); break;
         }
     });
+
+    // ============================================================
+    // AMBULANCE UNIT BUTTON GRID
+    // Buttons drive the hidden #ambulanceSelect and dispatch a native
+    // 'change' event, so all existing vehicle/save/draft-resume logic
+    // (in prehospital-form.js) keeps working with zero changes.
+    // ============================================================
+    (function initAmbulanceUnitGrid() {
+        var grid = document.getElementById('ambulanceUnitGrid');
+        var select = document.getElementById('ambulanceSelect');
+        var triggerText = document.getElementById('ambulanceUnitTriggerText');
+        if (!grid || !select) return;
+
+        var buttons = grid.querySelectorAll('.unit-btn');
+
+        function paintActive(value) {
+            buttons.forEach(function (b) {
+                var on = b.getAttribute('data-unit') === value && value !== '';
+                b.classList.toggle('active', on);
+                b.setAttribute('aria-checked', on ? 'true' : 'false');
+            });
+            // Reflect the choice on the modal trigger.
+            if (triggerText) {
+                triggerText.textContent = value ? value : 'Select unitâ€¦';
+            }
+            var trigger = document.getElementById('ambulanceUnitTrigger');
+            if (trigger) trigger.classList.toggle('has-value', !!value);
+        }
+
+        grid.addEventListener('click', function (e) {
+            var btn = e.target.closest('.unit-btn');
+            if (!btn) return;
+            var unit = btn.getAttribute('data-unit');
+            select.value = unit;
+            paintActive(unit);
+            // Notify existing listeners (sets vehicleDetails + display).
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+
+        // Keep the grid + trigger in sync if the select is changed elsewhere
+        // (e.g. draft resume, or the Ambulance radio clearing it).
+        select.addEventListener('change', function () {
+            paintActive(select.value);
+        });
+
+        // The vehicle radios clear #ambulanceSelect WITHOUT firing 'change',
+        // so repaint on the next tick after any vehicle radio is clicked.
+        document.querySelectorAll('input[name="vehicle_used"]').forEach(function (r) {
+            r.addEventListener('click', function () {
+                setTimeout(function () { paintActive(select.value); }, 0);
+            });
+        });
+
+        // Selecting the Ambulance radio opens the unit picker modal directly
+        // (no intermediate trigger click). Runs after the module handler has
+        // revealed #ambulanceDropdownContainer.
+        var ambulanceRadio = document.getElementById('ambulance');
+        var modalEl = document.getElementById('ambulanceUnitModal');
+        if (ambulanceRadio && modalEl && window.bootstrap) {
+            ambulanceRadio.addEventListener('click', function () {
+                setTimeout(function () {
+                    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                }, 0);
+            });
+        }
+
+        // Initial paint (covers a resumed draft that pre-set the value).
+        paintActive(select.value);
+    })();
     </script>
 </body>
 </html>

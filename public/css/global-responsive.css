@@ -146,6 +146,23 @@
         z-index: 1055 !important;
     }
 
+    /* Override: inline action menus stay near their toggle button */
+    .action-dropdown .dropdown-menu {
+        position: absolute !important;
+        top: auto !important;
+        bottom: auto !important;
+        left: auto !important;
+        right: 0 !important;
+        width: auto !important;
+        min-width: 180px !important;
+        max-height: none !important;
+        overflow-y: visible !important;
+        border-radius: 10px !important;
+        box-shadow: 0 8px 24px rgba(16, 24, 40, 0.18) !important;
+        z-index: 1065 !important;
+        transform: none !important;
+    }
+
     /* Alert/notification responsiveness */
     .alert {
         padding: clamp(0.6rem, 2vw, 1rem);

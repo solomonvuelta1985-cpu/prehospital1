@@ -228,11 +228,13 @@ function generateFormSummary() {
     summaryHTML += `<tr><td><strong>Date of Birth:</strong></td><td>${safeVal('dateOfBirth')}</td></tr>`;
     summaryHTML += `<tr><td><strong>Age:</strong></td><td>${safeVal('age')}</td></tr>`;
 
-    const gender = document.querySelector('input[name="gender"]:checked');
-    summaryHTML += `<tr><td><strong>Gender:</strong></td><td>${gender ? escapeHtml(gender.value) : 'Not specified'}</td></tr>`;
+    const genderSelect = document.getElementById('gender');
+    const genderValue = genderSelect ? genderSelect.value : '';
+    summaryHTML += `<tr><td><strong>Gender:</strong></td><td>${genderValue ? escapeHtml(genderValue) : 'Not specified'}</td></tr>`;
 
-    const civilStatus = document.querySelector('input[name="civil_status"]:checked');
-    summaryHTML += `<tr><td><strong>Civil Status:</strong></td><td>${civilStatus ? escapeHtml(civilStatus.value) : 'Not specified'}</td></tr>`;
+    const civilStatusSelect = document.getElementById('civilStatus');
+    const civilStatusValue = civilStatusSelect ? civilStatusSelect.value : '';
+    summaryHTML += `<tr><td><strong>Civil Status:</strong></td><td>${civilStatusValue ? escapeHtml(civilStatusValue) : 'Not specified'}</td></tr>`;
 
     summaryHTML += `<tr><td><strong>Address:</strong></td><td>${safeVal('address')}</td></tr>`;
     summaryHTML += `<tr><td><strong>Zone:</strong></td><td>${safeVal('zone')}</td></tr>`;
