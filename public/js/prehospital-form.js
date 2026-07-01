@@ -161,8 +161,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Auto-save (new forms only)
-    initAutoSave();
+    // Auto-save (new forms only) — from modules/auto-save.js if loaded
+    if (typeof initAutoSave === 'function') {
+        initAutoSave();
+    }
 
     // Time inputs (slight delay to ensure page is fully loaded)
     setTimeout(function() {

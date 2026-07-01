@@ -1827,6 +1827,7 @@ $current_user = get_auth_user();
     <!-- Material Design Time Picker Modal -->
     <script src="js/time-picker-modal.js?v=<?php echo asset_version(); ?>"></script>
     <script nonce="<?php echo CSP_NONCE; ?>">
+        var API_BASE = <?php echo json_encode(rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\') . '/../api/'); ?>;
         // ============================================================
         // SKELETON REMOVAL â€” runs FIRST, before anything that can throw.
         // If a CDN script (e.g. Notiflix) fails to load, the code below
@@ -2192,7 +2193,7 @@ $current_user = get_auth_user();
                 backgroundColor: 'rgba(0,0,0,0.8)',
             });
 
-            fetch('../api/autosave_draft.php', {
+fetch(API_BASE + 'autosave_draft.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -2270,7 +2271,7 @@ $current_user = get_auth_user();
                 svgColor: '#4f46e5',
             });
 
-            fetch(`../api/get_draft.php?id=${draftId}`)
+            fetch(API_BASE + 'get_draft.php?id=' + draftId)
                 .then(response => response.json())
                 .then(result => {
                     Notiflix.Loading.remove();
