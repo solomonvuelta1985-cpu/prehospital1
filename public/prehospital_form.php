@@ -78,7 +78,7 @@ $current_user = get_auth_user();
         .nav-tabs { border-bottom: 2px solid var(--gray-200, #e5e7eb); display: flex; flex-wrap: nowrap; gap: 0; padding: 0; position: relative; }
         .nav-item { flex: 0 0 auto; min-width: auto; position: relative; margin: 0; }
         .nav-link { background: transparent; color: #64748b; border: none; border-bottom: 3px solid transparent; padding: 0.75rem 0.875rem; font-weight: 600; font-size: 0.875rem; font-style: normal; text-align: center; position: relative; border-radius: 0; transition: all .2s ease; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 0.35rem; }
-        .nav-item:not(:last-child) .nav-link::after { content: 'â€º'; position: absolute; right: -4px; font-size: 1.25rem; color: #cbd5e1; font-weight: 300; z-index: 1; }
+        .nav-item:not(:last-child) .nav-link::after { content: '›'; position: absolute; right: -4px; font-size: 1.25rem; color: #cbd5e1; font-weight: 300; z-index: 1; }
         .nav-link:hover { color: #4f46e5; background: rgba(79,70,229,0.05); border-bottom-color: #a5b4fc; }
         .nav-link.active { color: #4f46e5; background: transparent; border-bottom-color: #4f46e5; font-weight: 700; }
         .nav-link.active::after { color: #4f46e5 !important; }
@@ -320,12 +320,6 @@ $current_user = get_auth_user();
                     <p class="page-subtitle">Emergency Medical Services &middot; <strong>RESQ-link EMS</strong></p>
                 </div>
                 <div class="header-actions">
-                    <a href="drafts.php" class="btn-ghost">
-                        <i class="bi bi-file-earmark-text"></i> My Drafts
-                    </a>
-                    <button type="button" class="btn-primary" id="manualSaveBtnHeader">
-                        <i class="bi bi-cloud-arrow-up-fill"></i> Save Draft
-                    </button>
                 </div>
             </div>
 
@@ -405,8 +399,8 @@ $current_user = get_auth_user();
                             <i class="bi bi-calendar-event"></i> Date & Vehicle
                         </div>
 
-                        <!-- Date + Vehicle Used â€” side by side -->
-                        <div class="grid-2 mb-section">
+                        <!-- Date + Vehicle Used — side by side -->
+                        <div class="grid-equal mb-section">
                             <div>
                                 <label for="formDate" class="form-label required-field">Date</label>
                                 <input type="date" class="form-control" id="formDate" name="form_date" required>
@@ -430,7 +424,7 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
-                        <!-- Ambulance Unit â€” own row; opens a modal picker -->
+                        <!-- Ambulance Unit — own row; opens a modal picker -->
                         <div id="ambulanceDropdownContainer" class="mb-section" style="display: none; max-width: 24rem;">
                             <label class="form-label">Ambulance Unit</label>
                             <!-- Hidden select preserves the existing JS/save/resume contract:
@@ -443,7 +437,7 @@ $current_user = get_auth_user();
                             </select>
                             <!-- Trigger: shows current pick, opens the picker modal -->
                             <button type="button" class="unit-trigger" id="ambulanceUnitTrigger" data-bs-toggle="modal" data-bs-target="#ambulanceUnitModal">
-                                <span class="unit-trigger-value" id="ambulanceUnitTriggerText">Select unitâ€¦</span>
+                                <span class="unit-trigger-value" id="ambulanceUnitTriggerText">Select unit…</span>
                                 <i class="bi bi-chevron-down"></i>
                             </button>
                         </div>
@@ -596,13 +590,13 @@ $current_user = get_auth_user();
                         <div class="subsection-title">
                             <i class="bi bi-person-badge"></i> Personal Details
                         </div>
-                        <!-- Patient Name â€” own row -->
+                        <!-- Patient Name — own row -->
                         <div class="mb-section">
                             <label for="patientName" class="form-label required-field">Patient Name</label>
                             <input type="text" class="form-control" id="patientName" name="patient_name" placeholder="Last Name, First Name, Middle Initial" required>
                         </div>
 
-                        <!-- DOB Â· Age Â· Growth Status â€” balanced row -->
+                        <!-- DOB · Age · Growth Status — balanced row -->
                         <div class="grid-3 mb-section">
                             <div>
                                 <label for="dateOfBirth" class="form-label">Date of Birth</label>
@@ -671,17 +665,9 @@ $current_user = get_auth_user();
 
                         <hr class="section-divider-light">
 
-                        <div class="grid-2 mb-section">
-                            <div>
-                                <label for="occupation" class="form-label">Occupation</label>
-                                <input type="text" class="form-control" id="occupation" name="occupation" placeholder="Patient's occupation">
-                            </div>
-                            <!-- Commented out: place_of_incident moved label was misleading
-                            <div>
-                                <label for="placeOfIncident" class="form-label">Type of Emergency Call</label>
-                                <input type="text" class="form-control" id="placeOfIncident" name="place_of_incident" placeholder="Location where incident occurred">
-                            </div>
-                            -->
+                        <div class="mb-section" style="max-width: 24rem;">
+                            <label for="occupation" class="form-label">Occupation</label>
+                            <input type="text" class="form-control" id="occupation" name="occupation" placeholder="Patient's occupation">
                         </div>
 
                         <!-- Commented out: zone_landmark field and incident_time moved to Emergency tab
@@ -955,7 +941,7 @@ $current_user = get_auth_user();
 
                         <div class="grid-2 mb-section">
                             <div>
-                                <label for="o2LPM" class="form-label">OÂ² (LPM via)</label>
+                                <label for="o2LPM" class="form-label">O² (LPM via)</label>
                                 <input type="text" class="form-control" id="o2LPM" name="oxygen_lpm" placeholder="Oxygen delivery method and rate">
                             </div>
                             <div>
@@ -983,7 +969,7 @@ $current_user = get_auth_user();
                                 <input type="text" class="form-control" id="initialBP" name="initial_bp" placeholder="120/80">
                             </div>
                             <div>
-                                <label for="initialTemp" class="form-label">Temp (Â°C)</label>
+                                <label for="initialTemp" class="form-label">Temp (°C)</label>
                                 <input type="number" class="form-control" id="initialTemp" name="initial_temp" step="0.1" placeholder="36.5">
                             </div>
                             <div>
@@ -1076,7 +1062,7 @@ $current_user = get_auth_user();
                                 <input type="text" class="form-control" id="followupBP" name="followup_bp" placeholder="120/80">
                             </div>
                             <div>
-                                <label for="followupTemp" class="form-label">Temp (Â°C)</label>
+                                <label for="followupTemp" class="form-label">Temp (°C)</label>
                                 <input type="number" class="form-control" id="followupTemp" name="followup_temp" step="0.1" placeholder="36.5">
                             </div>
                             <div>
@@ -1830,7 +1816,7 @@ $current_user = get_auth_user();
     <script nonce="<?php echo CSP_NONCE; ?>">
         var API_BASE = <?php echo json_encode(rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\') . '/../api/'); ?>;
         // ============================================================
-        // SKELETON REMOVAL â€” runs FIRST, before anything that can throw.
+        // SKELETON REMOVAL — runs FIRST, before anything that can throw.
         // If a CDN script (e.g. Notiflix) fails to load, the code below
         // must still clear the loading skeleton so labels/text are never
         // left greyed out. Runs immediately + on DOM/load + a 1.2s safety.
@@ -1845,7 +1831,7 @@ $current_user = get_auth_user();
             setTimeout(off, 1200);
         })();
 
-        // Configure Notiflix â€” wrapped so a CDN load failure can't halt the page
+        // Configure Notiflix — wrapped so a CDN load failure can't halt the page
         try {
         Notiflix.Notify.init({
             width: '320px',
@@ -1925,7 +1911,7 @@ $current_user = get_auth_user();
             },
         });
         } catch (e) {
-            // Notiflix unavailable (e.g. CDN blocked) â€” non-fatal, keep going.
+            // Notiflix unavailable (e.g. CDN blocked) — non-fatal, keep going.
             console.warn('Notiflix init skipped:', e);
         }
 
@@ -2009,14 +1995,14 @@ $current_user = get_auth_user();
             console.log('Hidden field set to:', document.getElementById('draftIdField').value);
             loadDraft(resumeDraftId);
         } else {
-            // No draft_id in URL â€” ensure we start completely fresh
+            // No draft_id in URL — ensure we start completely fresh
             resetFormCompletely('no draft_id in URL');
         }
 
         // Handle bfcache restoration (back/forward navigation)
         window.addEventListener('pageshow', function(event) {
             if (event.persisted) {
-                // Page was restored from bfcache â€” check if we should be on a fresh form
+                // Page was restored from bfcache — check if we should be on a fresh form
                 const freshParams = new URLSearchParams(window.location.search);
                 if (!freshParams.get('draft_id')) {
                     resetFormCompletely('bfcache restore without draft_id');
@@ -2184,7 +2170,7 @@ $current_user = get_auth_user();
                     }
                 });
                 if (sectionHasData) {
-                    console.log(`âœ“ ${sectionId} has data`);
+                    console.log(`✓ ${sectionId} has data`);
                 }
             });
 
@@ -2247,7 +2233,7 @@ fetch(API_BASE + 'autosave_draft.php', {
                     });
 
                     // Log for debugging
-                    console.log('âœ“ DRAFT SAVED SUCCESSFULLY');
+                    console.log('✓ DRAFT SAVED SUCCESSFULLY');
                     console.log('  Draft ID:', result.draft_id);
                     console.log('  Form Number:', result.form_number);
                     console.log('  View at: drafts.php');
@@ -3204,7 +3190,7 @@ fetch(API_BASE + 'autosave_draft.php', {
             if (data.initialBP || data.initialTemp || data.initialPulse) {
                 assessment += `\nInitial Vital Signs:\n`;
                 if (data.initialBP) assessment += `- Blood Pressure: ${data.initialBP}\n`;
-                if (data.initialTemp) assessment += `- Temperature: ${data.initialTemp}Â°C\n`;
+                if (data.initialTemp) assessment += `- Temperature: ${data.initialTemp}°C\n`;
                 if (data.initialPulse) assessment += `- Pulse: ${data.initialPulse} BPM\n`;
                 if (data.initialResp) assessment += `- Respiratory Rate: ${data.initialResp}\n`;
                 if (data.initialSPO2) assessment += `- SPO2: ${data.initialSPO2}%\n`;
@@ -3224,7 +3210,7 @@ fetch(API_BASE + 'autosave_draft.php', {
                 if (data.followupBP || data.followupTemp || data.followupPulse) {
                     assessment += `\n`;
                     if (data.followupBP) assessment += `- Blood Pressure: ${data.followupBP}\n`;
-                    if (data.followupTemp) assessment += `- Temperature: ${data.followupTemp}Â°C\n`;
+                    if (data.followupTemp) assessment += `- Temperature: ${data.followupTemp}°C\n`;
                     if (data.followupPulse) assessment += `- Pulse: ${data.followupPulse} BPM\n`;
                     if (data.followupResp) assessment += `- Respiratory Rate: ${data.followupResp}\n`;
                     if (data.followupSPO2) assessment += `- SPO2: ${data.followupSPO2}%\n`;
@@ -3603,7 +3589,7 @@ fetch(API_BASE + 'autosave_draft.php', {
             });
             // Reflect the choice on the modal trigger.
             if (triggerText) {
-                triggerText.textContent = value ? value : 'Select unitâ€¦';
+                triggerText.textContent = value ? value : 'Select unit…';
             }
             var trigger = document.getElementById('ambulanceUnitTrigger');
             if (trigger) trigger.classList.toggle('has-value', !!value);

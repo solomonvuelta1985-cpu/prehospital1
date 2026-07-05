@@ -67,8 +67,8 @@
 
     /* Spacing scale */
     --space-card:  clamp(1rem,      0.70rem + 1.60vw, 1.75rem);  /* card inner padding */
-    --space-gap:   clamp(0.75rem,   0.55rem + 1.00vw, 1.25rem);  /* grid gutter */
-    --space-stack: clamp(1rem,      0.80rem + 1.00vw, 1.5rem);   /* between field rows */
+    --space-gap:   clamp(1rem,      0.70rem + 1.10vw, 1.35rem);  /* grid gutter */
+    --space-stack: clamp(1.25rem,   0.95rem + 1.10vw, 1.65rem);  /* between field rows */
     --space-page:  clamp(0.75rem,   0.40rem + 1.80vw, 2rem);     /* page padding */
     --input-h:     clamp(2.6rem,    2.40rem + 0.80vw, 3.1rem);   /* input min-height */
 
@@ -448,7 +448,7 @@ body {
     background-size: 200% 100% !important;
     animation: skeleton-loading 1.5s ease-in-out infinite !important;
     color: transparent !important;
-    border-left-color: #e0e0e0 !important;
+    box-shadow: none !important;
 }
 
 .loading .section-title i {
@@ -704,22 +704,31 @@ body:not(.loading) .nav-tabs .nav-link {
     margin-top: var(--space-stack);
 }
 
+/* Section title — minimalist modern: thin left accent bar, dark text,
+   no background, no shadow. Clean and understated like Linear/Stripe. */
 .section-title {
-    background-color: var(--primary-light);
-    border-left: 4px solid var(--primary-color);
-    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-    padding: 0.7rem 1rem;
+    background: transparent;
+    border-left: 3px solid #4f46e5;
+    border-radius: 0;
+    padding: 0.25rem 0 0.25rem 0.75rem;
     margin: 0 0 var(--space-stack) 0;
-    font-weight: 700;
+    font-weight: 650;
     font-size: var(--fs-section);
-    color: var(--secondary-color);
+    color: #1e293b;
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    box-shadow: none;
 }
 
 .section-title i {
-    color: var(--primary-color);
+    color: #4f46e5;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+    width: auto;
+    height: auto;
+    background: none;
+    border-radius: 0;
 }
 
 /* ===============================================================
@@ -730,27 +739,28 @@ body:not(.loading) .nav-tabs .nav-link {
    tidy spacing — not from boxes.
    =============================================================== */
 
-/* Stronger, more anchored subsection header */
+/* Stronger, more anchored subsection header.
+   Icon badge stays; the title itself is bolder/punchier. */
 .form-body .subsection-title {
-    font-size: calc(var(--fs-subsec) * 1.05);
-    font-weight: 700;
+    font-size: calc(var(--fs-subsec) * 1.12);
+    font-weight: 750;
     color: var(--text-primary);
     letter-spacing: -0.01em;
     border-bottom: none;
     padding-bottom: 0;
     margin: var(--space-stack) 0 1.1rem 0;
 }
-.form-body .section-title + .subsection-title { margin-top: 0; }
+.form-body .section-title + .subsection-title { margin-top: 0.85rem; }
 .form-body .subsection-title i {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.9rem;
-    height: 1.9rem;
+    width: 2rem;
+    height: 2rem;
     border-radius: 8px;
     background: var(--primary-light);
     color: var(--primary-color);
-    font-size: 0.95rem;
+    font-size: 1rem;
 }
 
 /* Filled inputs — light gray fill so fields read against white (flat, no box) */
@@ -782,15 +792,20 @@ body:not(.loading) .nav-tabs .nav-link {
     border-radius: 10px;
 }
 
-/* Radio/checkbox row reads as a subtle pill group */
+/* Radio/checkbox row reads as a subtle pill group.
+   min-height matched to input-h so pills and text inputs
+   share the same visual height in the same grid row.
+   Padding reduced to create visual parity with filled inputs. */
 .form-body .inline-group {
     gap: 0.4rem;
-    padding: 0.35rem;
+    padding: 0 0.5rem;
     background: #f8fafc;
     border: 1.5px solid #eef0f4;
     border-radius: 12px;
     display: inline-flex;
     flex-wrap: wrap;
+    align-items: center;
+    min-height: var(--input-h);
     max-width: 100%;
 }
 .form-body .inline-group .form-check {
@@ -969,8 +984,9 @@ body:not(.loading) .nav-tabs .nav-link {
 .form-label {
     font-weight: 500;
     color: var(--text-primary);
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.5rem;
     font-size: var(--fs-label);
+    display: block;
 }
 
 .form-control, .form-select {
@@ -1077,6 +1093,15 @@ textarea.form-control {
 .grid-2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
 .grid-3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); }
 .grid-4 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); }
+
+/* True 50/50 equal-width split — use on rows that mix pills + inputs
+   so both columns get the same width regardless of content. */
+.grid-equal {
+    display: grid;
+    gap: var(--space-gap);
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+}
 
 .checkbox-grid {
     display: grid;
