@@ -446,6 +446,7 @@ $completion_rate = $total_records > 0 ? round(($completed_count / $total_records
                             <?php else: ?>
                                 <?php
                                 foreach ($records as $index => $record):
+                                    decrypt_record_fields($record);
                                     $status_class = ['completed'=>'completed','draft'=>'draft','archived'=>'archived'][$record['status']] ?? 'draft';
                                 ?>
                                     <tr class="record-row" data-record-id="<?php echo (int)$record['id']; ?>">
