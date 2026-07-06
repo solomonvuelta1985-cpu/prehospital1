@@ -856,7 +856,7 @@ $current_user = get_auth_user();
                                     </div>
                                     <div class="vr-vital-row">
                                         <span class="vr-vital-label">Temperature</span>
-                                        <span class="vr-vital-value<?php echo empty($record['initial_temp']) ? ' vr-vital-value--empty' : ''; ?>"><?php echo $record['initial_temp'] ? $record['initial_temp'] . '°C' : 'Not recorded'; ?></span>
+                                        <span class="vr-vital-value<?php echo empty($record['initial_temp']) ? ' vr-vital-value--empty' : ''; ?>"><?php echo $record['initial_temp'] ? $record['initial_temp'] . '&deg;C' : 'Not recorded'; ?></span>
                                     </div>
                                     <div class="vr-vital-row">
                                         <span class="vr-vital-label">Pulse Rate</span>
@@ -902,7 +902,7 @@ $current_user = get_auth_user();
                                     </div>
                                     <div class="vr-vital-row">
                                         <span class="vr-vital-label">Temperature</span>
-                                        <span class="vr-vital-value<?php echo empty($record['followup_temp']) ? ' vr-vital-value--empty' : ''; ?>"><?php echo $record['followup_temp'] ? $record['followup_temp'] . '°C' : 'Not recorded'; ?></span>
+                                        <span class="vr-vital-value<?php echo empty($record['followup_temp']) ? ' vr-vital-value--empty' : ''; ?>"><?php echo $record['followup_temp'] ? $record['followup_temp'] . '&deg;C' : 'Not recorded'; ?></span>
                                     </div>
                                     <div class="vr-vital-row">
                                         <span class="vr-vital-label">Pulse Rate</span>

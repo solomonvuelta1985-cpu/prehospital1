@@ -3190,7 +3190,7 @@ fetch(API_BASE + 'autosave_draft.php', {
             if (data.initialBP || data.initialTemp || data.initialPulse) {
                 assessment += `\nInitial Vital Signs:\n`;
                 if (data.initialBP) assessment += `- Blood Pressure: ${data.initialBP}\n`;
-                if (data.initialTemp) assessment += `- Temperature: ${data.initialTemp}°C\n`;
+                if (data.initialTemp) assessment += `- Temperature: ${data.initialTemp}\u00B0C\n`;
                 if (data.initialPulse) assessment += `- Pulse: ${data.initialPulse} BPM\n`;
                 if (data.initialResp) assessment += `- Respiratory Rate: ${data.initialResp}\n`;
                 if (data.initialSPO2) assessment += `- SPO2: ${data.initialSPO2}%\n`;
@@ -3210,7 +3210,7 @@ fetch(API_BASE + 'autosave_draft.php', {
                 if (data.followupBP || data.followupTemp || data.followupPulse) {
                     assessment += `\n`;
                     if (data.followupBP) assessment += `- Blood Pressure: ${data.followupBP}\n`;
-                    if (data.followupTemp) assessment += `- Temperature: ${data.followupTemp}°C\n`;
+                    if (data.followupTemp) assessment += `- Temperature: ${data.followupTemp}\u00B0C\n`;
                     if (data.followupPulse) assessment += `- Pulse: ${data.followupPulse} BPM\n`;
                     if (data.followupResp) assessment += `- Respiratory Rate: ${data.followupResp}\n`;
                     if (data.followupSPO2) assessment += `- SPO2: ${data.followupSPO2}%\n`;
@@ -3382,11 +3382,30 @@ fetch(API_BASE + 'autosave_draft.php', {
             if (!timeStr) return 'Not specified';
 
             try {
-                const [hours, minutes] = timeStr.split(':');
-                const hour = parseInt(hours);
+                // Detect if time already has an AM/PM suffix (e.g. "8:00 AM" from 12hr input)
+                const ampmMatch = timeStr.match(/\s*(AM|PM|am|pm)\s*$/i);
+                let hour, minutes;
+
+                if (ampmMatch) {
+                    // Input already has AM/PM; strip it for parsing, then re-append it
+                    const clean = timeStr.replace(/\s*(AM|PM|am|pm)\s*$/i, '').trim();
+                    const parts = clean.split(':');
+                    hour = parseInt(parts[0]);
+                    minutes = parts[1] || '00';
+                    const ampm = ampmMatch[1].toUpperCase();
+                    const displayHour = hour % 12 || 12;
+                    const minPadded = minutes.padStart(2, '0');
+                    return `${displayHour}:${minPadded} ${ampm}`;
+                }
+
+                // Raw 24hr or bare time (e.g. "08:00" or "14:30")
+                const parts = timeStr.split(':');
+                hour = parseInt(parts[0]);
+                minutes = parts[1] || '00';
                 const ampm = hour >= 12 ? 'PM' : 'AM';
                 const displayHour = hour % 12 || 12;
-                return `${displayHour}:${minutes} ${ampm}`;
+                const minPadded = minutes.padStart(2, '0');
+                return `${displayHour}:${minPadded} ${ampm}`;
             } catch (e) {
                 return timeStr;
             }
