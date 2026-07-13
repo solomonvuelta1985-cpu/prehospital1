@@ -103,10 +103,10 @@ try {
         'patient_name' => $data['patient_name'] ?? null,
         'date_of_birth' => clean_date_value($data['date_of_birth'] ?? null),
         'age' => isset($data['age']) && $data['age'] !== '' ? (int)$data['age'] : null,
-        'age_unit' => $data['age_unit'] ?? 'years',
-        'growth_status' => $data['growth_status'] ?? null,
-        'gender' => $data['gender'] ?? null,
-        'civil_status' => $data['civil_status'] ?? null,
+        'age_unit' => !empty($data['age_unit']) ? strtolower($data['age_unit']) : 'years',
+        'growth_status' => !empty($data['growth_status']) ? strtolower($data['growth_status']) : null,
+        'gender' => !empty($data['gender']) ? strtolower($data['gender']) : null,
+        'civil_status' => !empty($data['civil_status']) ? strtolower($data['civil_status']) : null,
         'address' => $data['address'] ?? null,
         'zone' => $data['zone'] ?? null,
         'occupation' => $data['occupation'] ?? null,
@@ -115,7 +115,7 @@ try {
         'incident_time' => clean_time_value($data['incident_time'] ?? null),
         'informant_name' => $data['informant_name'] ?? null,
         'informant_address' => $data['informant_address'] ?? null,
-        'arrival_type' => $data['arrival_type'] ?? null,
+        'arrival_type' => !empty($data['arrival_type']) ? strtolower($data['arrival_type']) : null,
         'call_arrival_time' => clean_time_value($data['call_arrival_time'] ?? null),
         'contact_number' => $data['contact_number'] ?? null,
         'relationship_victim' => $data['relationship_victim'] ?? null,
@@ -249,60 +249,105 @@ try {
         ]);
 
     } else {
-        // Create new draft
-        // Generate form number
-        $form_number = 'PHC-' . date('Ymd') . '-' . strtoupper(substr(md5(uniqid()), 0, 8));
-        $form_data['form_number'] = $form_number;
-
-        // Build INSERT query
-        $fields = array_keys($form_data);
-        $placeholders = array_fill(0, count($fields), '?');
-
-        $insert_sql = "INSERT INTO prehospital_forms (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ")";
-
-        // Execute the insert
-        global $pdo;
-        $stmt = $pdo->prepare($insert_sql);
-        $result = $stmt->execute(array_values($form_data));
-
-        if (!$result) {
-            throw new Exception('Failed to insert draft: ' . json_encode($stmt->errorInfo()));
-        }
-
-        // Get the last inserted ID
-        $raw_last_id = $pdo->lastInsertId();
-        $draft_id = (int)$raw_last_id;
-
-        error_log("DEBUG AUTOSAVE: lastInsertId() raw value = " . var_export($raw_last_id, true) . ", casted to int = {$draft_id}");
-
-        // Fallback: If lastInsertId() returns 0, try to find by form_number
-        if ($draft_id === 0) {
-            error_log("WARNING: lastInsertId() returned 0, attempting fallback method");
-            error_log("Fallback search params - Form Number: {$form_number}, User ID: {$user_id}");
-
-            $fallback_sql = "SELECT id FROM prehospital_forms WHERE form_number = ? AND created_by = ? ORDER BY id DESC LIMIT 1";
-            $fallback_stmt = db_query($fallback_sql, [$form_number, $user_id]);
-            $fallback_result = $fallback_stmt ? $fallback_stmt->fetch() : false;
-
-            if ($fallback_result) {
-                error_log("Fallback query result: " . var_export($fallback_result, true));
-                $draft_id = (int)$fallback_result['id'];
-                error_log("Fallback successful - Found Draft ID: {$draft_id}");
-            } else {
-                error_log("ERROR: Both lastInsertId() and fallback query failed!");
-                error_log("Fallback query returned no results");
-                throw new Exception('Failed to get draft ID after insert');
+        // No draft_id provided — check for a recent orphan draft created by a
+        // previous autosave whose response never reached the client.  If found,
+        // update that draft instead of creating a duplicate.
+        $existing_draft_id = null;
+        $existing_form_number = null;
+        {
+            $recent_sql = "SELECT id, form_number FROM prehospital_forms
+                           WHERE created_by = ?
+                             AND status = 'draft'
+                             AND updated_at >= DATE_SUB(NOW(), INTERVAL 2 HOUR)
+                           ORDER BY updated_at DESC LIMIT 1";
+            $recent_stmt = db_query($recent_sql, [$user_id]);
+            if ($recent_stmt) {
+                $recent = $recent_stmt->fetch();
+                if ($recent) {
+                    $existing_draft_id = (int)$recent['id'];
+                    $existing_form_number = $recent['form_number'];
+                }
             }
         }
 
-        // Final verification
-        if ($draft_id <= 0) {
-            error_log("CRITICAL ERROR: Draft ID is still 0 or negative after all attempts: {$draft_id}");
-            throw new Exception('Invalid draft ID generated: ' . $draft_id);
+        if ($existing_draft_id) {
+            // Reuse the existing draft — update it in-place
+            $form_number = $existing_form_number;
+
+            $update_fields = [];
+            $update_values = [];
+            foreach ($form_data as $key => $value) {
+                if ($key !== 'created_by' && $key !== 'form_number') {
+                    $update_fields[] = "$key = ?";
+                    $update_values[] = $value;
+                }
+            }
+            $update_values[] = $existing_draft_id;
+
+            $update_sql = "UPDATE prehospital_forms SET " . implode(', ', $update_fields) . " WHERE id = ?";
+            $update_result = db_query($update_sql, $update_values);
+            if (!$update_result) {
+                throw new Exception('Failed to update draft');
+            }
+
+            $draft_id = $existing_draft_id;
+
+        } else {
+            // No recent draft — create new
+            // Generate form number
+            $form_number = 'PHC-' . date('Ymd') . '-' . strtoupper(substr(md5(uniqid()), 0, 8));
+            $form_data['form_number'] = $form_number;
+
+            // Build INSERT query
+            $fields = array_keys($form_data);
+            $placeholders = array_fill(0, count($fields), '?');
+
+            $insert_sql = "INSERT INTO prehospital_forms (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ")";
+
+            // Execute the insert
+            global $pdo;
+            $stmt = $pdo->prepare($insert_sql);
+            $result = $stmt->execute(array_values($form_data));
+
+            if (!$result) {
+                throw new Exception('Failed to insert draft: ' . json_encode($stmt->errorInfo()));
+            }
+
+            // Get the last inserted ID
+            $raw_last_id = $pdo->lastInsertId();
+            $draft_id = (int)$raw_last_id;
+
+            error_log("DEBUG AUTOSAVE: lastInsertId() raw value = " . var_export($raw_last_id, true) . ", casted to int = {$draft_id}");
+
+            // Fallback: If lastInsertId() returns 0, try to find by form_number
+            if ($draft_id === 0) {
+                error_log("WARNING: lastInsertId() returned 0, attempting fallback method");
+                error_log("Fallback search params - Form Number: {$form_number}, User ID: {$user_id}");
+
+                $fallback_sql = "SELECT id FROM prehospital_forms WHERE form_number = ? AND created_by = ? ORDER BY id DESC LIMIT 1";
+                $fallback_stmt = db_query($fallback_sql, [$form_number, $user_id]);
+                $fallback_result = $fallback_stmt ? $fallback_stmt->fetch() : false;
+
+                if ($fallback_result) {
+                    error_log("Fallback query result: " . var_export($fallback_result, true));
+                    $draft_id = (int)$fallback_result['id'];
+                    error_log("Fallback successful - Found Draft ID: {$draft_id}");
+                } else {
+                    error_log("ERROR: Both lastInsertId() and fallback query failed!");
+                    error_log("Fallback query returned no results");
+                    throw new Exception('Failed to get draft ID after insert');
+                }
+            }
+
+            // Final verification
+            if ($draft_id <= 0) {
+                error_log("CRITICAL ERROR: Draft ID is still 0 or negative after all attempts: {$draft_id}");
+                throw new Exception('Invalid draft ID generated: ' . $draft_id);
+            }
         }
 
         // Log for debugging
-        error_log("AUTOSAVE INSERT SUCCESS - Draft ID: {$draft_id}, Form Number: {$form_number}");
+        error_log("AUTOSAVE SUCCESS - Draft ID: {$draft_id}, Form Number: {$form_number}");
 
         echo json_encode([
             'success' => true,

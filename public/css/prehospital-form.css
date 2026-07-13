@@ -455,6 +455,18 @@ body {
     opacity: 0;
 }
 
+.loading .subsection-title {
+    background: linear-gradient(90deg, #e0e0e0 0%, #f0f0f0 50%, #e0e0e0 100%) !important;
+    background-size: 200% 100% !important;
+    animation: skeleton-loading 1.5s ease-in-out infinite !important;
+    color: transparent !important;
+    border-bottom-color: transparent !important;
+}
+
+.loading .subsection-title i {
+    opacity: 0;
+}
+
 /* Skeleton loading for buttons - EXCLUDE navigation buttons so they remain usable */
 .loading .btn:not(.navigation-buttons .btn) {
     background: linear-gradient(90deg, #e0e0e0 0%, #f0f0f0 50%, #e0e0e0 100%) !important;

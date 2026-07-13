@@ -99,6 +99,12 @@ $current_user = get_auth_user();
         /* Vehicle Display Bar - Indigo */
         #selectedVehicleDisplay { background: linear-gradient(90deg, #eef2ff 0%, #e0e7ff 100%); border-left: 4px solid #4f46e5; border-radius: 8px; }
 
+        /* Stack Date + Vehicle Used on mobile */
+        @media (max-width: 768px) {
+            .date-vehicle-row { grid-template-columns: 1fr !important; }
+            .field-full-desktop { max-width: 24rem; }
+        }
+
         /* View Summary Button - Indigo */
         .summary-button-container { padding: 1.5rem 1rem; }
         #viewSummaryBtn { padding: .55rem 1.5rem; font-size: .875rem; font-weight: 600; border-radius: 8px; border: 2px solid #4f46e5; color: #4f46e5; background: #fff; transition: all .2s ease; }
@@ -399,8 +405,8 @@ $current_user = get_auth_user();
                             <i class="bi bi-calendar-event"></i> Date & Vehicle
                         </div>
 
-                        <!-- Date + Vehicle Used — side by side -->
-                        <div class="grid-equal mb-section">
+                        <!-- Date + Vehicle Used — side by side on desktop, stack on mobile -->
+                        <div class="grid-equal mb-section date-vehicle-row">
                             <div>
                                 <label for="formDate" class="form-label required-field">Date</label>
                                 <input type="date" class="form-control" id="formDate" name="form_date" required>
@@ -422,6 +428,12 @@ $current_user = get_auth_user();
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Driver — own row -->
+                        <div class="mb-section field-full-desktop">
+                            <label for="driver" class="form-label">Driver</label>
+                            <input type="text" class="form-control" id="driver" name="driver" placeholder="Driver name">
                         </div>
 
                         <!-- Ambulance Unit — own row; opens a modal picker -->
@@ -481,33 +493,27 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
-                        <!-- 1. Driver + Departure Time -->
-                        <div class="grid-2 mb-section">
-                            <div>
-                                <label for="driver" class="form-label">Driver</label>
-                                <input type="text" class="form-control" id="driver" name="driver" placeholder="Driver name">
-                            </div>
-                            <div>
-                                <label for="depTime" class="form-label required-field">Departure Time</label>
+                        <!-- Call-only fields: hidden when Walk In is selected -->
+                        <div id="callOnlyFields">
+                            <!-- Departure Time -->
+                            <div class="mb-section field-full-desktop">
+                                <label for="depTime">Departure Time</label>
                                 <input type="text" class="form-control time-input-12hr" id="depTime" name="departure_time" placeholder="--:-- --" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
-                            <!-- <div>
-                                <label for="arrTime" class="form-label">Arrival Time</label>
-                                <input type="text" class="form-control time-input-12hr" id="arrTime" name="arrival_time" placeholder="--:-- --" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
-                            </div> -->
-                        </div>
 
-                        <!-- 2. Arrival at Scene -->
-                        <div class="grid-2 mb-section">
-                            <div>
-                                <label for="arrSceneLocation" class="form-label">Arrival at Scene - Location</label>
-                                <input type="text" class="form-control" id="arrSceneLocation" name="arrival_scene_location" placeholder="Scene location">
-                            </div>
-                            <div>
-                                <label for="arrSceneTime" class="form-label">Arrival at Scene - Time</label>
-                                <input type="text" class="form-control time-input-12hr" id="arrSceneTime" name="arrival_scene_time" placeholder="--:-- --" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                            <!-- 2. Arrival at Scene -->
+                            <div class="grid-2 mb-section">
+                                <div>
+                                    <label for="arrSceneLocation" class="form-label">Arrival at Scene - Location</label>
+                                    <input type="text" class="form-control" id="arrSceneLocation" name="arrival_scene_location" placeholder="Scene location">
+                                </div>
+                                <div>
+                                    <label for="arrSceneTime" class="form-label">Arrival at Scene - Time</label>
+                                    <input type="text" class="form-control time-input-12hr" id="arrSceneTime" name="arrival_scene_time" placeholder="--:-- --" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                                </div>
                             </div>
                         </div>
+                        <!-- Departure at Scene -->
 
                         <!-- 3. Departure at Scene -->
                         <div class="grid-2 mb-section">
@@ -1847,20 +1853,30 @@ $current_user = get_auth_user();
     <script nonce="<?php echo CSP_NONCE; ?>">
         var API_BASE = <?php echo json_encode(rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\') . '/../api/'); ?>;
         // ============================================================
-        // SKELETON REMOVAL — runs FIRST, before anything that can throw.
-        // If a CDN script (e.g. Notiflix) fails to load, the code below
-        // must still clear the loading skeleton so labels/text are never
-        // left greyed out. Runs immediately + on DOM/load + a 1.2s safety.
+        // SKELETON REMOVAL — skeleton is shown immediately (body.loading)
+        // and removed AFTER the DOM is fully initialized (DOMContentLoaded).
+        // Safety nets: window.load event + 3s absolute timeout.
+        // Minimum display time: 600ms so the user actually sees the skeleton
+        // instead of a jarring flash.
         // ============================================================
-        (function clearSkeleton() {
-            var off = function () { document.body.classList.remove('loading'); };
-            off(); // body already exists (script is at end of <body>)
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', off);
-            }
-            window.addEventListener('load', off);
-            setTimeout(off, 1200);
-        })();
+        var skeletonStartTime = Date.now();
+        var skeletonRemoved = false;
+        function removeSkeleton() {
+            if (skeletonRemoved) return;
+            var elapsed = Date.now() - skeletonStartTime;
+            var minDelay = 600; // minimum ms the skeleton must be visible
+            var remaining = Math.max(0, minDelay - elapsed);
+            setTimeout(function() {
+                if (!skeletonRemoved) {
+                    document.body.classList.remove('loading');
+                    skeletonRemoved = true;
+                    console.log('Skeleton removed after ' + (Date.now() - skeletonStartTime) + 'ms');
+                }
+            }, remaining);
+        }
+        // Failsafe: ensure skeleton is ALWAYS removed eventually
+        window.addEventListener('load', removeSkeleton);
+        setTimeout(removeSkeleton, 3000);
 
         // Configure Notiflix — wrapped so a CDN load failure can't halt the page
         try {
@@ -1980,6 +1996,8 @@ $current_user = get_auth_user();
 
             console.log('Uppercase conversion initialized on ' + textInputs.length + ' text inputs');
 
+            // Remove the skeleton loading after all initialization is done
+            removeSkeleton();
         }); // End of DOMContentLoaded event listener
 
         // ============================================

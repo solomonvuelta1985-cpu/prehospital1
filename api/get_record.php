@@ -83,6 +83,7 @@ try {
 
     $hasInjuries = !empty($injuries);
     $hasNarrative = !empty($record['narrative_report']);
+    $hasPictures = !empty($record['patient_documentation']) || !empty($record['endorsement_attachment']);
 
     ob_start();
     ?>
@@ -120,6 +121,7 @@ try {
             <?php if ($hasNarrative): ?>
             <button class="mv-tab" data-mv-tab="narrative"><i class="bi bi-journal-text"></i> Narrative</button>
             <?php endif; ?>
+            <button class="mv-tab" data-mv-tab="pictures"><i class="bi bi-camera-fill"></i> Pictures</button>
         </div>
 
         <div class="mv-tab-content active" id="mv-tab-overview">
@@ -264,6 +266,32 @@ try {
             <div class="mv-narrative"><?php echo nl2br(e($record['narrative_report'])); ?></div>
         </div>
         <?php endif; ?>
+
+        <div class="mv-tab-content" id="mv-tab-pictures">
+            <?php if (!empty($record['patient_documentation'])): ?>
+            <div class="mv-card">
+                <div class="mv-card-header"><i class="bi bi-camera-fill"></i> Patient Documentation</div>
+                <div class="mv-pictures-wrapper">
+                    <img src="../<?php echo e($record['patient_documentation']); ?>" alt="Patient Documentation" class="mv-picture-img" onclick="openModalPicture(this.src)">
+                </div>
+            </div>
+            <?php endif; ?>
+            <?php if (!empty($record['endorsement_attachment'])): ?>
+            <div class="mv-card">
+                <div class="mv-card-header"><i class="bi bi-file-earmark-check-fill"></i> Endorsement Attachment</div>
+                <div class="mv-pictures-wrapper">
+                    <img src="../<?php echo e($record['endorsement_attachment']); ?>" alt="Endorsement Attachment" class="mv-picture-img" onclick="openModalPicture(this.src)">
+                </div>
+            </div>
+            <?php endif; ?>
+            <?php if (empty($record['patient_documentation']) && empty($record['endorsement_attachment'])): ?>
+            <div class="mv-empty-state">
+                <div class="mv-empty-icon"><i class="bi bi-camera"></i></div>
+                <div class="mv-empty-title">No Pictures Attached</div>
+                <div class="mv-empty-desc">No patient documentation or endorsement images have been uploaded for this record.</div>
+            </div>
+            <?php endif; ?>
+        </div>
 
         <div class="mv-footer">
             <span><i class="bi bi-clock-history"></i> Created <?php echo $val('created_at', 'datetime'); ?></span>

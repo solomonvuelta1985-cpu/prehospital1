@@ -788,31 +788,34 @@ if (!is_array($initial_helmet)) {
                             <i class="bi bi-clock-history"></i> Response Timeline
                         </div>
 
-                        <!-- 1. Departure Time -->
-                        <div class="grid-2 mb-section">
-                            <div>
-                                <label for="depTime" class="form-label required-field">Departure Time</label>
-                                <input type="text" class="form-control time-input-12hr" id="depTime" name="departure_time"
-                                       value="<?php echo e($record['departure_time']); ?>" placeholder="2:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true" required>
+                        <!-- Call-only fields: hidden when Walk In is selected -->
+                        <div id="callOnlyFields">
+                            <!-- 1. Departure Time -->
+                            <div class="grid-2 mb-section">
+                                <div>
+                                    <label for="depTime" class="form-label">Departure Time</label>
+                                    <input type="text" class="form-control time-input-12hr" id="depTime" name="departure_time"
+                                           value="<?php echo e($record['departure_time']); ?>" placeholder="2:30 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                                </div>
+                                <div>
+                                    <label for="arrTime" class="form-label">Arrival Time</label>
+                                    <input type="text" class="form-control time-input-12hr" id="arrTime" name="arrival_time"
+                                           value="<?php echo e($record['arrival_time']); ?>" placeholder="3:45 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                                </div>
                             </div>
-                            <div>
-                                <label for="arrTime" class="form-label">Arrival Time</label>
-                                <input type="text" class="form-control time-input-12hr" id="arrTime" name="arrival_time"
-                                       value="<?php echo e($record['arrival_time']); ?>" placeholder="3:45 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
-                            </div>
-                        </div>
 
-                        <!-- 2. Arrival at Scene -->
-                        <div class="grid-2 mb-section">
-                            <div>
-                                <label for="arrSceneLocation" class="form-label">Arrival at Scene - Location</label>
-                                <input type="text" class="form-control" id="arrSceneLocation" name="arrival_scene_location"
-                                       value="<?php echo e($record['arrival_scene_location']); ?>" placeholder="Scene location">
-                            </div>
-                            <div>
-                                <label for="arrSceneTime" class="form-label">Arrival at Scene - Time</label>
-                                <input type="text" class="form-control time-input-12hr" id="arrSceneTime" name="arrival_scene_time"
-                                       value="<?php echo e($record['arrival_scene_time']); ?>" placeholder="4:15 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                            <!-- 2. Arrival at Scene -->
+                            <div class="grid-2 mb-section">
+                                <div>
+                                    <label for="arrSceneLocation" class="form-label">Arrival at Scene - Location</label>
+                                    <input type="text" class="form-control" id="arrSceneLocation" name="arrival_scene_location"
+                                           value="<?php echo e($record['arrival_scene_location']); ?>" placeholder="Scene location">
+                                </div>
+                                <div>
+                                    <label for="arrSceneTime" class="form-label">Arrival at Scene - Time</label>
+                                    <input type="text" class="form-control time-input-12hr" id="arrSceneTime" name="arrival_scene_time"
+                                           value="<?php echo e($record['arrival_scene_time']); ?>" placeholder="4:15 PM" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
+                                </div>
                             </div>
                         </div>
 
@@ -2196,27 +2199,33 @@ if (!is_array($initial_helmet)) {
     <script src="js/custom-date.js?v=<?php echo asset_version(); ?>"></script>
     <script src="js/time-picker-modal.js?v=<?php echo asset_version(); ?>"></script>
     <script nonce="<?php echo CSP_NONCE; ?>">
-        // Remove loading class after page loads - CRITICAL: Always remove skeleton
-        window.addEventListener('load', function() {
+        // ============================================================
+        // SKELETON REMOVAL — skeleton is shown immediately (body.loading)
+        // and removed AFTER the DOM is fully initialized (DOMContentLoaded).
+        // Safety nets: window.load event + 3s absolute timeout.
+        // Minimum display time: 600ms so the user actually sees the skeleton
+        // instead of a jarring flash.
+        // ============================================================
+        var skeletonStartTime = Date.now();
+        var skeletonRemoved = false;
+        function removeSkeleton() {
+            if (skeletonRemoved) return;
+            var elapsed = Date.now() - skeletonStartTime;
+            var minDelay = 600; // minimum ms the skeleton must be visible
+            var remaining = Math.max(0, minDelay - elapsed);
             setTimeout(function() {
-                try {
+                if (!skeletonRemoved) {
                     document.body.classList.remove('loading');
-                    console.log('Skeleton loading removed successfully');
-                } catch(e) {
-                    console.error('Error removing skeleton:', e);
-                    // Force remove skeleton even if error
-                    document.body.className = document.body.className.replace('loading', '');
+                    skeletonRemoved = true;
+                    console.log('Skeleton removed after ' + (Date.now() - skeletonStartTime) + 'ms');
                 }
-            }, 1000); // Wait for page to fully load before removing skeleton
-        });
-
-        // Failsafe: Remove skeleton after 3 seconds no matter what
-        setTimeout(function() {
-            if (document.body.classList.contains('loading')) {
-                console.warn('Failsafe: Forcing skeleton removal');
-                document.body.classList.remove('loading');
-            }
-        }, 3000);
+            }, remaining);
+        }
+        // Remove skeleton once DOM is ready
+        document.addEventListener('DOMContentLoaded', removeSkeleton);
+        // Failsafe: ensure skeleton is ALWAYS removed eventually
+        window.addEventListener('load', removeSkeleton);
+        setTimeout(removeSkeleton, 3000);
 
         // Show flash messages with Notiflix
         document.addEventListener('DOMContentLoaded', function() {

@@ -67,7 +67,6 @@ document.getElementById('ageUnit')?.addEventListener('change', updateGrowthStatu
 function submitForm() {
     const requiredFields = [
         { id: 'formDate', name: 'Date' },
-        { id: 'depTime', name: 'Departure Time' },
         { id: 'patientName', name: 'Patient Name' },
         { id: 'age', name: 'Age' }
     ];

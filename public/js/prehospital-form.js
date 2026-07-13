@@ -133,6 +133,42 @@ function setupVehicleModals() {
 }
 
 // ============================================
+// WALK IN / CALL TOGGLE - Show/hide call-only fields
+// ============================================
+function setupWalkInToggle() {
+    const walkInRadio = document.getElementById('walkIn');
+    const callRadio = document.getElementById('call');
+    const callOnlyFields = document.getElementById('callOnlyFields');
+
+    if (!walkInRadio || !callRadio || !callOnlyFields) return;
+
+    function updateCallFields() {
+        if (walkInRadio.checked) {
+            // Hide the call-only fields and clear their values
+            callOnlyFields.style.display = 'none';
+            // Clear Departure Time
+            const depTime = document.getElementById('depTime');
+            if (depTime) depTime.value = '';
+            // Clear Arrival Scene Location
+            const arrSceneLoc = document.getElementById('arrSceneLocation');
+            if (arrSceneLoc) arrSceneLoc.value = '';
+            // Clear Arrival Scene Time
+            const arrSceneTime = document.getElementById('arrSceneTime');
+            if (arrSceneTime) arrSceneTime.value = '';
+        } else {
+            // Show the call-only fields
+            callOnlyFields.style.display = '';
+        }
+    }
+
+    walkInRadio.addEventListener('change', updateCallFields);
+    callRadio.addEventListener('change', updateCallFields);
+
+    // Run on page load (handles draft resume where walkIn is pre-checked)
+    updateCallFields();
+}
+
+// ============================================
 // INITIALIZATION
 // ============================================
 
@@ -188,4 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Walk In / Call toggle: hide Departure Time + Arrival Scene fields when Walk In is selected
+    setupWalkInToggle();
 });

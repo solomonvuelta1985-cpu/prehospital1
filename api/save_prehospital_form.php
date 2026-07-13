@@ -705,6 +705,23 @@ try {
         db_query("UPDATE prehospital_forms SET incident_category = ? WHERE id = ?", [$incident_category, $form_id], true);
     }
 
+    // If this was a new INSERT (not an update of an existing draft), clean up
+    // any recent orphan draft that autosave may have left behind — e.g. when an
+    // autosave INSERT succeeded on the server but the response never reached the
+    // client.  Only targets drafts updated within the last 5 minutes to avoid
+    // touching legitimate drafts the user is still actively working on.
+    if (!$is_updating_draft && $form_id) {
+        db_query(
+            "DELETE FROM prehospital_forms
+             WHERE created_by = ?
+               AND status = 'draft'
+               AND id != ?
+               AND updated_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE)",
+            [$created_by, $form_id],
+            true
+        );
+    }
+
     // Insert injuries if any
     if (!empty($injuries_data) && is_array($injuries_data)) {
         $injury_sql = "INSERT INTO injuries (form_id, injury_number, injury_type, body_view, body_part, coordinate_x, coordinate_y, notes)
