@@ -61,6 +61,16 @@ foreach ($dateTimeFields as $field) {
     }
 }
 
+/**
+ * Format a 24-hour time (HH:MM:SS) to 12-hour format with AM/PM
+ */
+function format_time_12h($time) {
+    if (empty($time)) return '';
+    $ts = strtotime($time);
+    if ($ts === false) return htmlspecialchars((string)$time);
+    return date('g:i A', $ts);
+}
+
 // Clean up date-only fields
 $dateFields = ['date_of_birth', 'lmp', 'edc'];
 foreach ($dateFields as $field) {
@@ -579,11 +589,11 @@ $current_user = get_auth_user();
                             </div>
                             <div class="vr-item">
                                 <span class="vr-label">Departure Time</span>
-                                <span class="vr-value<?php echo empty($record['departure_time']) ? ' vr-value--empty' : ''; ?>"><?php echo e($record['departure_time'] ?: 'Not specified'); ?></span>
+                                <span class="vr-value<?php echo empty($record['departure_time']) ? ' vr-value--empty' : ''; ?>"><?php echo format_time_12h($record['departure_time']) ?: '<span class="vr-value--empty">Not specified</span>'; ?></span>
                             </div>
                             <div class="vr-item">
                                 <span class="vr-label">Arrival Time</span>
-                                <span class="vr-value<?php echo empty($record['arrival_time']) ? ' vr-value--empty' : ''; ?>"><?php echo e($record['arrival_time'] ?: 'Not specified'); ?></span>
+                                <span class="vr-value<?php echo empty($record['arrival_time']) ? ' vr-value--empty' : ''; ?>"><?php echo format_time_12h($record['arrival_time']) ?: '<span class="vr-value--empty">Not specified</span>'; ?></span>
                             </div>
                             <div class="vr-item">
                                 <span class="vr-label">Vehicle Used</span>
@@ -631,7 +641,7 @@ $current_user = get_auth_user();
                             </div>
                             <div class="vr-item">
                                 <span class="vr-label">Arrival Scene Time</span>
-                                <span class="vr-value<?php echo empty($record['arrival_scene_time']) ? ' vr-value--empty' : ''; ?>"><?php echo e($record['arrival_scene_time'] ?: 'Not specified'); ?></span>
+                                <span class="vr-value<?php echo empty($record['arrival_scene_time']) ? ' vr-value--empty' : ''; ?>"><?php echo format_time_12h($record['arrival_scene_time']) ?: '<span class="vr-value--empty">Not specified</span>'; ?></span>
                             </div>
                             <div class="vr-item">
                                 <span class="vr-label">Departure Scene Location</span>
@@ -639,7 +649,7 @@ $current_user = get_auth_user();
                             </div>
                             <div class="vr-item">
                                 <span class="vr-label">Departure Scene Time</span>
-                                <span class="vr-value<?php echo empty($record['departure_scene_time']) ? ' vr-value--empty' : ''; ?>"><?php echo e($record['departure_scene_time'] ?: 'Not specified'); ?></span>
+                                <span class="vr-value<?php echo empty($record['departure_scene_time']) ? ' vr-value--empty' : ''; ?>"><?php echo format_time_12h($record['departure_scene_time']) ?: '<span class="vr-value--empty">Not specified</span>'; ?></span>
                             </div>
                         </div>
                     </div>
@@ -713,7 +723,7 @@ $current_user = get_auth_user();
                             </div>
                             <div class="vr-item">
                                 <span class="vr-label">Call Arrival Time</span>
-                                <span class="vr-value<?php echo empty($record['call_arrival_time']) ? ' vr-value--empty' : ''; ?>"><?php echo e($record['call_arrival_time'] ?: 'Not specified'); ?></span>
+                                <span class="vr-value<?php echo empty($record['call_arrival_time']) ? ' vr-value--empty' : ''; ?>"><?php echo format_time_12h($record['call_arrival_time']) ?: '<span class="vr-value--empty">Not specified</span>'; ?></span>
                             </div>
                             <div class="vr-item vr-item--full">
                                 <span class="vr-label">Relationship to Victim</span>
@@ -987,7 +997,7 @@ $current_user = get_auth_user();
                         <div class="vr-grid">
                             <div class="vr-item">
                                 <span class="vr-label">Time of Incident</span>
-                                <span class="vr-value<?php echo empty($record['incident_time']) ? ' vr-value--empty' : ''; ?>"><?php echo e($record['incident_time'] ?: 'Not specified'); ?></span>
+                                <span class="vr-value<?php echo empty($record['incident_time']) ? ' vr-value--empty' : ''; ?>"><?php echo format_time_12h($record['incident_time']) ?: '<span class="vr-value--empty">Not specified</span>'; ?></span>
                             </div>
                         </div>
                     </div>
@@ -1006,15 +1016,15 @@ $current_user = get_auth_user();
                             </div>
                             <div class="vr-item">
                                 <span class="vr-label">Arrival Hospital Time</span>
-                                <span class="vr-value<?php echo empty($record['arrival_hospital_time']) ? ' vr-value--empty' : ''; ?>"><?php echo e($record['arrival_hospital_time'] ?: 'Not specified'); ?></span>
+                                <span class="vr-value<?php echo empty($record['arrival_hospital_time']) ? ' vr-value--empty' : ''; ?>"><?php echo format_time_12h($record['arrival_hospital_time']) ?: '<span class="vr-value--empty">Not specified</span>'; ?></span>
                             </div>
                             <div class="vr-item">
                                 <span class="vr-label">Departure Hospital Time</span>
-                                <span class="vr-value<?php echo empty($record['departure_hospital_time']) ? ' vr-value--empty' : ''; ?>"><?php echo e($record['departure_hospital_time'] ?: 'Not specified'); ?></span>
+                                <span class="vr-value<?php echo empty($record['departure_hospital_time']) ? ' vr-value--empty' : ''; ?>"><?php echo format_time_12h($record['departure_hospital_time']) ?: '<span class="vr-value--empty">Not specified</span>'; ?></span>
                             </div>
                             <div class="vr-item">
                                 <span class="vr-label">Arrival Station Time</span>
-                                <span class="vr-value<?php echo empty($record['arrival_station_time']) ? ' vr-value--empty' : ''; ?>"><?php echo e($record['arrival_station_time'] ?: 'Not specified'); ?></span>
+                                <span class="vr-value<?php echo empty($record['arrival_station_time']) ? ' vr-value--empty' : ''; ?>"><?php echo format_time_12h($record['arrival_station_time']) ?: '<span class="vr-value--empty">Not specified</span>'; ?></span>
                             </div>
                         </div>
                     </div>

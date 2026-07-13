@@ -223,9 +223,9 @@ try {
     $patient_name = sanitize($_POST['patient_name'] ?? '');
     $date_of_birth = sanitize($_POST['date_of_birth'] ?? '', false); // Don't uppercase date
     $age = (int)($_POST['age'] ?? 0);
-    $age_unit = !empty($_POST['age_unit']) ? sanitize($_POST['age_unit'], false) : 'years'; // Don't uppercase enum
-    $growth_status = !empty($_POST['growth_status']) ? sanitize($_POST['growth_status'], false) : null; // Don't uppercase enum
-    $gender = sanitize($_POST['gender'] ?? '', false); // Don't uppercase gender
+    $age_unit = !empty($_POST['age_unit']) ? strtolower(sanitize($_POST['age_unit'], false)) : 'years'; // Normalize enum
+    $growth_status = !empty($_POST['growth_status']) ? strtolower(sanitize($_POST['growth_status'], false)) : null; // Normalize enum
+    $gender = strtolower(sanitize($_POST['gender'] ?? '', false)); // Normalize gender to lowercase
 
     // Normalize date_of_birth: treat whitespace-only or invalid placeholders as empty
     if ($date_of_birth !== null) {
@@ -266,11 +266,11 @@ try {
         $date_of_birth = null;
     }
     
-    if (!in_array($gender, ['male', 'female'])) {
-        throw new Exception('Invalid gender value');
+    if (!in_array($gender, ['male', 'female'], true)) {
+        throw new Exception('Invalid gender value. Please select Male or Female.');
     }
     
-    $civil_status = sanitize($_POST['civil_status'] ?? null, false); // Don't uppercase civil status
+    $civil_status = !empty($_POST['civil_status']) ? strtolower(sanitize($_POST['civil_status'], false)) : null; // Normalize enum
     $address = sanitize($_POST['address'] ?? null);
     $zone = sanitize($_POST['zone'] ?? null);
     $occupation = sanitize($_POST['occupation'] ?? null);
@@ -285,7 +285,7 @@ try {
     // Informant Details
     $informant_name = sanitize($_POST['informant_name'] ?? null);
     $informant_address = sanitize($_POST['informant_address'] ?? null);
-    $arrival_type = sanitize($_POST['arrival_type'] ?? null, false); // Don't uppercase arrival type (enum value)
+    $arrival_type = !empty($_POST['arrival_type']) ? strtolower(sanitize($_POST['arrival_type'], false)) : null; // Normalize enum
     $call_arrival_time = sanitize($_POST['call_arrival_time'] ?? null, false); // Don't uppercase time
     $contact_number = sanitize($_POST['contact_number'] ?? null);
     $relationship_victim = sanitize($_POST['relationship_victim'] ?? null);
@@ -363,7 +363,7 @@ try {
     $initial_resp_rate = (!empty($_POST['initial_resp']) && $_POST['initial_resp'] !== '') ? (int)$_POST['initial_resp'] : null;
     $initial_pain_score = (isset($_POST['initial_pain_score']) && $_POST['initial_pain_score'] !== '') ? (int)$_POST['initial_pain_score'] : null;
     $initial_spo2 = (!empty($_POST['initial_spo2']) && $_POST['initial_spo2'] !== '') ? (int)$_POST['initial_spo2'] : null;
-    $initial_spinal_injury = !empty($_POST['initial_spinal_injury']) ? sanitize($_POST['initial_spinal_injury'], false) : null; // Don't uppercase enum
+    $initial_spinal_injury = !empty($_POST['initial_spinal_injury']) ? strtolower(sanitize($_POST['initial_spinal_injury'], false)) : null; // Normalize enum
     $initial_consciousness = !empty($_POST['initial_consciousness']) ? json_encode(array_map(function($val) { return sanitize($val, false); }, $_POST['initial_consciousness'])) : null; // Don't uppercase enum
     $initial_helmet = !empty($_POST['initial_helmet']) ? json_encode(array_map(function($val) { return sanitize($val, false); }, $_POST['initial_helmet'])) : null; // Multi-select - don't uppercase enum
 
@@ -381,7 +381,7 @@ try {
     $followup_resp_rate = (!empty($_POST['followup_resp']) && $_POST['followup_resp'] !== '') ? (int)$_POST['followup_resp'] : null;
     $followup_pain_score = (isset($_POST['followup_pain_score']) && $_POST['followup_pain_score'] !== '') ? (int)$_POST['followup_pain_score'] : null;
     $followup_spo2 = (!empty($_POST['followup_spo2']) && $_POST['followup_spo2'] !== '') ? (int)$_POST['followup_spo2'] : null;
-    $followup_spinal_injury = !empty($_POST['followup_spinal_injury']) ? sanitize($_POST['followup_spinal_injury'], false) : null; // Don't uppercase enum
+    $followup_spinal_injury = !empty($_POST['followup_spinal_injury']) ? strtolower(sanitize($_POST['followup_spinal_injury'], false)) : null; // Normalize enum
     $followup_consciousness = !empty($_POST['followup_consciousness']) ? json_encode(array_map(function($val) { return sanitize($val, false); }, $_POST['followup_consciousness'])) : null; // Don't uppercase enum
 
     // Convert 12-hour time format to 24-hour if needed
@@ -400,10 +400,10 @@ try {
     $other_complaints = sanitize($_POST['other_complaints'] ?? null);
 
     // FAST Assessment
-    $fast_face_drooping = !empty($_POST['face_drooping']) ? sanitize($_POST['face_drooping'], false) : null;
-    $fast_arm_weakness = !empty($_POST['arm_weakness']) ? sanitize($_POST['arm_weakness'], false) : null;
-    $fast_speech_difficulty = !empty($_POST['speech_difficulty']) ? sanitize($_POST['speech_difficulty'], false) : null;
-    $fast_time_to_call = !empty($_POST['time_to_call']) ? sanitize($_POST['time_to_call'], false) : null;
+    $fast_face_drooping = !empty($_POST['face_drooping']) ? strtolower(sanitize($_POST['face_drooping'], false)) : null; // Normalize enum
+    $fast_arm_weakness = !empty($_POST['arm_weakness']) ? strtolower(sanitize($_POST['arm_weakness'], false)) : null; // Normalize enum
+    $fast_speech_difficulty = !empty($_POST['speech_difficulty']) ? strtolower(sanitize($_POST['speech_difficulty'], false)) : null; // Normalize enum
+    $fast_time_to_call = !empty($_POST['time_to_call']) ? strtolower(sanitize($_POST['time_to_call'], false)) : null; // Normalize enum
     // SAMPLE details is stored as JSON - don't sanitize to preserve JSON structure
     // Prepared statements handle SQL injection protection
     $fast_sample_details = $_POST['fast_sample_details'] ?? $_POST['sample_details'] ?? null;
@@ -422,7 +422,7 @@ try {
     // OB Information
     $ob_baby_status = !empty($_POST['baby_status']) ? sanitize($_POST['baby_status']) : null;
     $ob_delivery_time = !empty($_POST['ob_delivery_time']) ? sanitize($_POST['ob_delivery_time'], false) : null;
-    $ob_placenta = !empty($_POST['placenta']) ? sanitize($_POST['placenta'], false) : null;
+    $ob_placenta = !empty($_POST['placenta']) ? strtolower(sanitize($_POST['placenta'], false)) : null; // Normalize enum
     $ob_lmp = !empty($_POST['lmp']) ? sanitize($_POST['lmp'], false) : null;
     $ob_aog = !empty($_POST['aog']) ? sanitize($_POST['aog']) : null;
     $ob_edc = !empty($_POST['edc']) ? sanitize($_POST['edc'], false) : null;

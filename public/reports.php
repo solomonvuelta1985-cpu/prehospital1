@@ -533,6 +533,29 @@ $rpt_type_total = array_sum(array_column($rpt_type_rows, 1));
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="css/reports-style.css?v=<?php echo md5_file(__DIR__ . '/css/reports-style.css'); ?>" rel="stylesheet">
+    <style>
+        /* ===== COLLAPSIBLE CARD TOGGLE (Consolidated Run + Vehicle cards) ===== */
+        .rpt-collapse-toggle {
+            width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+            background: var(--rpt-gray-50, #f8fafc); border: 1px solid var(--rpt-gray-200, #e5e7eb);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--rpt-gray-500, #64748b); font-size: 0.85rem; cursor: pointer;
+            transition: all 0.2s ease; padding: 0; line-height: 1;
+            margin-left: 0.5rem;
+        }
+        .rpt-collapse-toggle:hover { background: #eef2ff; color: #4f46e5; border-color: #c7d2fe; }
+        .rpt-collapse-toggle .chevron-icon { transition: transform 0.25s ease; display: inline-block; }
+        .rpt-section.expanded .rpt-collapse-toggle .chevron-icon { transform: rotate(180deg); }
+        .rpt-collapsible-hint {
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            padding: 0.5rem 0 0.15rem; font-size: 0.7rem; font-weight: 600;
+            color: var(--rpt-gray-400, #94a3b8); border-top: 1px dashed var(--rpt-gray-200, #e5e7eb);
+            margin-top: 0.4rem; cursor: pointer;
+        }
+        .rpt-collapsible-hint:hover { color: #4f46e5; }
+        .rpt-collapsible-hint .hint-dots { letter-spacing: 0.15em; }
+        .rpt-section.expanded .rpt-collapsible-hint { display: none; }
+    </style>
 </head>
 <body class="rpt-reports-page">
     <?php include '../includes/sidebar.php'; ?>
@@ -856,16 +879,22 @@ $rpt_type_total = array_sum(array_column($rpt_type_rows, 1));
             <hr class="rpt-section-divider">
             <h2 class="rpt-band-title"><span class="rpt-icon-dot"></span> Consolidated Run</h2>
             <div class="rpt-grid-2-1">
-                <div class="rpt-section">
+                <!-- Run Categories -- with collapse toggle -->
+                <div class="rpt-section" id="rpt-runcats-panel">
                     <div class="rpt-section-header">
                         <h2 class="rpt-section-title"><i class="bi bi-clipboard2-data"></i> Run Categories</h2>
-                        <span class="rpt-section-badge"><?php echo number_format($cr_total); ?> classified</span>
+                        <div style="display:flex;align-items:center;gap:0.5rem;">
+                            <span class="rpt-section-badge"><?php echo number_format($cr_total); ?> classified</span>
+                            <button type="button" class="rpt-collapse-toggle" title="Expand/Collapse" data-panel="rpt-runcats-panel">
+                                <i class="bi bi-chevron-down chevron-icon"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="rpt-section-body">
-                        <?php if (!empty($cr['categories'])): $cr_max = max($cr['categories']); ?>
+                        <?php if (!empty($cr['categories'])): $cr_max = max($cr['categories']); $cr_limit = 5; $cr_idx = 0; ?>
                         <ul class="rpt-bar-list">
-                            <?php foreach ($cr['categories'] as $cat => $cnt): $w = $cr_max > 0 ? round(($cnt / $cr_max) * 100) : 0; ?>
-                            <li class="rpt-bar-row">
+                            <?php foreach ($cr['categories'] as $cat => $cnt): $cr_idx++; $w = $cr_max > 0 ? round(($cnt / $cr_max) * 100) : 0; ?>
+                            <li class="rpt-bar-row"<?php if ($cr_idx > $cr_limit): ?> data-collapse-hidden="1" style="display:none"<?php endif; ?>>
                                 <div class="rpt-bar-row-top">
                                     <span class="rpt-bar-row-label"><?php echo e($cat); ?></span>
                                     <span class="rpt-bar-row-val"><?php echo number_format($cnt); ?></span>
@@ -874,60 +903,75 @@ $rpt_type_total = array_sum(array_column($rpt_type_rows, 1));
                             </li>
                             <?php endforeach; ?>
                         </ul>
-                        <p style="margin:0.85rem 0 0;font-size:0.7rem;color:var(--rpt-gray-400);">Trauma incidents, medical &amp; OB — from the saved category or the complaint/narrative and FAST/consciousness signals. Free-text spelling variants may affect counts.</p>
+                        <?php $cr_remaining = count($cr['categories']) - $cr_limit; if ($cr_remaining > 0): ?>
+                        <div class="rpt-collapsible-hint" data-panel="rpt-runcats-panel">
+                            <span class="hint-dots">&bull; &bull; &bull;</span>
+                            <span>and <?php echo $cr_remaining; ?> more categor<?php echo $cr_remaining === 1 ? 'y' : 'ies'; ?></span>
+                            <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+                        </div>
+                        <?php endif; ?>
+                        <p style="margin:0.85rem 0 0;font-size:0.7rem;color:var(--rpt-gray-400);">Trauma incidents, medical & OB — from the saved category or the complaint/narrative and FAST/consciousness signals. Free-text spelling variants may affect counts.</p>
                         <?php else: ?>
                         <div class="rpt-empty-state"><div class="rpt-empty-icon"><i class="bi bi-clipboard2-x"></i></div><div class="rpt-empty-title">No categorized incidents</div><div class="rpt-empty-desc">No records in this period matched a known incident category.</div></div>
                         <?php endif; ?>
                     </div>
                 </div>
-                <div class="rpt-section">
+                <!-- By Emergency Type -- with collapse toggle -->
+                <div class="rpt-section" id="rpt-emergtype-panel">
                     <div class="rpt-section-header">
                         <h2 class="rpt-section-title"><i class="bi bi-collection"></i> By Emergency Type</h2>
+                        <button type="button" class="rpt-collapse-toggle" title="Expand/Collapse" data-panel="rpt-emergtype-panel">
+                            <i class="bi bi-chevron-down chevron-icon"></i>
+                        </button>
                     </div>
                     <div class="rpt-section-body">
+                        <?php $et_idx = 0; $et_limit = 5; $et_items = $cr['parents']; if (!empty($cr['uncategorized'])) { $et_items['No type set'] = $cr['uncategorized']; } ?>
                         <ul class="rpt-rank-list">
-                            <?php $cp = 0; foreach ($cr['parents'] as $pl => $pc): $cp++; $rc = $cp <= 3 ? 'r'.$cp : ''; ?>
-                            <li>
+                            <?php $cp = 0; foreach ($et_items as $pl => $pc): $cp++; $et_idx++; $rc = $cp <= 3 ? 'r'.$cp : ''; $is_uncat = ($pl === 'No type set'); ?>
+                            <li<?php if ($et_idx > $et_limit): ?> data-collapse-hidden="1" style="display:none"<?php endif; ?>>
+                                <?php if ($is_uncat): ?>
+                                <span class="rpt-rank-badge" style="background:var(--rpt-gray-200);color:var(--rpt-gray-500);"><i class="bi bi-question"></i></span>
+                                <span class="rpt-rank-name">No type set</span>
+                                <?php else: ?>
                                 <span class="rpt-rank-badge <?php echo $rc; ?>"><i class="bi bi-dot"></i></span>
                                 <span class="rpt-rank-name"><?php echo e($pl); ?></span>
+                                <?php endif; ?>
                                 <span class="rpt-rank-count"><?php echo number_format($pc); ?></span>
                             </li>
                             <?php endforeach; ?>
-                            <?php if (!empty($cr['uncategorized'])): // only when records genuinely carry no usable signal ?>
-                            <li>
-                                <span class="rpt-rank-badge" style="background:var(--rpt-gray-200);color:var(--rpt-gray-500);"><i class="bi bi-question"></i></span>
-                                <span class="rpt-rank-name">No type set</span>
-                                <span class="rpt-rank-count"><?php echo number_format($cr['uncategorized']); ?></span>
-                            </li>
-                            <?php endif; ?>
                         </ul>
+                        <?php $et_remaining = count($et_items) - $et_limit; if ($et_remaining > 0): ?>
+                        <div class="rpt-collapsible-hint" data-panel="rpt-emergtype-panel">
+                            <span class="hint-dots">&bull; &bull; &bull;</span>
+                            <span>and <?php echo $et_remaining; ?> more</span>
+                            <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
 
             <!-- ===== VEHICLE USED ===== -->
             <?php if (!empty($rpt_vehicle_labels)): ?>
-            <div class="rpt-grid-1-1-1">
-                <div class="rpt-section">
-                    <div class="rpt-section-header">
-                        <h2 class="rpt-section-title"><i class="bi bi-truck"></i> Vehicle Used</h2>
-                    </div>
-                    <div class="rpt-section-body">
-                        <div class="rpt-chart-container chart-sm">
-                            <canvas id="rptVehicleUsedChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="rpt-section">
+            <div class="rpt-grid-2-1">
+                <!-- Vehicle Breakdown -- with collapse toggle -->
+                <div class="rpt-section" id="rpt-vehiclebreak-panel">
                     <div class="rpt-section-header">
                         <h2 class="rpt-section-title"><i class="bi bi-list-ul"></i> Vehicle Breakdown</h2>
-                        <span class="rpt-section-badge"><?php echo number_format($rpt_vehicle_total); ?> total</span>
+                        <div style="display:flex;align-items:center;gap:0.5rem;">
+                            <span class="rpt-section-badge"><?php echo number_format($rpt_vehicle_total); ?> total</span>
+                            <button type="button" class="rpt-collapse-toggle" title="Expand/Collapse" data-panel="rpt-vehiclebreak-panel">
+                                <i class="bi bi-chevron-down chevron-icon"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="rpt-section-body">
+                        <?php $vb_limit = 5; $vb_idx = 0; ?>
                         <ul class="rpt-legend-list">
                             <?php foreach ($rpt_vehicle_labels as $i => $vlabel):
+                                $vb_idx++;
                                 $vpct = $rpt_vehicle_total > 0 ? round(($rpt_vehicle_counts[$i] / $rpt_vehicle_total) * 100, 1) : 0; ?>
-                            <li>
+                            <li<?php if ($vb_idx > $vb_limit): ?> data-collapse-hidden="1" style="display:none"<?php endif; ?>>
                                 <span class="rpt-legend-swatch" style="background: <?php echo $rpt_vehicle_colors[$i]; ?>"></span>
                                 <span class="rpt-legend-name"><?php echo e($vlabel); ?></span>
                                 <span class="rpt-legend-val"><?php echo number_format($rpt_vehicle_counts[$i]); ?></span>
@@ -935,23 +979,41 @@ $rpt_type_total = array_sum(array_column($rpt_type_rows, 1));
                             </li>
                             <?php endforeach; ?>
                         </ul>
+                        <?php $vb_remaining = $vb_idx - $vb_limit; if ($vb_remaining > 0): ?>
+                        <div class="rpt-collapsible-hint" data-panel="rpt-vehiclebreak-panel">
+                            <span class="hint-dots">&bull; &bull; &bull;</span>
+                            <span>and <?php echo $vb_remaining; ?> more</span>
+                            <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
-                <div class="rpt-section">
+                <!-- Ambulance Units -- with collapse toggle -->
+                <div class="rpt-section" id="rpt-ambunit-panel">
                     <div class="rpt-section-header">
                         <h2 class="rpt-section-title"><i class="bi bi-123"></i> Ambulance Units</h2>
+                        <button type="button" class="rpt-collapse-toggle" title="Expand/Collapse" data-panel="rpt-ambunit-panel">
+                            <i class="bi bi-chevron-down chevron-icon"></i>
+                        </button>
                     </div>
                     <div class="rpt-section-body">
-                        <?php if (!empty($rpt_amb_units)): ?>
+                        <?php if (!empty($rpt_amb_units)): $au_limit = 5; $au_idx = 0; ?>
                         <ul class="rpt-rank-list">
-                            <?php $vi = 0; foreach ($rpt_amb_units as $unit => $cnt): $vi++; $rc = $vi <= 3 ? 'r'.$vi : ''; ?>
-                            <li>
+                            <?php $vi = 0; foreach ($rpt_amb_units as $unit => $cnt): $vi++; $au_idx++; $rc = $vi <= 3 ? 'r'.$vi : ''; ?>
+                            <li<?php if ($au_idx > $au_limit): ?> data-collapse-hidden="1" style="display:none"<?php endif; ?>>
                                 <span class="rpt-rank-badge <?php echo $rc; ?>"><?php echo e($unit); ?></span>
                                 <span class="rpt-rank-name">Ambulance <?php echo e($unit); ?></span>
                                 <span class="rpt-rank-count"><?php echo number_format($cnt); ?></span>
                             </li>
                             <?php endforeach; ?>
                         </ul>
+                        <?php $au_remaining = count($rpt_amb_units) - $au_limit; if ($au_remaining > 0): ?>
+                        <div class="rpt-collapsible-hint" data-panel="rpt-ambunit-panel">
+                            <span class="hint-dots">&bull; &bull; &bull;</span>
+                            <span>and <?php echo $au_remaining; ?> more unit<?php echo $au_remaining === 1 ? '' : 's'; ?></span>
+                            <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+                        </div>
+                        <?php endif; ?>
                         <?php else: ?>
                         <p style="color:#94a3b8;font-size:0.8125rem;">No unit IDs recorded (vehicle detail data unavailable).</p>
                         <?php endif; ?>
@@ -1017,34 +1079,6 @@ $rpt_type_total = array_sum(array_column($rpt_type_rows, 1));
                             <?php else: ?>
                             <p style="color: #94a3b8; font-size: 0.8125rem;">No specified condition details recorded.</p>
                             <?php endif; ?>
-                        </div>
-                        <!-- Vital Signs Summary -->
-                        <div class="rpt-clinical-card">
-                            <div class="rpt-clinical-subtitle"><i class="bi bi-activity"></i> Vital Signs (Averages)</div>
-                            <div class="rpt-vital-grid">
-                                <div class="rpt-vital-tile">
-                                    <div class="rpt-vital-tile-label">Systolic BP</div>
-                                    <div class="rpt-vital-tile-value"><?php
-                                        if (!empty($medical_vitals['bp'])) {
-                                            $bps = [];
-                                            foreach ($medical_vitals['bp'] as $bp) { $parts = explode('/', $bp); $bps[] = intval($parts[0]); }
-                                            echo round(array_sum($bps) / count($bps)) . ' <small>mmHg</small>';
-                                        } else { echo '—'; }
-                                    ?></div>
-                                </div>
-                                <div class="rpt-vital-tile">
-                                    <div class="rpt-vital-tile-label">Temperature</div>
-                                    <div class="rpt-vital-tile-value"><?php echo !empty($medical_vitals['temp']) ? round(array_sum($medical_vitals['temp']) / count($medical_vitals['temp']), 1) . ' <small>°C</small>' : '—'; ?></div>
-                                </div>
-                                <div class="rpt-vital-tile">
-                                    <div class="rpt-vital-tile-label">Pulse Rate</div>
-                                    <div class="rpt-vital-tile-value"><?php echo !empty($medical_vitals['pulse']) ? round(array_sum($medical_vitals['pulse']) / count($medical_vitals['pulse'])) . ' <small>BPM</small>' : '—'; ?></div>
-                                </div>
-                                <div class="rpt-vital-tile">
-                                    <div class="rpt-vital-tile-label">SpO₂</div>
-                                    <div class="rpt-vital-tile-value"><?php echo !empty($medical_vitals['spo2']) ? round(array_sum($medical_vitals['spo2']) / count($medical_vitals['spo2'])) . ' <small>%</small>' : '—'; ?></div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -1506,6 +1540,49 @@ $rpt_type_total = array_sum(array_column($rpt_type_rows, 1));
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script nonce="<?php echo CSP_NONCE; ?>" src="js/reports-charts.js?v=<?php echo md5_file(__DIR__ . '/js/reports-charts.js'); ?>"></script>
+
+    <!-- Collapse/expand toggle for Consolidated Run + Vehicle cards -->
+    <script nonce="<?php echo CSP_NONCE; ?>">
+        (function() {
+            function togglePanel(panelId) {
+                var panel = document.getElementById(panelId);
+                if (!panel) return;
+                var isExpanded = panel.classList.toggle('expanded');
+                var hiddenRows = panel.querySelectorAll('[data-collapse-hidden="1"]');
+                hiddenRows.forEach(function(row) {
+                    if (isExpanded) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                // Re-trigger chart resize if this panel contains a canvas that just became visible
+                if (isExpanded) {
+                    var canvases = panel.querySelectorAll('canvas');
+                    canvases.forEach(function(c) {
+                        var chart = Chart.getChart(c);
+                        if (chart) { chart.resize(); }
+                    });
+                }
+            }
+
+            document.querySelectorAll('.rpt-collapse-toggle').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var panelId = this.getAttribute('data-panel');
+                    if (panelId) togglePanel(panelId);
+                });
+            });
+
+            document.querySelectorAll('.rpt-collapsible-hint').forEach(function(hint) {
+                hint.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var panelId = this.getAttribute('data-panel');
+                    if (panelId) togglePanel(panelId);
+                });
+            });
+        })();
+    </script>
 
     <!-- Data bridge: pass PHP data to JS -->
     <script nonce="<?php echo CSP_NONCE; ?>">

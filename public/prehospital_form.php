@@ -489,7 +489,7 @@ $current_user = get_auth_user();
                             </div>
                             <div>
                                 <label for="depTime" class="form-label required-field">Departure Time</label>
-                                <input type="text" class="form-control time-input-12hr" id="depTime" name="departure_time" placeholder="--:-- --" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true" required>
+                                <input type="text" class="form-control time-input-12hr" id="depTime" name="departure_time" placeholder="--:-- --" maxlength="8" pattern="^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$" data-time-field="true">
                             </div>
                             <!-- <div>
                                 <label for="arrTime" class="form-label">Arrival Time</label>
@@ -1170,19 +1170,50 @@ $current_user = get_auth_user();
 
                         <!-- INTERACTIVE BODY DIAGRAM -->
                         <div class="body-diagram-container">
-                            <div class="body-diagram-header">
+<div class="body-diagram-header">
                                 <h6><i class="bi bi-person-bounding-box"></i> Interactive Injury Mapping</h6>
                                 <small class="text-muted">Click on body diagram to mark injuries</small>
 
-                                <!-- Marker Legend -->
-                                <div class="marker-legend">
-                                    <span class="legend-title">Marker Legend:</span>
-                                    <span class="legend-item"><span class="legend-marker" style="background: #dc3545;">LC</span> Laceration</span>
-                                    <span class="legend-item"><span class="legend-marker" style="background: #fd7e14;">FX</span> Fracture</span>
-                                    <span class="legend-item"><span class="legend-marker" style="background: #ffc107; color: #333;">BN</span> Burn</span>
-                                    <span class="legend-item"><span class="legend-marker" style="background: #6f42c1;">CT</span> Contusion</span>
-                                    <span class="legend-item"><span class="legend-marker" style="background: #20c997;">AB</span> Abrasion</span>
-                                    <span class="legend-item"><span class="legend-marker" style="background: #6c757d;">OT</span> Other</span>
+                                <!-- Injury Classification moved from sidebar -->
+                                <div class="injury-classification-header">
+                                    <div class="injury-type-grid">
+                                        <button type="button" class="injury-type-btn active" data-type="laceration">
+                                            <div class="btn-content">
+                                                <span class="color-badge" style="background: #dc3545;"><i class="bi bi-bandaid-fill"></i></span>
+                                                <span class="btn-label">Laceration</span>
+                                            </div>
+                                        </button>
+                                        <button type="button" class="injury-type-btn" data-type="fracture">
+                                            <div class="btn-content">
+                                                <span class="color-badge" style="background: #fd7e14;"><i class="bi bi-activity"></i></span>
+                                                <span class="btn-label">Fracture</span>
+                                            </div>
+                                        </button>
+                                        <button type="button" class="injury-type-btn" data-type="burn">
+                                            <div class="btn-content">
+                                                <span class="color-badge" style="background: #ffc107;"><i class="bi bi-fire"></i></span>
+                                                <span class="btn-label">Burn</span>
+                                            </div>
+                                        </button>
+                                        <button type="button" class="injury-type-btn" data-type="contusion">
+                                            <div class="btn-content">
+                                                <span class="color-badge" style="background: #6f42c1;"><i class="bi bi-circle-fill"></i></span>
+                                                <span class="btn-label">Contusion</span>
+                                            </div>
+                                        </button>
+                                        <button type="button" class="injury-type-btn" data-type="abrasion">
+                                            <div class="btn-content">
+                                                <span class="color-badge" style="background: #20c997;"><i class="bi bi-slash-circle"></i></span>
+                                                <span class="btn-label">Abrasion</span>
+                                            </div>
+                                        </button>
+                                        <button type="button" class="injury-type-btn" data-type="other">
+                                            <div class="btn-content">
+                                                <span class="color-badge" style="background: #6c757d;"><i class="bi bi-three-dots"></i></span>
+                                                <span class="btn-label">Other</span>
+                                            </div>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             

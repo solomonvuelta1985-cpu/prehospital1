@@ -56,7 +56,7 @@ try {
         if (empty($v)) return '<span class="mv-empty">—</span>';
         if ($format === 'date') return date('M d, Y', strtotime($v));
         if ($format === 'datetime') return date('M d, Y g:i A', strtotime($v));
-        if ($format === 'time') return $v;
+        if ($format === 'time') return date('g:i A', strtotime($v));
         return e($v);
     };
 

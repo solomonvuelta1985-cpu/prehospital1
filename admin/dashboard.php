@@ -53,6 +53,9 @@ $active_users = (int)$active_users_stmt->fetch()['count'];
 // Recent forms
 $recent_forms_stmt = db_query("SELECT * FROM form_summary ORDER BY created_at DESC LIMIT 10");
 $recent_forms = $recent_forms_stmt->fetchAll();
+// Decrypt sensitive fields for each recent form
+foreach ($recent_forms as &$rf) { decrypt_record_fields($rf); }
+unset($rf);
 
 // Recent activity (last 10 audit-like entries)
 $activity_stmt = db_query("
@@ -64,6 +67,9 @@ $activity_stmt = db_query("
     LIMIT 8
 ");
 $recent_activity = $activity_stmt ? $activity_stmt->fetchAll() : [];
+// Decrypt sensitive fields for each activity entry
+foreach ($recent_activity as &$ra) { decrypt_record_fields($ra); }
+unset($ra);
 
 // Weekly data for bar chart
 $seven_days_ago = date('Y-m-d', strtotime('-6 days'));
@@ -744,6 +750,28 @@ $type_rows = [
         .clinical-panel.open .clinical-body { display: block; }
         .clinical-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 1rem; }
 
+        /* ===== COLLAPSIBLE CARD TOGGLE (Consolidated Run cards) ===== */
+        .card-collapse-toggle {
+            width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+            background: var(--gray-50); border: 1px solid var(--gray-200);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--gray-500); font-size: 0.85rem; cursor: pointer;
+            transition: all 0.2s ease; padding: 0; line-height: 1;
+        }
+        .card-collapse-toggle:hover { background: var(--primary-light); color: var(--primary); border-color: #c7d2fe; }
+        .card-collapse-toggle .chevron-icon { transition: transform 0.25s ease; display: inline-block; }
+        .card-panel.expanded .card-collapse-toggle .chevron-icon { transform: rotate(180deg); }
+        .collapse-hidden { display: none; }
+        .collapsible-hint {
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            padding: 0.5rem 0 0.15rem; font-size: 0.7rem; font-weight: 600;
+            color: var(--gray-400); border-top: 1px dashed var(--gray-200);
+            margin-top: 0.4rem; cursor: pointer;
+        }
+        .collapsible-hint:hover { color: var(--primary); }
+        .collapsible-hint .hint-dots { letter-spacing: 0.15em; }
+        .card-panel.expanded .collapsible-hint { display: none; }
+
         /* sub-card inside the panel */
         .clinical-card { background: #fff; border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 1.1rem 1.2rem; }
         .clinical-subtitle {
@@ -946,20 +974,26 @@ $type_rows = [
                 <h2 class="section-title"><span class="icon-dot"></span> Consolidated Run</h2>
             </div>
             <div class="row g-3 mb-4">
+                <!-- Run Categories -- card with collapse toggle -->
                 <div class="col-12 col-xl-5">
-                    <div class="card-panel">
+                    <div class="card-panel" id="cr-runcats-panel">
                         <div class="card-head">
                             <div>
                                 <h3 class="card-title">Run Categories</h3>
-                                <p class="card-sub">Incident, medical &amp; OB — classified from notes</p>
+                                <p class="card-sub">Incident, medical & OB — classified from notes</p>
                             </div>
-                            <span class="card-badge"><?php echo number_format($cr_total); ?> classified</span>
+                            <div style="display:flex;align-items:center;gap:0.5rem;">
+                                <span class="card-badge"><?php echo number_format($cr_total); ?> classified</span>
+                                <button type="button" class="card-collapse-toggle" title="Expand/Collapse" data-panel="cr-runcats-panel">
+                                    <i class="bi bi-chevron-down chevron-icon"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="card-body-p">
-                            <?php if (!empty($cr['categories'])): $cr_max = max($cr['categories']); ?>
+                            <?php if (!empty($cr['categories'])): $cr_max = max($cr['categories']); $cr_limit = 5; $cr_idx = 0; ?>
                             <ul class="bar-list">
-                                <?php foreach ($cr['categories'] as $cat => $cnt): $w = $cr_max > 0 ? round(($cnt / $cr_max) * 100) : 0; ?>
-                                <li class="bar-row">
+                                <?php foreach ($cr['categories'] as $cat => $cnt): $cr_idx++; $w = $cr_max > 0 ? round(($cnt / $cr_max) * 100) : 0; ?>
+                                <li class="bar-row"<?php if ($cr_idx > $cr_limit): ?> data-collapse-hidden="1" style="display:none"<?php endif; ?>>
                                     <div class="bar-row-top">
                                         <span class="bar-row-label"><?php echo e($cat); ?></span>
                                         <span class="bar-row-val"><?php echo number_format($cnt); ?></span>
@@ -968,60 +1002,88 @@ $type_rows = [
                                 </li>
                                 <?php endforeach; ?>
                             </ul>
-                            <p style="margin:0.85rem 0 0;font-size:0.7rem;color:var(--gray-400);">Trauma incidents, medical &amp; OB — derived from the saved category or the complaint/narrative and FAST/consciousness signals. Free-text spelling variants may affect counts.</p>
+                            <?php $cr_remaining = count($cr['categories']) - $cr_limit; if ($cr_remaining > 0): ?>
+                            <div class="collapsible-hint" data-panel="cr-runcats-panel">
+                                <span class="hint-dots">&bull; &bull; &bull;</span>
+                                <span>and <?php echo $cr_remaining; ?> more categor<?php echo $cr_remaining === 1 ? 'y' : 'ies'; ?></span>
+                                <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+                            </div>
+                            <?php endif; ?>
+                            <p style="margin:0.85rem 0 0;font-size:0.7rem;color:var(--gray-400);">Trauma incidents, medical & OB — derived from the saved category or the complaint/narrative and FAST/consciousness signals. Free-text spelling variants may affect counts.</p>
                             <?php else: ?>
                             <p class="clinical-no-data">No categorized incidents recorded yet.</p>
                             <?php endif; ?>
                         </div>
                     </div>
                 </div>
+                <!-- By Emergency Type -- card with collapse toggle -->
                 <div class="col-12 col-md-6 col-xl-4">
-                    <div class="card-panel">
+                    <div class="card-panel" id="cr-emergtype-panel">
                         <div class="card-head">
                             <div>
                                 <h3 class="card-title">By Emergency Type</h3>
                                 <p class="card-sub">Parent totals</p>
                             </div>
+                            <button type="button" class="card-collapse-toggle" title="Expand/Collapse" data-panel="cr-emergtype-panel">
+                                <i class="bi bi-chevron-down chevron-icon"></i>
+                            </button>
                         </div>
                         <div class="card-body-p">
+                            <?php $et_idx = 0; $et_limit = 5; $et_items = $cr['parents']; if (!empty($cr['uncategorized'])) { $et_items['No type set'] = $cr['uncategorized']; } ?>
                             <ul class="rank-list">
-                                <?php $cp = 0; foreach ($cr['parents'] as $pl => $pc): $cp++; $rc = $cp <= 3 ? 'r'.$cp : ''; ?>
-                                <li>
+                                <?php $cp = 0; foreach ($et_items as $pl => $pc): $cp++; $et_idx++; $rc = $cp <= 3 ? 'r'.$cp : ''; $is_uncat = ($pl === 'No type set'); ?>
+                                <li<?php if ($et_idx > $et_limit): ?> data-collapse-hidden="1" style="display:none"<?php endif; ?>>
+                                    <?php if ($is_uncat): ?>
+                                    <span class="rank-badge" style="background:var(--gray-100);color:var(--gray-500);">–</span>
+                                    <span class="rank-name">No type set</span>
+                                    <?php else: ?>
                                     <span class="rank-badge <?php echo $rc; ?>"><?php echo $cp; ?></span>
                                     <span class="rank-name"><?php echo e($pl); ?></span>
+                                    <?php endif; ?>
                                     <span class="rank-count"><?php echo number_format($pc); ?></span>
                                 </li>
                                 <?php endforeach; ?>
-                                <?php if (!empty($cr['uncategorized'])): // only when records genuinely carry no usable signal ?>
-                                <li>
-                                    <span class="rank-badge" style="background:var(--gray-100);color:var(--gray-500);">–</span>
-                                    <span class="rank-name">No type set</span>
-                                    <span class="rank-count"><?php echo number_format($cr['uncategorized']); ?></span>
-                                </li>
-                                <?php endif; ?>
                             </ul>
+                            <?php $et_remaining = count($et_items) - $et_limit; if ($et_remaining > 0): ?>
+                            <div class="collapsible-hint" data-panel="cr-emergtype-panel">
+                                <span class="hint-dots">&bull; &bull; &bull;</span>
+                                <span>and <?php echo $et_remaining; ?> more</span>
+                                <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
+                <!-- Ambulance Units -- card with collapse toggle -->
                 <div class="col-12 col-md-6 col-xl-3">
-                    <div class="card-panel">
+                    <div class="card-panel" id="cr-ambunit-panel">
                         <div class="card-head">
                             <div>
                                 <h3 class="card-title">Ambulance Units</h3>
                                 <p class="card-sub">By unit ID</p>
                             </div>
+                            <button type="button" class="card-collapse-toggle" title="Expand/Collapse" data-panel="cr-ambunit-panel">
+                                <i class="bi bi-chevron-down chevron-icon"></i>
+                            </button>
                         </div>
                         <div class="card-body-p">
-                            <?php if (!empty($amb_units)): ?>
+                            <?php if (!empty($amb_units)): $au_limit = 5; $au_idx = 0; ?>
                             <ul class="rank-list">
-                                <?php $vi = 0; foreach ($amb_units as $unit => $cnt): $vi++; $rc = $vi <= 3 ? 'r'.$vi : ''; ?>
-                                <li>
+                                <?php $vi = 0; foreach ($amb_units as $unit => $cnt): $vi++; $au_idx++; $rc = $vi <= 3 ? 'r'.$vi : ''; ?>
+                                <li<?php if ($au_idx > $au_limit): ?> data-collapse-hidden="1" style="display:none"<?php endif; ?>>
                                     <span class="rank-badge <?php echo $rc; ?>"><?php echo e($unit); ?></span>
                                     <span class="rank-name">Ambulance <?php echo e($unit); ?></span>
                                     <span class="rank-count"><?php echo number_format($cnt); ?></span>
                                 </li>
                                 <?php endforeach; ?>
                             </ul>
+                            <?php $au_remaining = count($amb_units) - $au_limit; if ($au_remaining > 0): ?>
+                            <div class="collapsible-hint" data-panel="cr-ambunit-panel">
+                                <span class="hint-dots">&bull; &bull; &bull;</span>
+                                <span>and <?php echo $au_remaining; ?> more unit<?php echo $au_remaining === 1 ? '' : 's'; ?></span>
+                                <i class="bi bi-chevron-down" style="font-size:0.65rem;"></i>
+                            </div>
+                            <?php endif; ?>
                             <?php else: ?>
                             <p class="clinical-no-data">No unit IDs recorded.</p>
                             <?php endif; ?>
@@ -1437,6 +1499,41 @@ $type_rows = [
                 if (panel) { panel.classList.toggle('open'); }
             });
         });
+
+        // Consolidated Run card collapse/expand toggle
+        (function() {
+            function togglePanel(panelId) {
+                var panel = document.getElementById(panelId);
+                if (!panel) return;
+                var isExpanded = panel.classList.toggle('expanded');
+                var hiddenRows = panel.querySelectorAll('[data-collapse-hidden="1"]');
+                hiddenRows.forEach(function(row) {
+                    if (isExpanded) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }
+
+            // Attach to chevron toggle buttons
+            document.querySelectorAll('.card-collapse-toggle').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var panelId = this.getAttribute('data-panel');
+                    if (panelId) togglePanel(panelId);
+                });
+            });
+
+            // Attach to collapsible hint rows (click the hint to expand)
+            document.querySelectorAll('.collapsible-hint').forEach(function(hint) {
+                hint.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var panelId = this.getAttribute('data-panel');
+                    if (panelId) togglePanel(panelId);
+                });
+            });
+        })();
     </script>
 </body>
 </html>
