@@ -65,6 +65,12 @@ document.getElementById('ageUnit')?.addEventListener('change', updateGrowthStatu
 // ============================================
 
 function submitForm() {
+    // Ensure the hidden emergency *_specify fields reflect the current dropdown/Other
+    // selection before we validate and submit them.
+    if (typeof window.syncEmergencySpecify === 'function') {
+        window.syncEmergencySpecify();
+    }
+
     const requiredFields = [
         { id: 'formDate', name: 'Date' },
         { id: 'patientName', name: 'Patient Name' },

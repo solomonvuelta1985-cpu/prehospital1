@@ -869,35 +869,65 @@ $current_user = get_auth_user();
                                     <input class="form-check-input" type="checkbox" id="medical" name="emergency_type[]" value="medical">
                                     <label class="form-check-label" for="medical"><strong>Medical</strong></label>
                                 </div>
-                                <input type="text" class="form-control" id="medicalSpecify" name="medical_specify" placeholder="Specify medical condition" list="incidentCategoryList">
+                                <select class="form-control emergency-specify-select" id="medicalCategory" data-specify-target="medicalSpecify" aria-label="Specify medical condition">
+                                    <option value="">Select medical condition</option>
+                                    <?php foreach (medical_specify_options() as $__cat): ?>
+                                    <option value="<?php echo e($__cat); ?>"><?php echo e($__cat); ?></option>
+                                    <?php endforeach; ?>
+                                    <option value="__other__">Other (specify)</option>
+                                </select>
+                                <input type="text" class="form-control mt-2 emergency-specify-other d-none" id="medicalOther" data-specify-target="medicalSpecify" placeholder="Type medical condition">
+                                <!-- Hidden field is the single source of truth read by validation, autosave and the backend (name=medical_specify). -->
+                                <input type="hidden" id="medicalSpecify" name="medical_specify" value="">
                             </div>
                             <div>
                                 <div class="form-check mb-2">
                                     <input class="form-check-input" type="checkbox" id="trauma" name="emergency_type[]" value="trauma">
                                     <label class="form-check-label" for="trauma"><strong>Trauma</strong></label>
                                 </div>
-                                <input type="text" class="form-control" id="traumaSpecify" name="trauma_specify" placeholder="Specify trauma type" list="incidentCategoryList">
+                                <select class="form-control emergency-specify-select" id="traumaCategory" data-specify-target="traumaSpecify" aria-label="Specify trauma type">
+                                    <option value="">Select trauma type</option>
+                                    <?php foreach (trauma_specify_options() as $__cat): ?>
+                                    <option value="<?php echo e($__cat); ?>"><?php echo e($__cat); ?></option>
+                                    <?php endforeach; ?>
+                                    <option value="__other__">Other (specify)</option>
+                                </select>
+                                <input type="text" class="form-control mt-2 emergency-specify-other d-none" id="traumaOther" data-specify-target="traumaSpecify" placeholder="Type trauma type">
+                                <input type="hidden" id="traumaSpecify" name="trauma_specify" value="">
                             </div>
                             <div>
                                 <div class="form-check mb-2">
                                     <input class="form-check-input" type="checkbox" id="ob" name="emergency_type[]" value="ob">
                                     <label class="form-check-label" for="ob"><strong>OB</strong></label>
                                 </div>
-                                <input type="text" class="form-control" id="obSpecify" name="ob_specify" placeholder="Specify OB condition">
+                                <select class="form-control emergency-specify-select" id="obCategory" data-specify-target="obSpecify" aria-label="Specify OB condition">
+                                    <option value="">Select OB condition</option>
+                                    <?php foreach (ob_specify_options() as $__cat): ?>
+                                    <option value="<?php echo e($__cat); ?>"><?php echo e($__cat); ?></option>
+                                    <?php endforeach; ?>
+                                    <option value="__other__">Other (specify)</option>
+                                </select>
+                                <input type="text" class="form-control mt-2 emergency-specify-other d-none" id="obOther" data-specify-target="obSpecify" placeholder="Type OB condition">
+                                <input type="hidden" id="obSpecify" name="ob_specify" value="">
+                                <!-- Nameless: value is folded into the hidden ob_specify, not saved separately. -->
+                                <input type="text" class="form-control mt-2" id="obGravidaPara" placeholder="Gravida/Para (e.g. G1P0)" aria-label="Gravida/Para">
                             </div>
                             <div>
                                 <div class="form-check mb-2">
                                     <input class="form-check-input" type="checkbox" id="general" name="emergency_type[]" value="general">
                                     <label class="form-check-label" for="general"><strong>General</strong></label>
                                 </div>
-                                <input type="text" class="form-control" id="generalSpecify" name="general_specify" placeholder="Specify general condition" list="incidentCategoryList">
+                                <select class="form-control emergency-specify-select" id="generalCategory" data-specify-target="generalSpecify" aria-label="Specify general condition">
+                                    <option value="">Select general condition</option>
+                                    <?php foreach (general_specify_options() as $__cat): ?>
+                                    <option value="<?php echo e($__cat); ?>"><?php echo e($__cat); ?></option>
+                                    <?php endforeach; ?>
+                                    <option value="__other__">Other (specify)</option>
+                                </select>
+                                <input type="text" class="form-control mt-2 emergency-specify-other d-none" id="generalOther" data-specify-target="generalSpecify" placeholder="Type general condition">
+                                <input type="hidden" id="generalSpecify" name="general_specify" value="">
                             </div>
                         </div>
-                        <datalist id="incidentCategoryList">
-                            <?php foreach (incident_categories() as $__cat): ?>
-                            <option value="<?php echo e($__cat); ?>"></option>
-                            <?php endforeach; ?>
-                        </datalist>
 
                         <div class="mb-section" style="max-width: 24rem;">
                             <label for="incidentTime" class="form-label">Time of Incident</label>
@@ -2540,6 +2570,12 @@ fetch(API_BASE + 'autosave_draft.php', {
                 populateSampleFields(data.fast_sample_details || data.sample_details);
             }
 
+            // Rebuild the emergency-specify dropdowns from the hidden *_specify values
+            // this function just set (falls to "Other" for legacy free text).
+            if (typeof window.hydrateEmergencySpecify === 'function') {
+                window.hydrateEmergencySpecify();
+            }
+
             console.log('Form population complete');
         }
 
@@ -2616,6 +2652,84 @@ fetch(API_BASE + 'autosave_draft.php', {
                 restoreCurrentSection();
             }, 500);
         });
+
+        /**
+         * Emergency-call "specify" dropdowns.
+         * Each type has: a visible <select> (#*Category), a visible "Other" text box
+         * (#*Other, shown only when Other is picked) and a hidden field (#*Specify,
+         * name=*_specify) that is the ONLY source of truth read by validation,
+         * collectFormData()/autosave and the backend. We keep the hidden field synced
+         * on every change so no other code needs to know about the select/other split.
+         * OB additionally folds its Gravida/Para box into the hidden value, matching
+         * how responders already write it, e.g. "Labor/Delivery (G1P0)".
+         */
+        (function () {
+            const TYPES = ['medical', 'trauma', 'ob', 'general'];
+
+            function els(type) {
+                return {
+                    select: document.getElementById(type + 'Category'),
+                    other:  document.getElementById(type + 'Other'),
+                    hidden: document.getElementById(type + 'Specify'),
+                    gp:     type === 'ob' ? document.getElementById('obGravidaPara') : null
+                };
+            }
+
+            // Push the current visible state into the hidden *_specify field.
+            function syncToHidden(type) {
+                const e = els(type);
+                if (!e.select || !e.hidden) return;
+                const isOther = e.select.value === '__other__';
+                if (e.other) e.other.classList.toggle('d-none', !isOther);
+                let base = isOther ? (e.other ? e.other.value.trim() : '') : e.select.value;
+                if (type === 'ob' && e.gp && e.gp.value.trim() && base) {
+                    base = base + ' (' + e.gp.value.trim() + ')';
+                } else if (type === 'ob' && e.gp && e.gp.value.trim() && !base) {
+                    base = e.gp.value.trim();
+                }
+                e.hidden.value = base;
+            }
+
+            // Rebuild the visible controls from the hidden value (draft/edit load).
+            // If the saved value isn't an exact option, fall to "Other" + show text.
+            function hydrate(type) {
+                const e = els(type);
+                if (!e.select || !e.hidden) return;
+                let raw = (e.hidden.value || '').trim();
+                if (raw === '') { e.select.value = ''; if (e.other) { e.other.value = ''; e.other.classList.add('d-none'); } return; }
+
+                // OB: peel a trailing "(G1P0)"-style token back into the Gravida/Para box.
+                if (type === 'ob' && e.gp) {
+                    const m = raw.match(/^(.*?)\s*\(([^()]+)\)\s*$/);
+                    if (m && /^G\d/i.test(m[2].trim())) {
+                        e.gp.value = m[2].trim();
+                        raw = m[1].trim();
+                    }
+                }
+
+                const match = Array.from(e.select.options).some(o => o.value === raw && o.value !== '__other__');
+                if (match) {
+                    e.select.value = raw;
+                    if (e.other) { e.other.value = ''; e.other.classList.add('d-none'); }
+                } else {
+                    e.select.value = '__other__';
+                    if (e.other) { e.other.value = raw; e.other.classList.remove('d-none'); }
+                }
+            }
+
+            TYPES.forEach(type => {
+                const e = els(type);
+                if (e.select) e.select.addEventListener('change', () => syncToHidden(type));
+                if (e.other)  e.other.addEventListener('input', () => syncToHidden(type));
+                if (e.gp)     e.gp.addEventListener('input', () => syncToHidden(type));
+                hydrate(type);
+            });
+
+            // Exposed so populateForm()/draft-load can refresh the controls after it
+            // sets the hidden *_specify values directly.
+            window.hydrateEmergencySpecify = function () { TYPES.forEach(hydrate); };
+            window.syncEmergencySpecify = function () { TYPES.forEach(syncToHidden); };
+        })();
 
         // Detect page refresh vs navigation
         window.addEventListener('beforeunload', function() {

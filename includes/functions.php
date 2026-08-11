@@ -630,6 +630,64 @@ function incident_categories() {
 }
 
 /**
+ * Dropdown options for the "Type of Emergency Call" specify boxes, one list per
+ * emergency type. Derived from a frequency analysis of 959 real prehospital_forms
+ * records (btrahnqi_pre_hospital_db), ordered most-common first. Responders pick a
+ * value or choose "Other" for manual entry. Labels mirror the canonical
+ * incident_category / medical_categories() values the app already stores, so a
+ * picked value classifies consistently in reports. Named *_specify_options to
+ * avoid colliding with the classifier's medical_categories() defined below.
+ */
+function medical_specify_options() {
+    return [
+        'GI/Abdominal',             // abdominal/epigastric/hypogastric pain, vomiting, LBM
+        'Difficulty of Breathing',  // DOB, SOB, asthma
+        'Dizziness/Headache',
+        'Chest Pain/Cardiac',
+        'Hypertension',
+        'Generalized Weakness',     // "body weakness" and its many spellings
+        'Fever/Infection',
+        'Stroke/CVA',
+        'Cardiac Arrest',           // unresponsive / unconscious
+        'Seizure',
+        'Chemical Ingestion',       // poison / herbicide
+    ];
+}
+
+function trauma_specify_options() {
+    return [
+        'Vehicular Accident',       // all V/A, VA, collision, loss of control, MV-MV variants
+        'Fall',
+        'Mauling',
+        'Laceration/Wound',         // lacerated / puncture wounds, work / sports injury
+        'Stabbing',
+        'Goring',
+        'Hack Wound',
+        'Stoning',
+        'Drowning',
+        'Animal Bite',
+        'Burn',
+        'Gunshot',
+    ];
+}
+
+function ob_specify_options() {
+    return [
+        'Labor/Delivery',
+        'Vaginal Bleeding/Spotting',
+        'Abdominal Pain (OB)',
+    ];
+}
+
+function general_specify_options() {
+    return [
+        'Fire Incident',
+        'Strangulation',
+        'Electrocution',
+    ];
+}
+
+/**
  * Classify a free-text incident detail into a canonical category.
  * Ordered keyword map, first match wins. Built for the messy free text staff
  * type into the emergency *_specify boxes (e.g. "V/A ( LOSS OF CONTROL)",

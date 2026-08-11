@@ -1274,8 +1274,15 @@ if (!is_array($initial_helmet)) {
                                            <?php echo $record['emergency_medical'] ? 'checked' : ''; ?>>
                                     <label class="form-check-label" for="medical"><strong>Medical</strong></label>
                                 </div>
-                                <input type="text" class="form-control" id="medicalSpecify" name="medical_specify"
-                                       value="<?php echo e($record['emergency_medical_details']); ?>" placeholder="Specify medical condition">
+                                <select class="form-control emergency-specify-select" id="medicalCategory" data-specify-target="medicalSpecify" aria-label="Specify medical condition">
+                                    <option value="">Select medical condition</option>
+                                    <?php foreach (medical_specify_options() as $__cat): ?>
+                                    <option value="<?php echo e($__cat); ?>"><?php echo e($__cat); ?></option>
+                                    <?php endforeach; ?>
+                                    <option value="__other__">Other (specify)</option>
+                                </select>
+                                <input type="text" class="form-control mt-2 emergency-specify-other d-none" id="medicalOther" data-specify-target="medicalSpecify" placeholder="Type medical condition">
+                                <input type="hidden" id="medicalSpecify" name="medical_specify" value="<?php echo e($record['emergency_medical_details']); ?>">
                             </div>
                             <div>
                                 <div class="form-check mb-2">
@@ -1283,8 +1290,15 @@ if (!is_array($initial_helmet)) {
                                            <?php echo $record['emergency_trauma'] ? 'checked' : ''; ?>>
                                     <label class="form-check-label" for="trauma"><strong>Trauma</strong></label>
                                 </div>
-                                <input type="text" class="form-control" id="traumaSpecify" name="trauma_specify"
-                                       value="<?php echo e($record['emergency_trauma_details']); ?>" placeholder="Specify trauma type">
+                                <select class="form-control emergency-specify-select" id="traumaCategory" data-specify-target="traumaSpecify" aria-label="Specify trauma type">
+                                    <option value="">Select trauma type</option>
+                                    <?php foreach (trauma_specify_options() as $__cat): ?>
+                                    <option value="<?php echo e($__cat); ?>"><?php echo e($__cat); ?></option>
+                                    <?php endforeach; ?>
+                                    <option value="__other__">Other (specify)</option>
+                                </select>
+                                <input type="text" class="form-control mt-2 emergency-specify-other d-none" id="traumaOther" data-specify-target="traumaSpecify" placeholder="Type trauma type">
+                                <input type="hidden" id="traumaSpecify" name="trauma_specify" value="<?php echo e($record['emergency_trauma_details']); ?>">
                             </div>
                             <div>
                                 <div class="form-check mb-2">
@@ -1292,8 +1306,17 @@ if (!is_array($initial_helmet)) {
                                            <?php echo $record['emergency_ob'] ? 'checked' : ''; ?>>
                                     <label class="form-check-label" for="ob"><strong>OB</strong></label>
                                 </div>
-                                <input type="text" class="form-control" id="obSpecify" name="ob_specify"
-                                       value="<?php echo e($record['emergency_ob_details']); ?>" placeholder="Specify OB condition">
+                                <select class="form-control emergency-specify-select" id="obCategory" data-specify-target="obSpecify" aria-label="Specify OB condition">
+                                    <option value="">Select OB condition</option>
+                                    <?php foreach (ob_specify_options() as $__cat): ?>
+                                    <option value="<?php echo e($__cat); ?>"><?php echo e($__cat); ?></option>
+                                    <?php endforeach; ?>
+                                    <option value="__other__">Other (specify)</option>
+                                </select>
+                                <input type="text" class="form-control mt-2 emergency-specify-other d-none" id="obOther" data-specify-target="obSpecify" placeholder="Type OB condition">
+                                <input type="hidden" id="obSpecify" name="ob_specify" value="<?php echo e($record['emergency_ob_details']); ?>">
+                                <!-- Nameless: value is folded into the hidden ob_specify, not saved separately. -->
+                                <input type="text" class="form-control mt-2" id="obGravidaPara" placeholder="Gravida/Para (e.g. G1P0)" aria-label="Gravida/Para">
                             </div>
                             <div>
                                 <div class="form-check mb-2">
@@ -1301,8 +1324,15 @@ if (!is_array($initial_helmet)) {
                                            <?php echo $record['emergency_general'] ? 'checked' : ''; ?>>
                                     <label class="form-check-label" for="general"><strong>General</strong></label>
                                 </div>
-                                <input type="text" class="form-control" id="generalSpecify" name="general_specify"
-                                       value="<?php echo e($record['emergency_general_details']); ?>" placeholder="Specify general condition">
+                                <select class="form-control emergency-specify-select" id="generalCategory" data-specify-target="generalSpecify" aria-label="Specify general condition">
+                                    <option value="">Select general condition</option>
+                                    <?php foreach (general_specify_options() as $__cat): ?>
+                                    <option value="<?php echo e($__cat); ?>"><?php echo e($__cat); ?></option>
+                                    <?php endforeach; ?>
+                                    <option value="__other__">Other (specify)</option>
+                                </select>
+                                <input type="text" class="form-control mt-2 emergency-specify-other d-none" id="generalOther" data-specify-target="generalSpecify" placeholder="Type general condition">
+                                <input type="hidden" id="generalSpecify" name="general_specify" value="<?php echo e($record['emergency_general_details']); ?>">
                             </div>
                         </div>
 
@@ -2547,6 +2577,75 @@ if (!is_array($initial_helmet)) {
             },
         });
 
+        /**
+         * Emergency-call "specify" dropdowns (edit page mirror of prehospital_form.php).
+         * Visible <select> (#*Category) + "Other" text (#*Other) drive a hidden
+         * #*Specify field (name=*_specify) that is the only value submitted. The hidden
+         * fields are pre-filled server-side with the saved record values; hydrate() below
+         * reflects them into the dropdowns, falling to "Other" for legacy free text.
+         */
+        (function () {
+            const TYPES = ['medical', 'trauma', 'ob', 'general'];
+
+            function els(type) {
+                return {
+                    select: document.getElementById(type + 'Category'),
+                    other:  document.getElementById(type + 'Other'),
+                    hidden: document.getElementById(type + 'Specify'),
+                    gp:     type === 'ob' ? document.getElementById('obGravidaPara') : null
+                };
+            }
+
+            function syncToHidden(type) {
+                const e = els(type);
+                if (!e.select || !e.hidden) return;
+                const isOther = e.select.value === '__other__';
+                if (e.other) e.other.classList.toggle('d-none', !isOther);
+                let base = isOther ? (e.other ? e.other.value.trim() : '') : e.select.value;
+                if (type === 'ob' && e.gp && e.gp.value.trim() && base) {
+                    base = base + ' (' + e.gp.value.trim() + ')';
+                } else if (type === 'ob' && e.gp && e.gp.value.trim() && !base) {
+                    base = e.gp.value.trim();
+                }
+                e.hidden.value = base;
+            }
+
+            function hydrate(type) {
+                const e = els(type);
+                if (!e.select || !e.hidden) return;
+                let raw = (e.hidden.value || '').trim();
+                if (raw === '') { e.select.value = ''; if (e.other) { e.other.value = ''; e.other.classList.add('d-none'); } return; }
+
+                if (type === 'ob' && e.gp) {
+                    const m = raw.match(/^(.*?)\s*\(([^()]+)\)\s*$/);
+                    if (m && /^G\d/i.test(m[2].trim())) {
+                        e.gp.value = m[2].trim();
+                        raw = m[1].trim();
+                    }
+                }
+
+                const match = Array.from(e.select.options).some(o => o.value === raw && o.value !== '__other__');
+                if (match) {
+                    e.select.value = raw;
+                    if (e.other) { e.other.value = ''; e.other.classList.add('d-none'); }
+                } else {
+                    e.select.value = '__other__';
+                    if (e.other) { e.other.value = raw; e.other.classList.remove('d-none'); }
+                }
+            }
+
+            TYPES.forEach(type => {
+                const e = els(type);
+                if (e.select) e.select.addEventListener('change', () => syncToHidden(type));
+                if (e.other)  e.other.addEventListener('input', () => syncToHidden(type));
+                if (e.gp)     e.gp.addEventListener('input', () => syncToHidden(type));
+                hydrate(type);
+            });
+
+            window.hydrateEmergencySpecify = function () { TYPES.forEach(hydrate); };
+            window.syncEmergencySpecify = function () { TYPES.forEach(syncToHidden); };
+        })();
+
         // Function to combine individual SAMPLE fields into hidden field
         function combineSampleFields() {
             const signs = document.getElementById('sampleSigns')?.value || '';
@@ -2615,6 +2714,12 @@ if (!is_array($initial_helmet)) {
                             if (converted) input.value = converted;
                         }
                     });
+
+                    // Flush the emergency dropdown/Other selections into the hidden
+                    // *_specify fields before serializing the form.
+                    if (typeof window.syncEmergencySpecify === 'function') {
+                        window.syncEmergencySpecify();
+                    }
 
                     var formData = new FormData(form);
 

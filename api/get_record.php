@@ -272,7 +272,7 @@ try {
             <div class="mv-card">
                 <div class="mv-card-header"><i class="bi bi-camera-fill"></i> Patient Documentation</div>
                 <div class="mv-pictures-wrapper">
-                    <img src="../<?php echo e($record['patient_documentation']); ?>" alt="Patient Documentation" class="mv-picture-img" onclick="openModalPicture(this.src)">
+                    <img src="../api/serve_file.php?file=../<?php echo e($record['patient_documentation']); ?>" alt="Patient Documentation" class="mv-picture-img" onclick="openModalPicture(this.src)">
                 </div>
             </div>
             <?php endif; ?>
@@ -280,7 +280,7 @@ try {
             <div class="mv-card">
                 <div class="mv-card-header"><i class="bi bi-file-earmark-check-fill"></i> Endorsement Attachment</div>
                 <div class="mv-pictures-wrapper">
-                    <img src="../<?php echo e($record['endorsement_attachment']); ?>" alt="Endorsement Attachment" class="mv-picture-img" onclick="openModalPicture(this.src)">
+                    <img src="../api/serve_file.php?file=../<?php echo e($record['endorsement_attachment']); ?>" alt="Endorsement Attachment" class="mv-picture-img" onclick="openModalPicture(this.src)">
                 </div>
             </div>
             <?php endif; ?>
