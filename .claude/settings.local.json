@@ -8,7 +8,8 @@
       "Bash(/c/xampp/htdocs/prehospital/api/v1/admin/change_user_password.php:*)",
       "Bash(flutter --version)",
       "Bash(flutter pub:*)",
-      "Bash(grep -E \"\\\\.\\(php|js\\)$\")"
+      "Bash(grep -E \"\\\\.\\(php|js\\)$\")",
+      "Bash(git --no-pager diff --stat)"
     ],
     "deny": [],
     "ask": [],

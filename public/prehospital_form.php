@@ -39,6 +39,7 @@ $current_user = get_auth_user();
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
     <link href="css/records-style.css?v=<?php echo asset_version(); ?>" rel="stylesheet">
     <link href="css/prehospital-form.css?v=<?php echo asset_version(); ?>" rel="stylesheet">
+    <link href="css/prehospital-form-redesign.css?v=<?php echo asset_version(); ?>" rel="stylesheet">
     <style>
         /* Indigo design tokens now live in css/prehospital-form.css (:root).
            Only page-specific layout/overrides remain inline below. */
@@ -54,7 +55,10 @@ $current_user = get_auth_user();
         .form-container { overflow: visible !important; height: auto !important; max-width: 100%; margin-bottom: 0; padding-bottom: 0; background: #ffffff !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; }
         .form-body { overflow: visible !important; max-height: none !important; padding-bottom: 2rem !important; min-height: calc(100vh - 400px) !important; }
         .tab-content { overflow: visible !important; padding-bottom: 0 !important; }
-        .tab-pane { padding-bottom: 0 !important; }
+        /* Panel bottom padding: matches the panel's other sides (--space-card)
+           set in css/prehospital-form-redesign.css, so the last field isn't
+           flush against the panel's bottom edge. */
+        .tab-pane { padding-bottom: var(--space-card, 1.5rem) !important; }
         .form-section { margin-bottom: 0 !important; padding-bottom: 0 !important; }
 
         /* Sticky Navigation with Indigo Accent */
@@ -73,19 +77,12 @@ $current_user = get_auth_user();
         /* Notiflix Fix */
         div[id^="NotiflixReportWrap"] button, div[id^="NotiflixReportWrap"] button:hover, div[id^="NotiflixReportWrap"] button:focus, div[id^="NotiflixReportWrap"] button:active { text-decoration: none !important; }
 
-        /* Indigo Navigation Tabs */
+        /* Indigo Navigation Tabs — tab-link styling now lives in
+           css/prehospital-form-redesign.css (numbered chips + completed ✓).
+           Only the scroll container layout remains inline. */
         .tabs-container { margin-bottom: 1.5rem; overflow-x: auto; overflow-y: visible; }
-        .nav-tabs { border-bottom: 2px solid var(--gray-200, #e5e7eb); display: flex; flex-wrap: nowrap; gap: 0; padding: 0; position: relative; }
         .nav-item { flex: 0 0 auto; min-width: auto; position: relative; margin: 0; }
-        .nav-link { background: transparent; color: #64748b; border: none; border-bottom: 3px solid transparent; padding: 0.75rem 0.875rem; font-weight: 600; font-size: 0.875rem; font-style: normal; text-align: center; position: relative; border-radius: 0; transition: all .2s ease; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 0.35rem; }
-        .nav-item:not(:last-child) .nav-link::after { content: '›'; position: absolute; right: -4px; font-size: 1.25rem; color: #cbd5e1; font-weight: 300; z-index: 1; }
-        .nav-link:hover { color: #4f46e5; background: rgba(79,70,229,0.05); border-bottom-color: #a5b4fc; }
-        .nav-link.active { color: #4f46e5; background: transparent; border-bottom-color: #4f46e5; font-weight: 700; }
-        .nav-link.active::after { color: #4f46e5 !important; }
-        .nav-link.completed:not(.active) { color: #059669; }
-        @media (max-width: 992px) { .nav-link { font-size: .8rem; padding: .65rem .75rem; } }
-        @media (max-width: 768px) { .nav-link { font-size: .75rem; padding: .6rem .65rem; gap: .25rem; } .nav-item:not(:last-child) .nav-link::after { font-size: 1.1rem; right: -3px; } }
-        @media (max-width: 576px) { .tabs-container { margin-left: -.5rem; margin-right: -.5rem; padding: 0 .25rem; } .nav-link { font-size: .7rem; padding: .5rem .4rem; } .nav-item:not(:last-child) .nav-link::after { display: none; } }
+        @media (max-width: 576px) { .tabs-container { margin-left: -.5rem; margin-right: -.5rem; padding: 0 .25rem; } }
 
         /* Mobile Touch-Friendly Inputs */
         @media (max-width: 768px) { input[type="time"], input[type="datetime-local"], input[type="date"] { font-size: 16px !important; min-height: 48px !important; padding: 12px !important; -webkit-appearance: none; appearance: none; } }
@@ -96,8 +93,7 @@ $current_user = get_auth_user();
         textarea:not(#teamLeaderNotes), input[type="text"].no-uppercase { text-transform: none !important; }
         input::placeholder, textarea::placeholder { text-transform: none !important; }
 
-        /* Vehicle Display Bar - Indigo */
-        #selectedVehicleDisplay { background: linear-gradient(90deg, #eef2ff 0%, #e0e7ff 100%); border-left: 4px solid #4f46e5; border-radius: 8px; }
+        /* Vehicle Display Bar styling moved to css/prehospital-form-redesign.css (.vehicle-display) */
 
         /* Stack Date + Vehicle Used on mobile */
         @media (max-width: 768px) {
@@ -331,16 +327,16 @@ $current_user = get_auth_user();
 
         <div class="form-container">
         <div class="progress-container">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                <span style="font-size: 0.85rem; font-weight: 600; color: #4f46e5;">
+            <div class="progress-meta">
+                <span class="progress-meta-label">
                     <i class="bi bi-list-check"></i> Form Progress
                 </span>
-                <span id="stepIndicator" style="font-size: 0.85rem; font-weight: 500; color: #64748b;">
+                <span id="stepIndicator" class="progress-meta-step">
                     Step 1 of 7
                 </span>
             </div>
             <div class="progress">
-                <div class="progress-bar" role="progressbar" id="progressBar" style="width: 14%; background: linear-gradient(135deg, #6366f1, #4f46e5);"></div>
+                <div class="progress-bar" role="progressbar" id="progressBar" style="width: 14%;"></div>
             </div>
         </div>
 
@@ -409,11 +405,11 @@ $current_user = get_auth_user();
                         <div class="grid-equal mb-section date-vehicle-row">
                             <div>
                                 <label for="formDate" class="form-label required-field">Date</label>
-                                <input type="date" class="form-control" id="formDate" name="form_date" required>
+                                <input type="date" class="form-control" id="formDate" name="form_date" required aria-required="true">
                             </div>
                             <div>
-                                <label class="form-label">Vehicle Used</label>
-                                <div class="inline-group" style="min-height: var(--input-h); align-items: center;">
+                                <label class="form-label" id="vehicleUsedLabel">Vehicle Used</label>
+                                <div class="inline-group" style="min-height: var(--input-h); align-items: center;" role="radiogroup" aria-labelledby="vehicleUsedLabel">
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="vehicle_used" id="ambulance" value="ambulance">
                                         <label class="form-check-label" for="ambulance">Ambulance</label>
@@ -456,9 +452,9 @@ $current_user = get_auth_user();
 
                         <input type="hidden" name="vehicle_details" id="vehicleDetails">
                         <!-- Selected Vehicle Display -->
-                        <div id="selectedVehicleDisplay" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: linear-gradient(90deg, #eef2ff 0%, #e0e7ff 100%); border-left: 4px solid #4f46e5; border-radius: 8px;">
-                            <strong style="color: #3730a3;">Selected Vehicle:</strong>
-                            <span id="selectedVehicleText" style="color: #1e293b; margin-left: 0.5rem;"></span>
+                        <div id="selectedVehicleDisplay" class="vehicle-display" style="display: none;">
+                            <strong class="vehicle-display-label">Selected Vehicle:</strong>
+                            <span id="selectedVehicleText" class="vehicle-display-value"></span>
                         </div>
 
                         <hr class="section-divider-light">
@@ -471,8 +467,8 @@ $current_user = get_auth_user();
                         <!-- Walk In / Call + Call/Arrival Time + Contact Number -->
                         <div class="grid-3 mb-section">
                             <div>
-                                <label class="form-label">Walk In / Call</label>
-                                <div class="inline-group">
+                                <label class="form-label" id="arrivalTypeLabel">Walk In / Call</label>
+                                <div class="inline-group" role="radiogroup" aria-labelledby="arrivalTypeLabel">
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="arrival_type" id="walkIn" value="walkIn">
                                         <label class="form-check-label" for="walkIn">Walk In</label>
@@ -558,8 +554,8 @@ $current_user = get_auth_user();
                             <i class="bi bi-people"></i> Scene Observation
                         </div>
                         <div class="form-group-compact">
-                            <label class="form-label">Persons Present Upon Arrival</label>
-                            <div class="checkbox-grid">
+                            <label class="form-label" id="personsPresentLabel">Persons Present Upon Arrival</label>
+                            <div class="checkbox-grid" role="group" aria-labelledby="personsPresentLabel">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="police" name="persons_present[]" value="police">
                                     <label class="form-check-label" for="police">Police</label>
@@ -599,7 +595,7 @@ $current_user = get_auth_user();
                         <!-- Patient Name — own row -->
                         <div class="mb-section">
                             <label for="patientName" class="form-label required-field">Patient Name</label>
-                            <input type="text" class="form-control" id="patientName" name="patient_name" placeholder="Last Name, First Name, Middle Initial" required>
+                            <input type="text" class="form-control" id="patientName" name="patient_name" placeholder="Last Name, First Name, Middle Initial" required aria-required="true">
                         </div>
 
                         <!-- DOB · Age · Growth Status — balanced row -->
@@ -611,7 +607,7 @@ $current_user = get_auth_user();
                             <div>
                                 <label for="age" class="form-label required-field">Age</label>
                                 <div class="input-group">
-                                    <input type="number" class="form-control" id="age" name="age" min="0" max="150" placeholder="Enter age" required>
+                                    <input type="number" class="form-control" id="age" name="age" min="0" max="150" placeholder="Enter age" required aria-required="true">
                                     <select class="form-select" id="ageUnit" name="age_unit" style="max-width: 110px;">
                                         <option value="years" selected>Years</option>
                                         <option value="months">Months</option>
@@ -633,7 +629,7 @@ $current_user = get_auth_user();
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="gender" class="form-label required-field">Gender</label>
-                                <select class="form-select" id="gender" name="gender" required>
+                                <select class="form-select" id="gender" name="gender" required aria-required="true">
                                     <option value="">Select Gender...</option>
                                     <option value="male">Male</option>
                                     <option value="female">Female</option>
