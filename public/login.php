@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Login Page - Modern Corporate Design
  */
@@ -68,16 +68,13 @@ if ($manila_hour < 12) {
     <title>Sign In - Baggao Rescue 116</title>
 
     <!-- CSS Dependencies -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
+    <link href="vendor/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="vendor/bootstrap-icons/1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="vendor/notiflix/3.2.6/notiflix-3.2.6.min.css">
     <!-- Global Responsive Styles -->
     <link href="css/global-responsive.css" rel="stylesheet">
-
     <!-- Typography -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <link href="vendor/fonts/brand.css" rel="stylesheet">
 
     <style>
         :root {
@@ -1280,8 +1277,8 @@ if ($manila_hour < 12) {
     </main>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
+    <script src="vendor/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="vendor/notiflix/3.2.6/notiflix-aio-3.2.6.min.js"></script>
     <!-- WebAuthn Biometric Login -->
     <script src="js/webauthn.js"></script>
 

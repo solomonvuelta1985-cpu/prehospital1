@@ -105,4 +105,4 @@ $user_role = strtolower($current_user['role'] ?? 'guest');
 </style>
 
 <!-- Material Icons -->
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link href="<?= $base_path ?>vendor/fonts/material-icons.css" rel="stylesheet">

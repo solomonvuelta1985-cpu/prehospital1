@@ -121,10 +121,10 @@ $recent_activity = $activity_stmt ? $activity_stmt->fetchAll() : [];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="../vendor/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../vendor/bootstrap-icons/1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="../vendor/chartjs/4.4.0/chart.umd.min.js"></script>
+    <link href="../vendor/fonts/inter.css" rel="stylesheet">
     <style>
         :root {
             --accent: #4f46e5;
@@ -427,7 +427,7 @@ $recent_activity = $activity_stmt ? $activity_stmt->fetchAll() : [];
          data-daily-data="<?php echo htmlspecialchars(json_encode($daily_data), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../vendor/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="../js/admin-dashboard-charts.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>

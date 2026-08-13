@@ -335,10 +335,10 @@ $type_rows = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Pre-Hospital Care System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link href="../public/vendor/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../public/vendor/bootstrap-icons/1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="../public/vendor/fonts/inter.css" rel="stylesheet">
+    <script src="../public/vendor/chartjs/4.4.0/chart.umd.min.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
@@ -1719,7 +1719,7 @@ $type_rows = [
          data-type-colors="<?php echo htmlspecialchars(json_encode(array_column($type_rows, 2)), ENT_QUOTES, 'UTF-8'); ?>">
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../public/vendor/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="../public/js/admin-dashboard-charts.js?v=<?php echo time(); ?>"></script>
     <script nonce="<?php echo CSP_NONCE; ?>">
         // Clinical panel toggle

@@ -106,11 +106,9 @@ $active_filters = (int)!empty($search);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Drafts - Pre-Hospital Care System</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="vendor/fonts/inter.css" rel="stylesheet">
+    <link href="vendor/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="vendor/bootstrap-icons/1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link href="css/records-style.css?v=<?php echo time(); ?>" rel="stylesheet">
     <link href="css/drafts-redesign.css?v=<?php echo time(); ?>&ui=clinical-v1" rel="stylesheet">
 </head>
@@ -541,10 +539,10 @@ $active_filters = (int)!empty($search);
     <!-- ===== CSRF TOKEN ===== -->
     <input type="hidden" id="csrfToken" value="<?php echo generate_token(); ?>">
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="vendor/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="js/action-menu-mobile.js?v=<?php echo time(); ?>"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
+    <link rel="stylesheet" href="vendor/notiflix/3.2.6/notiflix-3.2.6.min.css">
+    <script src="vendor/notiflix/3.2.6/notiflix-aio-3.2.6.min.js"></script>
     <script nonce="<?php echo CSP_NONCE; ?>">
     (function() {
         'use strict';

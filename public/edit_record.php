@@ -180,9 +180,9 @@ if (!is_array($initial_helmet)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Record - <?php echo e($record['form_number']); ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
+    <link href="vendor/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="vendor/bootstrap-icons/1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="vendor/notiflix/3.2.6/notiflix-3.2.6.min.css">
     <link href="css/records-style.css?v=<?php echo asset_version(); ?>" rel="stylesheet">
     <link href="css/prehospital-form.css?v=<?php echo asset_version(); ?>" rel="stylesheet">
     <style>
@@ -2447,8 +2447,8 @@ if (!is_array($initial_helmet)) {
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
+    <script src="vendor/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="vendor/notiflix/3.2.6/notiflix-aio-3.2.6.min.js"></script>
     <!-- JS Modules -->
     <script src="js/modules/utils.js?v=<?php echo asset_version(); ?>"></script>
     <script src="js/modules/injury-tracker.js?v=<?php echo asset_version(); ?>"></script>

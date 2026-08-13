@@ -91,11 +91,11 @@ $current_user = get_auth_user();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Record <?php echo e($record['form_number']); ?> - Pre-Hospital Care System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="vendor/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="vendor/bootstrap-icons/1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="vendor/fonts/inter.css" rel="stylesheet">
     <link href="css/records-style.css?v=<?php echo time(); ?>" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
+    <link rel="stylesheet" href="vendor/notiflix/3.2.6/notiflix-3.2.6.min.css">
     <style>
         /* ===== VIEW RECORD PAGE-SPECIFIC STYLES ===== */
         /* Inherits records-style.css design tokens */
@@ -1128,8 +1128,8 @@ $current_user = get_auth_user();
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
+    <script src="vendor/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="vendor/notiflix/3.2.6/notiflix-aio-3.2.6.min.js"></script>
     <script nonce="<?php echo CSP_NONCE; ?>">
         // Configure Notiflix - Corporate Design Colors
         Notiflix.Notify.init({

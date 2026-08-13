@@ -70,8 +70,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'backup') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Settings - Admin Panel</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="../vendor/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../vendor/bootstrap-icons/1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body { background: #f5f5f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .page-header { background: #fff; border-bottom: 2px solid #dee2e6; padding: 1.5rem 0; margin-bottom: 2rem; }
@@ -167,7 +167,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'backup') {
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../vendor/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script nonce="<?php echo CSP_NONCE; ?>">
     document.getElementById('btnBackup')?.addEventListener('click', function(e) {
         if (!confirm('Create a database backup now?')) { e.preventDefault(); }

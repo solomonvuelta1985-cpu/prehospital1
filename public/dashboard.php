@@ -155,9 +155,9 @@ $first_name = trim(explode(' ', trim($current_user['full_name']))[0]);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Pre-Hospital Care System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link href="vendor/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="vendor/bootstrap-icons/1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="vendor/chartjs/4.4.0/chart.umd.min.js"></script>
     <style>
         :root {
             /* Accent - calm corporate indigo (single accent, used sparingly) */
@@ -1042,7 +1042,7 @@ $first_name = trim(explode(' ', trim($current_user['full_name']))[0]);
          data-archived="<?php echo $archived_count; ?>">
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="vendor/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="js/dashboard-charts.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>

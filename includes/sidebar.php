@@ -52,7 +52,7 @@ if (count($name_parts) >= 2) {
 }
 ?>
 <!-- Bootstrap Icons -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+<link href="<?= $base_path ?>vendor/bootstrap-icons/1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 <!-- Global Responsive Styles -->
 <link href="<?= $base_path ?>css/global-responsive.css" rel="stylesheet">
 
@@ -210,7 +210,7 @@ if (count($name_parts) >= 2) {
 </div>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('<?= $base_path ?>vendor/fonts/inter.css');
 
 :root {
     --sidebar-width: 260px;

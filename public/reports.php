@@ -528,11 +528,9 @@ $rpt_type_total = array_sum(array_column($rpt_type_rows, 1));
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reports & Analytics — Pre-Hospital Care System</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="vendor/fonts/inter.css" rel="stylesheet">
+    <link href="vendor/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="vendor/bootstrap-icons/1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link href="css/reports-style.css?v=<?php echo md5_file(__DIR__ . '/css/reports-style.css'); ?>" rel="stylesheet">
     <style>
         /* ===== COLLAPSIBLE CARD TOGGLE (Consolidated Run + Vehicle cards) ===== */
@@ -1586,8 +1584,8 @@ $rpt_type_total = array_sum(array_column($rpt_type_rows, 1));
     </div><!-- /content -->
 
     <!-- ===== SCRIPTS ===== -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="vendor/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="vendor/chartjs/4.4.0/chart.umd.min.js"></script>
     <script nonce="<?php echo CSP_NONCE; ?>" src="js/reports-charts.js?v=<?php echo md5_file(__DIR__ . '/js/reports-charts.js'); ?>"></script>
 
     <!-- Collapse/expand toggle for Consolidated Run + Vehicle cards -->

@@ -124,14 +124,14 @@ php scripts/archive_old_records.php
 
 The server-side hardening works without internet access on `http://localhost`; HTTPS is intentionally not forced for localhost. Database access, sessions, CSRF, role checks, private uploads, and local backups continue to work offline.
 
-The current pages load some Bootstrap, icons, charts, fonts, and mapping/CAPTCHA assets from CDNs. Those browser features will not load offline unless the assets are downloaded and served locally. For a fully offline station deployment, vendor those assets under `public/`, remove unnecessary external CSP sources, and disable or replace reCAPTCHA/mapping integrations through an explicitly reviewed offline configuration.
+Bootstrap, Bootstrap Icons, Notiflix, Chart.js, and the application fonts are now downloaded and served locally from `public/vendor/`, so those core interface features continue to work without internet access. Mapping geocoding through Nominatim and any reCAPTCHA integration remain external by design; either provide controlled connectivity for them or disable/replace them through an explicitly reviewed offline configuration.
 
 ## 10. Security findings to resolve before production
 
 The local ZAP review identified the following items. Do not treat the application as production-ready until each item is resolved or formally risk-accepted:
 
 - **Patient data in browser storage:** This risk has been remediated in the current release. The legacy `prehospital_autosave_draft` key is cleared and the clinical form uses authenticated server-side drafts through `api/autosave_draft.php`. Confirm that no patient or medical fields are written to browser storage after deployment, and clear existing browser storage when migrating.
-- **Third-party frontend assets:** Pages load Bootstrap, Bootstrap Icons, Notiflix, Chart.js, and fonts from external CDNs. For production and offline stations, vendor reviewed copies under `public/`, or add verified SRI `integrity` and `crossorigin` attributes to every external script and stylesheet. Self-hosting is preferred for offline operation and supply-chain control.
+- **Third-party frontend assets:** Core Bootstrap, Bootstrap Icons, Notiflix, Chart.js, and font assets are self-hosted under `public/vendor/`. Keep the copies reviewed and version-pinned. Confirm that no new external script or stylesheet is introduced; if a future integration must remain on a CDN, add verified SRI `integrity` and `crossorigin` attributes and document the dependency.
 - **Content Security Policy:** The application has a CSP and nonce-protected scripts, but still permits `style-src 'unsafe-inline'` because of inline styles and attributes. Refactor inline CSS and handlers into local files or replace them with reviewed nonces/hashes before tightening the policy. Re-test the login, dashboard, and clinical form after every CSP change.
 - **HTTPS and HSTS:** Local XAMPP intentionally runs over HTTP. Production must use valid HTTPS, redirect HTTP to HTTPS, and return HSTS only after HTTPS is confirmed on every required hostname.
 - **Server fingerprinting:** Configure Apache with `ServerTokens Prod` and `ServerSignature Off`, restart Apache, and confirm that responses no longer disclose detailed Apache/PHP versions.
