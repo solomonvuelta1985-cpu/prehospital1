@@ -720,6 +720,188 @@ $type_rows = [
             .dash-footer-stats { grid-template-columns: 1fr; gap: 0.9rem; }
         }
 
+        /* Refined system footer */
+        .dash-footer {
+            background: linear-gradient(135deg, #111c32 0%, #0a1222 100%);
+            border-top: 1px solid rgba(129, 140, 248, 0.32);
+        }
+        .dash-footer-inner { padding: 2rem clamp(1.25rem, 3vw, 3rem) 1.1rem; }
+        .dash-footer-top { padding-bottom: 1.35rem; margin-bottom: 1.25rem; border-color: rgba(148, 163, 184, 0.16); }
+        .dash-footer-kicker { margin-bottom: 0.15rem; color: #818cf8; font-size: 0.62rem; font-weight: 850; letter-spacing: 0.14em; text-transform: uppercase; }
+        .dash-footer-name { font-size: 1.2rem; letter-spacing: -0.025em; }
+        .dash-footer-tag { color: #9aa9bf; }
+        .dash-footer-status { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.45rem 0.7rem; border: 1px solid rgba(52, 211, 153, 0.24); border-radius: 999px; color: #a7f3d0; background: rgba(16, 185, 129, 0.1); font-size: 0.68rem; font-weight: 800; }
+        .dash-footer-status-dot { width: 0.45rem; height: 0.45rem; border-radius: 50%; background: #34d399; box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.12); }
+        .dash-footer-stats { gap: 0.8rem; margin: 0 0 1.45rem; }
+        .dash-footer-stat { min-height: 5.4rem; padding: 0.9rem 1rem; border-color: rgba(148, 163, 184, 0.16); border-radius: 14px; background: rgba(255, 255, 255, 0.045); }
+        .dash-footer-stat:hover { transform: translateY(-3px); background: rgba(99, 102, 241, 0.1); border-color: rgba(129, 140, 248, 0.38); }
+        .dash-footer-stat-icon { width: 2.55rem; height: 2.55rem; border-radius: 12px; }
+        .dash-footer-stat-label { color: #8190a7; font-size: 0.58rem; letter-spacing: 0.09em; }
+        .dash-footer-stat-value { font-size: 1.05rem; }
+        .dash-footer-bottom { padding-top: 1rem; border-top: 1px solid rgba(148, 163, 184, 0.12); color: #8190a7; }
+        .dash-footer-bottom-meta { display: inline-flex; align-items: center; gap: 0.8rem; }
+        .dash-footer-separator { padding: 0 0.45rem; color: #475569; }
+        .dash-footer-bottom .pill-tag { display: inline-flex; align-items: center; gap: 0.35rem; color: #c7d2fe; background: rgba(99, 102, 241, 0.16); }
+        @media (max-width: 575px) {
+            .dash-footer-inner { padding: 1.5rem 1rem 1rem; }
+            .dash-footer-top { gap: 1rem; }
+            .dash-footer-status { align-self: flex-start; }
+            .dash-footer-bottom, .dash-footer-bottom-meta { align-items: flex-start; flex-direction: column; gap: 0.55rem; }
+            .dash-footer-separator { display: none; }
+        }
+
+        /* Footer v2: compact service rail, intentionally different from the
+           previous large four-card footer composition. */
+        .dash-footer {
+            position: relative;
+            margin-top: 2rem;
+            background: #0b1427;
+            border-top: 0;
+            overflow: hidden;
+        }
+        .dash-footer::before {
+            content: '';
+            position: absolute;
+            inset: 0 0 auto;
+            height: 3px;
+            background: linear-gradient(90deg, #6366f1 0%, #22d3ee 48%, #34d399 100%);
+        }
+        .dash-footer::after {
+            content: '';
+            position: absolute;
+            width: 28rem;
+            height: 28rem;
+            right: -13rem;
+            top: -17rem;
+            border-radius: 50%;
+            background: rgba(99, 102, 241, 0.13);
+            pointer-events: none;
+        }
+        .dash-footer-inner { position: relative; z-index: 1; padding: 1.5rem clamp(1.25rem, 3vw, 3rem) 0.95rem; }
+        .dash-footer-top { align-items: center; padding-bottom: 1.15rem; margin-bottom: 0.95rem; border-bottom-color: rgba(148, 163, 184, 0.13); }
+        .dash-footer-brand { gap: 0.75rem; }
+        .dash-footer-logo { width: 2.8rem; height: 2.8rem; border-radius: 14px; font-size: 1.25rem; background: linear-gradient(145deg, #6366f1, #4338ca); box-shadow: 0 8px 22px rgba(79, 70, 229, 0.35); }
+        .dash-footer-kicker { font-size: 0.58rem; letter-spacing: 0.18em; }
+        .dash-footer-name { font-size: 1.05rem; }
+        .dash-footer-tag { font-size: 0.68rem; }
+        .dash-footer-status { padding: 0.36rem 0.65rem; color: #99f6e4; background: rgba(20, 184, 166, 0.08); border-color: rgba(45, 212, 191, 0.25); font-size: 0.63rem; }
+        .dash-footer-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 0 0 1.1rem; padding: 0.3rem 0; border: 1px solid rgba(148, 163, 184, 0.16); border-radius: 16px; background: rgba(255, 255, 255, 0.035); }
+        .dash-footer-stat { min-height: 4.25rem; padding: 0.72rem 1rem; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+        .dash-footer-stat + .dash-footer-stat { border-left: 1px solid rgba(148, 163, 184, 0.15); }
+        .dash-footer-stat:hover { transform: none; background: rgba(99, 102, 241, 0.09); border-color: transparent; }
+        .dash-footer-stat-icon { width: 2.25rem; height: 2.25rem; border-radius: 10px; font-size: 1rem; }
+        .dash-footer-stat-label { font-size: 0.54rem; }
+        .dash-footer-stat-value { font-size: 0.98rem; }
+        .dash-footer-stat-sub { font-size: 0.61rem; }
+        .dash-footer-bottom { padding-top: 0.75rem; font-size: 0.66rem; }
+        .dash-footer-bottom-meta { gap: 0.65rem; }
+        .dash-footer-bottom .pill-tag { padding: 0.3rem 0.6rem; font-size: 0.61rem; }
+        @media (max-width: 767px) {
+            .dash-footer-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .dash-footer-stat:nth-child(3) { border-left: 0; border-top: 1px solid rgba(148, 163, 184, 0.15); }
+            .dash-footer-stat:nth-child(4) { border-top: 1px solid rgba(148, 163, 184, 0.15); }
+        }
+        @media (max-width: 575px) {
+            .dash-footer-inner { padding: 1.35rem 1rem 0.85rem; }
+            .dash-footer-top { align-items: flex-start; }
+            .dash-footer-status { margin-top: 0.1rem; }
+            .dash-footer-stats { grid-template-columns: 1fr; }
+            .dash-footer-stat + .dash-footer-stat,
+            .dash-footer-stat:nth-child(3),
+            .dash-footer-stat:nth-child(4) { border-left: 0; border-top: 1px solid rgba(148, 163, 184, 0.15); }
+        }
+
+        /* Footer v3: full composition replacement */
+        .dash-footer { display: none !important; }
+        .dash-footer-v3 {
+            position: relative;
+            margin: 2rem -0.75rem -1.5rem;
+            padding: 1.5rem clamp(1rem, 3vw, 2.5rem) 1.25rem;
+            background: #f4f7fb;
+            border-top: 1px solid #dbe5f0;
+            color: #17233b;
+        }
+        .dash-footer-v3-inner { max-width: 1500px; margin: 0 auto; }
+        .dash-footer-v3-identity {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+            padding: 1.5rem 1.7rem;
+            border-radius: 20px;
+            color: #fff;
+            background: linear-gradient(115deg, #312e81 0%, #4f46e5 52%, #2563eb 100%);
+            box-shadow: 0 12px 26px rgba(49, 46, 129, 0.22);
+        }
+        .dash-footer-v3-brand { display: flex; align-items: center; gap: 0.9rem; min-width: 0; }
+        .dash-footer-v3-mark { display: grid; place-items: center; width: 3.25rem; height: 3.25rem; flex: 0 0 3.25rem; border: 1px solid rgba(255,255,255,.3); border-radius: 16px; background: rgba(255,255,255,.16); font-size: 1.45rem; }
+        .dash-footer-v3-eyebrow { display: block; margin-bottom: 0.15rem; color: #c7d2fe; font-size: 0.6rem; font-weight: 850; letter-spacing: 0.16em; }
+        .dash-footer-v3-brand h2 { margin: 0; color: #fff; font-size: 1.3rem; font-weight: 850; letter-spacing: -0.03em; }
+        .dash-footer-v3-brand p { margin: 0.2rem 0 0; color: #dbeafe; font-size: 0.73rem; }
+        .dash-footer-v3-hotline { display: grid; gap: 0.1rem; min-width: 12rem; padding: 0.8rem 1rem; border: 1px solid rgba(255,255,255,.23); border-radius: 13px; background: rgba(15,23,42,.18); }
+        .dash-footer-v3-hotline span { color: #dbeafe; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; }
+        .dash-footer-v3-hotline i { margin-right: 0.25rem; color: #fda4af; }
+        .dash-footer-v3-hotline strong { color: #fff; font-size: 1rem; }
+        .dash-footer-v3-hotline small { color: #bfdbfe; font-size: 0.65rem; }
+        .dash-footer-v3-information { display: grid; grid-template-columns: minmax(14rem, 0.85fr) minmax(0, 1.7fr); margin-top: 0.9rem; border: 1px solid #dbe5f0; border-radius: 16px; background: #fff; box-shadow: 0 5px 16px rgba(30, 41, 59, 0.05); overflow: hidden; }
+        .dash-footer-v3-mission { display: grid; align-content: center; gap: 0.2rem; padding: 1.1rem 1.35rem; border-right: 1px solid #e5ebf3; }
+        .dash-footer-v3-mission > span { color: #6366f1; font-size: 0.58rem; font-weight: 850; letter-spacing: 0.13em; }
+        .dash-footer-v3-mission strong { color: #1e293b; font-size: 0.9rem; line-height: 1.25; }
+        .dash-footer-v3-mission small { color: #64748b; font-size: 0.68rem; }
+        .dash-footer-v3-metrics { display: grid; grid-template-columns: repeat(3, 1fr); }
+        .dash-footer-v3-metrics > div { display: grid; grid-template-columns: auto 1fr; align-content: center; column-gap: 0.65rem; padding: 1rem 1.15rem; }
+        .dash-footer-v3-metrics > div + div { border-left: 1px solid #e5ebf3; }
+        .dash-footer-v3-metrics i { grid-row: span 2; align-self: center; display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 9px; color: #4f46e5; background: #eef2ff; }
+        .dash-footer-v3-metrics strong { color: #17233b; font-size: 1rem; line-height: 1.05; }
+        .dash-footer-v3-metrics small { color: #64748b; font-size: 0.65rem; }
+        .dash-footer-v3-legal { display: flex; justify-content: space-between; gap: 1rem; padding: 1rem 0.15rem 0; color: #64748b; font-size: 0.66rem; }
+        @media (max-width: 700px) {
+            .dash-footer-v3 { margin-left: -0.5rem; margin-right: -0.5rem; padding: 1rem 0.75rem 0.85rem; }
+            .dash-footer-v3-identity { align-items: stretch; flex-direction: column; padding: 1.2rem; }
+            .dash-footer-v3-hotline { width: 100%; }
+            .dash-footer-v3-information { grid-template-columns: 1fr; }
+            .dash-footer-v3-mission { border-right: 0; border-bottom: 1px solid #e5ebf3; }
+            .dash-footer-v3-metrics > div { padding: 0.85rem 0.7rem; }
+            .dash-footer-v3-metrics strong { font-size: 0.88rem; }
+        }
+        @media (max-width: 430px) {
+            .dash-footer-v3-metrics { grid-template-columns: 1fr; }
+            .dash-footer-v3-metrics > div + div { border-left: 0; border-top: 1px solid #e5ebf3; }
+            .dash-footer-v3-legal { align-items: flex-start; flex-direction: column; gap: 0.35rem; }
+        }
+
+        /* Footer v4: minimal operational footer */
+        .dash-footer-v3, .dash-footer { display: none !important; }
+        .dash-footer-v4 { position: relative; display: block; overflow: hidden; margin: 2rem -0.75rem -1.5rem; border-top: 0; background: #f4f7fb; color: #cbd5e1; }
+        .dash-footer-v4-banner { display: none !important; }
+        .dash-footer-v4-inner { position: relative; z-index: 1; max-width: none; margin: 0; padding: 1.25rem clamp(1.25rem, 3vw, 2.75rem) 0.8rem; background: #101a2d; }
+        .dash-footer-v4-inner, .dash-footer-v4-details, .dash-footer-v4-brand, .dash-footer-v4-bottom { display: flex; align-items: center; }
+        .dash-footer-v4-inner { flex-wrap: wrap; justify-content: space-between; gap: 1rem 2rem; }
+        .dash-footer-v4-brand { gap: 0.7rem; min-width: 14rem; }
+        .dash-footer-v4-mark { display: grid; place-items: center; width: 2.45rem; height: 2.45rem; flex: 0 0 2.45rem; border-radius: 11px; background: #4f46e5; color: #fff; font-size: 1.1rem; box-shadow: 0 5px 14px rgba(79,70,229,.28); }
+        .dash-footer-v4-brand strong { display: block; color: #f8fafc; font-size: 0.95rem; letter-spacing: -0.01em; }
+        .dash-footer-v4-brand span { display: block; margin-top: 0.12rem; color: #8fa1bb; font-size: 0.65rem; }
+        .dash-footer-v4-details { flex: 1 1 auto; justify-content: flex-end; gap: 0; }
+        .dash-footer-v4-details > div { display: grid; gap: 0.15rem; padding: 0 1rem; border-left: 1px solid rgba(148,163,184,.2); }
+        .dash-footer-v4-details > div:first-child { border-left: 0; }
+        .dash-footer-v4-details span { color: #8292aa; font-size: 0.6rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+        .dash-footer-v4-details strong { color: #f1f5f9; font-size: 0.75rem; white-space: nowrap; }
+        .dash-footer-v4-details strong i { margin-right: .25rem; color: #fb7185; }
+        .dash-footer-v4-status { display: inline-flex !important; align-items: center; gap: .35rem; color: #86efac; }
+        .dash-footer-v4-status i { color: #34d399; font-size: .8rem; }
+        .dash-footer-v4-bottom { width: 100%; justify-content: space-between; gap: 1rem; padding-top: .75rem; border-top: 1px solid rgba(148,163,184,.14); color: #71829b; font-size: .62rem; }
+        @media (max-width: 760px) {
+            .dash-footer-v4 { margin-left: -.5rem; margin-right: -.5rem; }
+            .dash-footer-v4-details { width: 100%; justify-content: flex-start; margin-top: .25rem; }
+            .dash-footer-v4-details > div { padding-left: .75rem; padding-right: .75rem; }
+        }
+        @media (max-width: 560px) {
+            .dash-footer-v4-inner { align-items: flex-start; flex-direction: column; padding: 1.15rem 1rem .8rem; }
+            .dash-footer-v4-details { align-items: stretch; flex-direction: column; gap: .65rem; }
+            .dash-footer-v4-details > div, .dash-footer-v4-details > div:first-child { padding: 0; border-left: 0; }
+            .dash-footer-v4-bottom { align-items: flex-start; flex-direction: column; gap: .3rem; }
+        }
+
         /* ===== CLINICAL PANELS (card-system redesign) ===== */
         .clinical-panel {
             background: #fff; border: 1px solid var(--gray-200); border-radius: var(--radius-lg);
@@ -1412,16 +1594,64 @@ $type_rows = [
             <hr class="section-divider">
 
             <!-- ===== DARK FOOTER BAND (consolidated — replaces the redundant info tiles) ===== -->
+            <footer class="dash-footer-v4">
+                <div class="dash-footer-v4-inner">
+                    <div class="dash-footer-v4-brand">
+                        <div class="dash-footer-v4-mark"><i class="bi bi-heart-pulse-fill"></i></div>
+                        <div><strong>RESCUE 116-link</strong><span>Pre-Hospital Emergency Care System</span></div>
+                    </div>
+                    <div class="dash-footer-v4-details">
+                        <div><span>Emergency line</span><strong><i class="bi bi-telephone-fill"></i> 0967 379 7967</strong></div>
+                        <div><span>Mission</span><strong>Magkasama sa Bilis na Tugon</strong></div>
+                        <div class="dash-footer-v4-status"><i class="bi bi-check-circle-fill"></i><span>System operational</span></div>
+                    </div>
+                    <div class="dash-footer-v4-bottom"><span>&copy; <?php echo date('Y'); ?> RESCUE 116-link</span><span>Baggao MDRRMO &middot; Emergency response 24/7</span></div>
+                </div>
+            </footer>
+            <footer class="dash-footer-v3">
+                <div class="dash-footer-v3-inner">
+                    <div class="dash-footer-v3-identity">
+                        <div class="dash-footer-v3-brand">
+                            <div class="dash-footer-v3-mark"><i class="bi bi-heart-pulse-fill"></i></div>
+                            <div>
+                                <span class="dash-footer-v3-eyebrow">RESCUE 116 / MDRRMO</span>
+                                <h2>RESCUE 116-link</h2>
+                                <p>Pre-Hospital Emergency Care System</p>
+                            </div>
+                        </div>
+                        <div class="dash-footer-v3-hotline">
+                            <span><i class="bi bi-telephone-fill"></i> Emergency hotline</span>
+                            <strong>0967 379 7967</strong>
+                            <small>Available 24 hours</small>
+                        </div>
+                    </div>
+                    <div class="dash-footer-v3-information">
+                        <div class="dash-footer-v3-mission">
+                            <span>OUR MISSION</span>
+                            <strong>Magkasama sa Bilis na Tugon</strong>
+                            <small>Ligtas na Bayan</small>
+                        </div>
+                        <div class="dash-footer-v3-metrics" aria-label="System summary">
+                            <div><i class="bi bi-people-fill"></i><strong><?php echo number_format($active_users); ?></strong><small>Active users</small></div>
+                            <div><i class="bi bi-hospital-fill"></i><strong><?php echo number_format($hospital_network); ?></strong><small>Hospitals</small></div>
+                            <div><i class="bi bi-shield-check"></i><strong>24/7</strong><small>Response ready</small></div>
+                        </div>
+                    </div>
+                    <div class="dash-footer-v3-legal"><span>&copy; <?php echo date('Y'); ?> RESCUE 116-link &middot; Pre-Hospital Care System</span><span>For authorized responders</span></div>
+                </div>
+            </footer>
             <div class="dash-footer">
               <div class="dash-footer-inner">
                 <div class="dash-footer-top">
                     <div class="dash-footer-brand">
                         <div class="dash-footer-logo"><i class="bi bi-heart-pulse-fill"></i></div>
                         <div>
+                            <div class="dash-footer-kicker">RESCUE 116 / MDRRMO</div>
                             <div class="dash-footer-name">RESCUE 116-link</div>
                             <div class="dash-footer-tag">Pre-Hospital Emergency Care System</div>
                         </div>
                     </div>
+                    <div class="dash-footer-status"><span class="dash-footer-status-dot"></span><span>System operational</span></div>
                 </div>
                 <div class="dash-footer-stats">
                     <div class="dash-footer-stat">
@@ -1458,8 +1688,8 @@ $type_rows = [
                     </div>
                 </div>
                 <div class="dash-footer-bottom">
-                    <span>&copy; <?php echo date('Y'); ?> RESCUE 116-link &middot; Pre-Hospital Care System. All rights reserved.</span>
-                    <span class="pill-tag">EMERGENCY 24/7</span>
+                    <div><span>&copy; <?php echo date('Y'); ?> RESCUE 116-link</span><span class="dash-footer-separator">•</span><span>Pre-Hospital Care System</span></div>
+                    <div class="dash-footer-bottom-meta"><span>For authorized responders</span><span class="pill-tag"><i class="bi bi-shield-check"></i> Emergency 24/7</span></div>
                 </div>
               </div>
             </div>

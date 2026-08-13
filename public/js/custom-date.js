@@ -1,7 +1,7 @@
 /**
  * Custom Date Input Components
- * Replaces native date inputs with Month/Day/Year dropdowns
- * Provides better UX especially on mobile devices
+ * Keeps the incident date as a native date picker and uses the legacy
+ * split controls only for secondary dates/datetime fields.
  * NOTE: Time inputs remain as text inputs with manual entry
  */
 
@@ -11,8 +11,24 @@ window.addEventListener('load', function() {
     setTimeout(function() {
         console.log('Initializing custom date components...');
 
-        // Replace all date inputs
+        // The incident date is normally today, but remains editable for
+        // late entries and corrections. Do not overwrite an existing draft.
+        const formDate = document.getElementById('formDate');
+        const today = getLocalDateISO();
+        const hasDraftInUrl = new URLSearchParams(window.location.search).has('draft_id');
+
+        if (formDate) {
+            formDate.max = today;
+            if (!formDate.value && !hasDraftInUrl) {
+                formDate.value = today;
+                formDate.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+
+        // Replace secondary date inputs only. The main incident date keeps
+        // the browser's single-field calendar picker.
         document.querySelectorAll('input[type="date"]').forEach(function(input) {
+            if (input.id === 'formDate') return;
             try {
                 replaceDateInput(input);
             } catch(e) {
@@ -29,9 +45,87 @@ window.addEventListener('load', function() {
             }
         });
 
+        initializeAgeFromDateOfBirth();
+
         console.log('Custom date components initialized successfully');
     }, 500); // Wait 500ms after page load
 });
+
+function getLocalDateISO() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+/**
+ * Calculate age only after all three DOB controls are complete.
+ * The DOB remains the source of truth; manual age entry is still allowed.
+ */
+function initializeAgeFromDateOfBirth() {
+    const monthSelect = document.querySelector('[name="date_of_birth_month"]');
+    const dayInput = document.querySelector('[name="date_of_birth_day"]');
+    const yearInput = document.querySelector('[name="date_of_birth_year"]');
+    const ageInput = document.getElementById('age');
+    const ageUnit = document.getElementById('ageUnit');
+
+    if (!monthSelect || !dayInput || !yearInput || !ageInput || !ageUnit) return;
+
+    function calculateAge() {
+        const month = monthSelect.value;
+        const day = dayInput.value.trim();
+        const year = yearInput.value.trim();
+
+        // Do not calculate until Month, Day, and Year are all complete.
+        if (!month || !day || !/^\d{4}$/.test(year)) return;
+
+        const birthDate = new Date(Number(year), Number(month) - 1, Number(day));
+        const today = new Date();
+
+        // Reject impossible dates and dates that have not happened yet.
+        if (
+            birthDate.getFullYear() !== Number(year) ||
+            birthDate.getMonth() !== Number(month) - 1 ||
+            birthDate.getDate() !== Number(day) ||
+            birthDate > today
+        ) return;
+
+        let years = today.getFullYear() - birthDate.getFullYear();
+        const birthdayThisYear = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+        if (today < birthdayThisYear) years -= 1;
+
+        if (years < 1) {
+            const totalMonths = Math.max(
+                0,
+                (today.getFullYear() - birthDate.getFullYear()) * 12 +
+                (today.getMonth() - birthDate.getMonth()) -
+                (today.getDate() < birthDate.getDate() ? 1 : 0)
+            );
+            ageInput.value = String(totalMonths);
+            ageUnit.value = 'months';
+        } else {
+            ageInput.value = String(years);
+            ageUnit.value = 'years';
+        }
+
+        ageInput.dataset.ageFromDob = 'true';
+        ageInput.dispatchEvent(new Event('change', { bubbles: true }));
+        ageUnit.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    [monthSelect, dayInput, yearInput].forEach(function(field) {
+        field.addEventListener('change', calculateAge);
+        field.addEventListener('input', calculateAge);
+    });
+
+    // A manually entered age remains allowed and is no longer marked as DOB-derived.
+    ageInput.addEventListener('input', function() {
+        ageInput.dataset.ageFromDob = 'false';
+    });
+
+    calculateAge();
+}
 
 /**
  * Replace date input with Month/Day/Year dropdowns

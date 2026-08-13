@@ -24,6 +24,40 @@ $csrf_token = generate_token();
 
 // Get current user
 $current_user = get_auth_user();
+
+// Display-only labels for emergency dropdowns. Stored values remain the
+// canonical categories used by existing records, reports, and validation.
+$__emergency_option_labels = [
+    'GI/Abdominal' => 'Abdominal / GI symptoms',
+    'Difficulty of Breathing' => 'Breathing difficulty',
+    'Dizziness/Headache' => 'Dizziness or headache',
+    'Chest Pain/Cardiac' => 'Chest pain / cardiac symptoms',
+    'Hypertension' => 'High blood pressure',
+    'Generalized Weakness' => 'General weakness',
+    'Fever/Infection' => 'Fever / infection',
+    'Stroke/CVA' => 'Stroke / CVA',
+    'Cardiac Arrest' => 'Cardiac arrest',
+    'Seizure' => 'Seizure',
+    'Chemical Ingestion' => 'Chemical ingestion / poisoning',
+    'Vehicular Accident' => 'Vehicle collision',
+    'Fall' => 'Fall',
+    'Mauling' => 'Assault / mauling',
+    'Laceration/Wound' => 'Laceration / open wound',
+    'Stabbing' => 'Stabbing injury',
+    'Goring' => 'Animal goring',
+    'Hack Wound' => 'Hack wound',
+    'Stoning' => 'Stoning injury',
+    'Drowning' => 'Drowning',
+    'Animal Bite' => 'Animal bite',
+    'Burn' => 'Burn injury',
+    'Gunshot' => 'Gunshot injury',
+    'Labor/Delivery' => 'Labor / delivery',
+    'Vaginal Bleeding/Spotting' => 'Vaginal bleeding / spotting',
+    'Abdominal Pain (OB)' => 'Abdominal pain',
+    'Fire Incident' => 'Fire incident',
+    'Strangulation' => 'Strangulation',
+    'Electrocution' => 'Electrocution',
+];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -39,7 +73,6 @@ $current_user = get_auth_user();
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
     <link href="css/records-style.css?v=<?php echo asset_version(); ?>" rel="stylesheet">
     <link href="css/prehospital-form.css?v=<?php echo asset_version(); ?>" rel="stylesheet">
-    <link href="css/prehospital-form-redesign.css?v=<?php echo asset_version(); ?>" rel="stylesheet">
     <style>
         /* Indigo design tokens now live in css/prehospital-form.css (:root).
            Only page-specific layout/overrides remain inline below. */
@@ -89,7 +122,7 @@ $current_user = get_auth_user();
         @media (max-width: 576px) { input[type="time"], input[type="datetime-local"], input[type="date"] { font-size: 16px !important; min-height: 50px !important; } }
 
         /* Uppercase Inputs */
-        input[type="text"]:not(.no-uppercase), input[type="email"], input[type="tel"], input[type="url"], select, #teamLeaderNotes { text-transform: uppercase !important; }
+        input[type="text"]:not(.no-uppercase), input[type="email"], input[type="tel"], input[type="url"], #teamLeaderNotes { text-transform: uppercase !important; }
         textarea:not(#teamLeaderNotes), input[type="text"].no-uppercase { text-transform: none !important; }
         input::placeholder, textarea::placeholder { text-transform: none !important; }
 
@@ -98,7 +131,6 @@ $current_user = get_auth_user();
         /* Stack Date + Vehicle Used on mobile */
         @media (max-width: 768px) {
             .date-vehicle-row { grid-template-columns: 1fr !important; }
-            .field-full-desktop { max-width: 24rem; }
         }
 
         /* View Summary Button - Indigo */
@@ -303,86 +335,97 @@ $current_user = get_auth_user();
         /* Header Actions */
         .header-actions { display: flex; gap: 0.75rem; align-items: center; }
     </style>
+    <!-- Loaded after the compatibility rules above so the clinical workspace is the page-level source of truth. -->
+    <link href="css/prehospital-form-redesign.css?v=<?php echo asset_version(); ?>&ui=clinical-v15" rel="stylesheet">
 </head>
 <body class="loading">
     <!-- Include the sidebar -->
     <?php include '../includes/sidebar.php'; ?>
 
     <div class="content">
-        <div class="container-fluid py-4">
+        <div class="container-fluid form-page-shell">
             <?php show_flash(); ?>
 
-            <!-- ===== PAGE HEADER ===== -->
-            <div class="page-header-inline">
-                <div>
+            <header class="clinical-page-header">
+                <div class="clinical-page-heading">
+                    <span class="clinical-page-kicker">FIELD DOCUMENTATION / RESQ-LINK EMS</span>
                     <h1 class="page-title">
                         <span class="page-title-icon"><i class="bi bi-file-medical"></i></span>
                         Pre-Hospital Care Form
                     </h1>
-                    <p class="page-subtitle">Emergency Medical Services &middot; <strong>RESQ-link EMS</strong></p>
+                    <p class="page-subtitle">Guided EMS response record.</p>
                 </div>
-                <div class="header-actions">
+                <div class="header-actions" id="formHeaderActions">
+                    <span class="draft-status" id="formDraftStatus" role="status" aria-live="polite">
+                        <i class="bi bi-cloud-check"></i>
+                        <span id="formDraftStatusText">Autosave ready</span>
+                    </span>
+                    <span id="manualSaveSlot"></span>
                 </div>
-            </div>
+            </header>
 
-        <div class="form-container">
-        <div class="progress-container">
-            <div class="progress-meta">
-                <span class="progress-meta-label">
-                    <i class="bi bi-list-check"></i> Form Progress
-                </span>
-                <span id="stepIndicator" class="progress-meta-step">
-                    Step 1 of 7
-                </span>
-            </div>
-            <div class="progress">
-                <div class="progress-bar" role="progressbar" id="progressBar" style="width: 14%;"></div>
-            </div>
-        </div>
+            <div class="form-container" id="formWorkspace">
+                <section class="workflow-overview" aria-labelledby="workflowTitle">
+                    <div class="workflow-overview-header">
+                        <div class="workflow-banner-copy">
+                            <span class="workflow-eyebrow">Response record</span>
+                            <h2 id="workflowTitle">Complete each stage in sequence</h2>
+                            <p>Complete each clinical stage before saving.</p>
+                        </div>
+                        <div class="workflow-progress-summary workflow-banner-metrics">
+                            <span id="stepIndicator" class="progress-meta-step">Step 1 of 7</span>
+                            <strong id="stepProgressPercent">14%</strong>
+                        </div>
+                    </div>
+                    <div class="progress-container" aria-label="Form progress">
+                        <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="14" aria-labelledby="stepIndicator">
+                            <div class="progress-bar" id="progressBar" style="width: 14%;"></div>
+                        </div>
+                    </div>
+                </section>
 
-        <div class="tabs-container">
-            <ul class="nav nav-tabs" id="formTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="tab1" data-bs-toggle="tab" data-bs-target="#section1" type="button" role="tab">
-                        Basic Info
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab2" data-bs-toggle="tab" data-bs-target="#section2" type="button" role="tab">
-                        Patient
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab3" data-bs-toggle="tab" data-bs-target="#section3" type="button" role="tab">
-                        Emergency
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab4" data-bs-toggle="tab" data-bs-target="#section4" type="button" role="tab">
-                        Vitals
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab5" data-bs-toggle="tab" data-bs-target="#section5" type="button" role="tab">
-                        Assessment
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab6" data-bs-toggle="tab" data-bs-target="#section6" type="button" role="tab">
-                        Team
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab7" data-bs-toggle="tab" data-bs-target="#section7" type="button" role="tab">
-                        Complete
-                    </button>
-                </li>
-            </ul>
-        </div>
+                <nav class="tabs-container" aria-label="Form steps">
+                    <ul class="nav nav-tabs" id="formTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="tab1" data-bs-target="#section1" data-step-title="Incident & Response" data-step-description="Capture response details." data-step-icon="bi-clipboard-pulse" type="button" role="tab" aria-controls="section1" aria-selected="true">
+                                <span class="step-number">1</span><span class="step-copy"><span class="step-label">Incident &amp; Response</span><span class="step-state">Start here</span></span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab2" data-bs-target="#section2" data-step-title="Patient Profile" data-step-description="Record patient details." data-step-icon="bi-person-vcard" type="button" role="tab" aria-controls="section2" aria-selected="false">
+                                <span class="step-number">2</span><span class="step-copy"><span class="step-label">Patient Profile</span><span class="step-state">Not started</span></span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab3" data-bs-target="#section3" data-step-title="Emergency & Care" data-step-description="Document the emergency and care." data-step-icon="bi-heart-pulse" type="button" role="tab" aria-controls="section3" aria-selected="false">
+                                <span class="step-number">3</span><span class="step-copy"><span class="step-label">Emergency &amp; Care</span><span class="step-state">Not started</span></span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab4" data-bs-target="#section4" data-step-title="Vital Signs" data-step-description="Record initial and follow-up vitals." data-step-icon="bi-activity" type="button" role="tab" aria-controls="section4" aria-selected="false">
+                                <span class="step-number">4</span><span class="step-copy"><span class="step-label">Vital Signs</span><span class="step-state">Not started</span></span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab5" data-bs-target="#section5" data-step-title="Assessment" data-step-description="Record findings and injuries." data-step-icon="bi-person-bounding-box" type="button" role="tab" aria-controls="section5" aria-selected="false">
+                                <span class="step-number">5</span><span class="step-copy"><span class="step-label">Assessment</span><span class="step-state">Not started</span></span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab6" data-bs-target="#section6" data-step-title="Crew & Handoff" data-step-description="Complete crew and handoff details." data-step-icon="bi-people" type="button" role="tab" aria-controls="section6" aria-selected="false">
+                                <span class="step-number">6</span><span class="step-copy"><span class="step-label">Crew &amp; Handoff</span><span class="step-state">Not started</span></span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab7" data-bs-target="#section7" data-step-title="Review & Complete" data-step-description="Review and save the completed form." data-step-icon="bi-check2-circle" type="button" role="tab" aria-controls="section7" aria-selected="false">
+                                <span class="step-number">7</span><span class="step-copy"><span class="step-label">Review &amp; Complete</span><span class="step-state">Not started</span></span>
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
 
-        <?php show_flash(); ?>
-
-        <form id="preHospitalForm" class="form-body" method="POST" action="../api/save_prehospital_form.php">
+                <div class="form-workspace-panel">
+        <form id="preHospitalForm" class="form-body" method="POST" action="../api/save_prehospital_form.php" enctype="multipart/form-data">
             <!-- CSRF Token -->
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
             <!-- Draft ID (populated when resuming a draft) -->
@@ -393,7 +436,7 @@ $current_user = get_auth_user();
                 <div class="tab-pane fade show active" id="section1" role="tabpanel">
                     <div class="form-section">
                         <div class="section-title">
-                            <i class="bi bi-info-circle"></i> Basic Information
+                            <i class="bi bi-clipboard-pulse"></i> Response Details
                         </div>
 
                         <!-- Date & Vehicle -->
@@ -426,35 +469,30 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
-                        <!-- Driver — own row -->
-                        <div class="mb-section field-full-desktop">
-                            <label for="driver" class="form-label">Driver</label>
-                            <input type="text" class="form-control" id="driver" name="driver" placeholder="Driver name">
-                        </div>
-
-                        <!-- Ambulance Unit — own row; opens a modal picker -->
-                        <div id="ambulanceDropdownContainer" class="mb-section" style="display: none; max-width: 24rem;">
+                        <div id="ambulanceDropdownContainer" class="vehicle-unit-picker mb-section" style="display: none;">
                             <label class="form-label">Ambulance Unit</label>
-                            <!-- Hidden select preserves the existing JS/save/resume contract:
-                                 the modal writes its value and dispatches 'change'. -->
                             <select id="ambulanceSelect" tabindex="-1" aria-hidden="true" style="display:none !important;">
-                                <option value="">-- Select Ambulance --</option>
+                                <option value="">Choose ambulance unit</option>
                                 <?php for ($__v = 1; $__v <= 18; $__v++): ?>
                                 <option value="V<?php echo $__v; ?>">V<?php echo $__v; ?></option>
                                 <?php endfor; ?>
                             </select>
-                            <!-- Trigger: shows current pick, opens the picker modal -->
                             <button type="button" class="unit-trigger" id="ambulanceUnitTrigger" data-bs-toggle="modal" data-bs-target="#ambulanceUnitModal">
                                 <span class="unit-trigger-value" id="ambulanceUnitTriggerText">Select unit…</span>
                                 <i class="bi bi-chevron-down"></i>
                             </button>
                         </div>
 
+                        <!-- Driver — own row -->
                         <input type="hidden" name="vehicle_details" id="vehicleDetails">
-                        <!-- Selected Vehicle Display -->
                         <div id="selectedVehicleDisplay" class="vehicle-display" style="display: none;">
                             <strong class="vehicle-display-label">Selected Vehicle:</strong>
                             <span id="selectedVehicleText" class="vehicle-display-value"></span>
+                        </div>
+
+                        <div class="mb-section field-full-desktop">
+                            <label for="driver" class="form-label">Driver</label>
+                            <input type="text" class="form-control" id="driver" name="driver" placeholder="Driver name">
                         </div>
 
                         <hr class="section-divider-light">
@@ -527,7 +565,17 @@ $current_user = get_auth_user();
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="arrHospName" class="form-label">Arrival at Hospital - Name</label>
-                                <input type="text" class="form-control" id="arrHospName" name="arrival_hospital_name" placeholder="Hospital name">
+                                <select class="form-select" id="arrHospName" aria-label="Arrival hospital name">
+                                    <option value="">Choose hospital</option>
+                                    <?php foreach (hospital_endorsement_options() as $__arrival_hospital): ?>
+                                    <option value="<?php echo e($__arrival_hospital['value']); ?>" data-aliases="<?php echo e(implode('|', $__arrival_hospital['aliases'])); ?>"><?php echo e($__arrival_hospital['label']); ?></option>
+                                    <?php endforeach; ?>
+                                    <option value="__other__">Other &middot; enter hospital name</option>
+                                </select>
+                                <div id="arrivalHospitalOtherWrap" class="mt-2" style="display: none;">
+                                    <input type="text" class="form-control" id="arrivalHospitalOther" placeholder="Enter hospital name" aria-label="Other arrival hospital name" aria-hidden="true">
+                                </div>
+                                <input type="hidden" id="arrivalHospitalNameValue" name="arrival_hospital_name" value="">
                             </div>
                             <div>
                                 <label for="arrHospTime" class="form-label">Arrival at Hospital - Time</label>
@@ -585,7 +633,7 @@ $current_user = get_auth_user();
                 <div class="tab-pane fade" id="section2" role="tabpanel">
                     <div class="form-section">
                         <div class="section-title">
-                            <i class="bi bi-person-fill"></i> Patient Information
+                            <i class="bi bi-person-vcard"></i> Patient Details
                         </div>
 
                         <!-- Basic Patient Details -->
@@ -617,11 +665,11 @@ $current_user = get_auth_user();
                             <div>
                                 <label for="growthStatus" class="form-label">Growth Status</label>
                                 <select class="form-select" id="growthStatus" name="growth_status">
-                                    <option value="">Select...</option>
-                                    <option value="infant">Infant (0-1 year)</option>
-                                    <option value="child">Child (2-12 years)</option>
-                                    <option value="adult">Adult (13-59 years)</option>
-                                    <option value="senior">Senior (60+ years)</option>
+                                    <option value="">Choose age group</option>
+                                    <option value="infant">Infant · 0–1 year</option>
+                                    <option value="child">Child · 2–12 years</option>
+                                    <option value="adult">Adult · 13–59 years</option>
+                                    <option value="senior">Older adult · 60+ years</option>
                                 </select>
                             </div>
                         </div>
@@ -630,7 +678,7 @@ $current_user = get_auth_user();
                             <div>
                                 <label for="gender" class="form-label required-field">Gender</label>
                                 <select class="form-select" id="gender" name="gender" required aria-required="true">
-                                    <option value="">Select Gender...</option>
+                                    <option value="">Choose gender</option>
                                     <option value="male">Male</option>
                                     <option value="female">Female</option>
                                 </select>
@@ -638,7 +686,7 @@ $current_user = get_auth_user();
                             <div>
                                 <label for="civilStatus" class="form-label">Civil Status</label>
                                 <select class="form-select" id="civilStatus" name="civil_status">
-                                    <option value="">Select Civil Status...</option>
+                                    <option value="">Choose civil status</option>
                                     <option value="single">Single</option>
                                     <option value="married">Married</option>
                                     <option value="widowed">Widowed</option>
@@ -719,17 +767,17 @@ $current_user = get_auth_user();
                             <div>
                                 <label for="personalBelongings" class="form-label">Personal Belongings</label>
                                 <select class="form-select" id="personalBelongings" name="personal_belongings[]" multiple size="4">
-                                    <option value="wallet">Wallet</option>
-                                    <option value="cellphone">Cellphone</option>
-                                    <option value="jewelry">Jewelry</option>
+                                    <option value="wallet">Wallet / purse</option>
+                                    <option value="cellphone">Mobile phone</option>
+                                    <option value="jewelry">Jewelry / valuables</option>
                                     <option value="watch">Watch</option>
                                     <option value="keys">Keys</option>
                                     <option value="bag">Bag</option>
-                                    <option value="documents">Documents/IDs</option>
-                                    <option value="cash">Cash</option>
-                                    <option value="none">None</option>
+                                    <option value="documents">Documents / IDs</option>
+                                    <option value="cash">Cash / money</option>
+                                    <option value="none">None reported</option>
                                 </select>
-                                <small class="text-muted">Hold Ctrl/Cmd to select multiple items</small>
+                                <small class="text-muted">Select all items that apply.</small>
                             </div>
                         </div>
 
@@ -856,69 +904,69 @@ $current_user = get_auth_user();
                 <div class="tab-pane fade" id="section3" role="tabpanel">
                     <div class="form-section">
                         <div class="section-title">
-                            <i class="bi bi-telephone-fill"></i> Type of Emergency Call <span class="required-field"></span>
+                            <i class="bi bi-heart-pulse"></i> Emergency Details <span class="required-field"></span>
                         </div>
 
                         <div class="grid-2 mb-section">
                             <div>
-                                <div class="form-check mb-2">
+                                <div class="form-check mb-2 emergency-type-toggle">
                                     <input class="form-check-input" type="checkbox" id="medical" name="emergency_type[]" value="medical">
                                     <label class="form-check-label" for="medical"><strong>Medical</strong></label>
                                 </div>
-                                <select class="form-control emergency-specify-select" id="medicalCategory" data-specify-target="medicalSpecify" aria-label="Specify medical condition">
-                                    <option value="">Select medical condition</option>
+                                <select class="form-control emergency-specify-select" id="medicalCategory" data-specify-target="medicalSpecify" aria-label="Specify medical condition" disabled>
+                                    <option value="">Choose medical condition</option>
                                     <?php foreach (medical_specify_options() as $__cat): ?>
-                                    <option value="<?php echo e($__cat); ?>"><?php echo e($__cat); ?></option>
+                                    <option value="<?php echo e($__cat); ?>"><?php echo e($__emergency_option_labels[$__cat] ?? $__cat); ?></option>
                                     <?php endforeach; ?>
-                                    <option value="__other__">Other (specify)</option>
+                                    <option value="__other__">Other · enter details</option>
                                 </select>
                                 <input type="text" class="form-control mt-2 emergency-specify-other d-none" id="medicalOther" data-specify-target="medicalSpecify" placeholder="Type medical condition">
                                 <!-- Hidden field is the single source of truth read by validation, autosave and the backend (name=medical_specify). -->
                                 <input type="hidden" id="medicalSpecify" name="medical_specify" value="">
                             </div>
                             <div>
-                                <div class="form-check mb-2">
+                                <div class="form-check mb-2 emergency-type-toggle">
                                     <input class="form-check-input" type="checkbox" id="trauma" name="emergency_type[]" value="trauma">
                                     <label class="form-check-label" for="trauma"><strong>Trauma</strong></label>
                                 </div>
-                                <select class="form-control emergency-specify-select" id="traumaCategory" data-specify-target="traumaSpecify" aria-label="Specify trauma type">
-                                    <option value="">Select trauma type</option>
+                                <select class="form-control emergency-specify-select" id="traumaCategory" data-specify-target="traumaSpecify" aria-label="Specify trauma type" disabled>
+                                    <option value="">Choose trauma type</option>
                                     <?php foreach (trauma_specify_options() as $__cat): ?>
-                                    <option value="<?php echo e($__cat); ?>"><?php echo e($__cat); ?></option>
+                                    <option value="<?php echo e($__cat); ?>"><?php echo e($__emergency_option_labels[$__cat] ?? $__cat); ?></option>
                                     <?php endforeach; ?>
-                                    <option value="__other__">Other (specify)</option>
+                                    <option value="__other__">Other · enter details</option>
                                 </select>
                                 <input type="text" class="form-control mt-2 emergency-specify-other d-none" id="traumaOther" data-specify-target="traumaSpecify" placeholder="Type trauma type">
                                 <input type="hidden" id="traumaSpecify" name="trauma_specify" value="">
                             </div>
                             <div>
-                                <div class="form-check mb-2">
+                                <div class="form-check mb-2 emergency-type-toggle">
                                     <input class="form-check-input" type="checkbox" id="ob" name="emergency_type[]" value="ob">
                                     <label class="form-check-label" for="ob"><strong>OB</strong></label>
                                 </div>
-                                <select class="form-control emergency-specify-select" id="obCategory" data-specify-target="obSpecify" aria-label="Specify OB condition">
-                                    <option value="">Select OB condition</option>
+                                <select class="form-control emergency-specify-select" id="obCategory" data-specify-target="obSpecify" aria-label="Specify OB condition" disabled>
+                                    <option value="">Choose OB condition</option>
                                     <?php foreach (ob_specify_options() as $__cat): ?>
-                                    <option value="<?php echo e($__cat); ?>"><?php echo e($__cat); ?></option>
+                                    <option value="<?php echo e($__cat); ?>"><?php echo e($__emergency_option_labels[$__cat] ?? $__cat); ?></option>
                                     <?php endforeach; ?>
-                                    <option value="__other__">Other (specify)</option>
+                                    <option value="__other__">Other · enter details</option>
                                 </select>
                                 <input type="text" class="form-control mt-2 emergency-specify-other d-none" id="obOther" data-specify-target="obSpecify" placeholder="Type OB condition">
                                 <input type="hidden" id="obSpecify" name="ob_specify" value="">
                                 <!-- Nameless: value is folded into the hidden ob_specify, not saved separately. -->
-                                <input type="text" class="form-control mt-2" id="obGravidaPara" placeholder="Gravida/Para (e.g. G1P0)" aria-label="Gravida/Para">
+                                <input type="text" class="form-control mt-2" id="obGravidaPara" placeholder="Gravida/Para (e.g. G1P0)" aria-label="Gravida/Para" disabled>
                             </div>
                             <div>
-                                <div class="form-check mb-2">
+                                <div class="form-check mb-2 emergency-type-toggle">
                                     <input class="form-check-input" type="checkbox" id="general" name="emergency_type[]" value="general">
                                     <label class="form-check-label" for="general"><strong>General</strong></label>
                                 </div>
-                                <select class="form-control emergency-specify-select" id="generalCategory" data-specify-target="generalSpecify" aria-label="Specify general condition">
-                                    <option value="">Select general condition</option>
+                                <select class="form-control emergency-specify-select" id="generalCategory" data-specify-target="generalSpecify" aria-label="Specify general condition" disabled>
+                                    <option value="">Choose general condition</option>
                                     <?php foreach (general_specify_options() as $__cat): ?>
-                                    <option value="<?php echo e($__cat); ?>"><?php echo e($__cat); ?></option>
+                                    <option value="<?php echo e($__cat); ?>"><?php echo e($__emergency_option_labels[$__cat] ?? $__cat); ?></option>
                                     <?php endforeach; ?>
-                                    <option value="__other__">Other (specify)</option>
+                                    <option value="__other__">Other · enter details</option>
                                 </select>
                                 <input type="text" class="form-control mt-2 emergency-specify-other d-none" id="generalOther" data-specify-target="generalSpecify" placeholder="Type general condition">
                                 <input type="hidden" id="generalSpecify" name="general_specify" value="">
@@ -986,7 +1034,7 @@ $current_user = get_auth_user();
 
                 <!-- Section 4: Vitals -->
                 <div class="tab-pane fade" id="section4" role="tabpanel">
-                    <div class="form-section">
+                    <div class="form-section vitals-card vitals-card-initial">
                         <div class="section-title">
                             <i class="bi bi-activity"></i> Initial Vital Signs
                         </div>
@@ -1079,7 +1127,7 @@ $current_user = get_auth_user();
 
                     </div>
 
-                    <div class="form-section">
+                    <div class="form-section vitals-card vitals-card-followup">
                         <div class="section-title">
                             <i class="bi bi-arrow-repeat"></i> Follow-up Vital Signs
                         </div>
@@ -1365,7 +1413,7 @@ $current_user = get_auth_user();
                         <hr class="section-divider">
 
                         <div class="stroke-assessment-card">
-                    <div class="stroke-assessment-header" style="background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);">
+                    <div class="stroke-assessment-header">
                                 <div class="stroke-header-icon">
                                     <i class="bi bi-activity"></i>
                                 </div>
@@ -1378,7 +1426,7 @@ $current_user = get_auth_user();
                                 <div class="fast-section">
                                     <div class="fast-section-title">
                                         <span class="fast-badge">F.A.S.T.</span>
-                                        <span class="fast-subtitle">Stroke Recognition</span>
+                                        <span class="fast-subtitle">Select the finding status</span>
                                     </div>
                                     <div class="fast-grid">
                                         <div class="fast-item">
@@ -1387,9 +1435,9 @@ $current_user = get_auth_user();
                                                 <span class="fast-item-label">Face Drooping</span>
                                                 <div class="toggle-group">
                                                     <input type="radio" name="face_drooping" id="facePos" value="positive" class="toggle-input">
-                                                    <label for="facePos" class="toggle-btn toggle-positive">(+)</label>
+                                                    <label for="facePos" class="toggle-btn toggle-positive">Positive</label>
                                                     <input type="radio" name="face_drooping" id="faceNeg" value="negative" class="toggle-input">
-                                                    <label for="faceNeg" class="toggle-btn toggle-negative">(âˆ’)</label>
+                                                    <label for="faceNeg" class="toggle-btn toggle-negative">Negative</label>
                                                 </div>
                                             </div>
                                         </div>
@@ -1399,9 +1447,9 @@ $current_user = get_auth_user();
                                                 <span class="fast-item-label">Arm Weakness</span>
                                                 <div class="toggle-group">
                                                     <input type="radio" name="arm_weakness" id="armPos" value="positive" class="toggle-input">
-                                                    <label for="armPos" class="toggle-btn toggle-positive">(+)</label>
+                                                    <label for="armPos" class="toggle-btn toggle-positive">Positive</label>
                                                     <input type="radio" name="arm_weakness" id="armNeg" value="negative" class="toggle-input">
-                                                    <label for="armNeg" class="toggle-btn toggle-negative">(âˆ’)</label>
+                                                    <label for="armNeg" class="toggle-btn toggle-negative">Negative</label>
                                                 </div>
                                             </div>
                                         </div>
@@ -1411,9 +1459,9 @@ $current_user = get_auth_user();
                                                 <span class="fast-item-label">Speech Difficulty</span>
                                                 <div class="toggle-group">
                                                     <input type="radio" name="speech_difficulty" id="speechPos" value="positive" class="toggle-input">
-                                                    <label for="speechPos" class="toggle-btn toggle-positive">(+)</label>
+                                                    <label for="speechPos" class="toggle-btn toggle-positive">Positive</label>
                                                     <input type="radio" name="speech_difficulty" id="speechNeg" value="negative" class="toggle-input">
-                                                    <label for="speechNeg" class="toggle-btn toggle-negative">(âˆ’)</label>
+                                                    <label for="speechNeg" class="toggle-btn toggle-negative">Negative</label>
                                                 </div>
                                             </div>
                                         </div>
@@ -1423,9 +1471,9 @@ $current_user = get_auth_user();
                                                 <span class="fast-item-label">Time to Call</span>
                                                 <div class="toggle-group">
                                                     <input type="radio" name="time_to_call" id="timePos" value="positive" class="toggle-input">
-                                                    <label for="timePos" class="toggle-btn toggle-positive">(+)</label>
+                                                    <label for="timePos" class="toggle-btn toggle-positive">Positive</label>
                                                     <input type="radio" name="time_to_call" id="timeNeg" value="negative" class="toggle-input">
-                                                    <label for="timeNeg" class="toggle-btn toggle-negative">(âˆ’)</label>
+                                                    <label for="timeNeg" class="toggle-btn toggle-negative">Negative</label>
                                                 </div>
                                             </div>
                                         </div>
@@ -1434,7 +1482,7 @@ $current_user = get_auth_user();
                                 <div class="sample-section">
                                     <div class="sample-section-title">
                                         <span class="sample-badge">S.A.M.P.L.E.</span>
-                                        <span class="sample-subtitle">Patient History</span>
+                                        <span class="sample-subtitle">Record relevant patient history</span>
                                     </div>
                                     <div class="sample-table-modern">
                                         <div class="sample-row-modern">
@@ -1537,13 +1585,14 @@ $current_user = get_auth_user();
                         <hr class="section-divider-light">
 
                         <div class="section-title">
-                            <i class="bi bi-people-fill"></i> Team Information
+                            <i class="bi bi-people-fill"></i> Team &amp; Endorsement
                         </div>
 
                         <div class="grid-3 mb-section">
                             <div>
                                 <label for="teamLeader" class="form-label">Team Leader</label>
-                                <input type="text" class="form-control" id="teamLeader" name="team_leader" placeholder="Name">
+                                <input type="text" class="form-control" id="teamLeader" name="team_leader"
+                                       value="<?php echo e($current_user['full_name'] ?? ''); ?>" placeholder="Name">
                             </div>
                             <div>
                                 <label for="dataRecorder" class="form-label">Data Recorder</label>
@@ -1577,7 +1626,17 @@ $current_user = get_auth_user();
                         <div class="grid-2 mb-section">
                             <div>
                                 <label for="hospital" class="form-label">Hospital Name</label>
-                                <input type="text" class="form-control" id="hospital" name="hospital_name" placeholder="Hospital name">
+                                <select class="form-select" id="hospital" aria-label="Hospital name">
+                                    <option value="">Choose hospital</option>
+                                    <?php foreach (hospital_endorsement_options() as $__hospital): ?>
+                                    <option value="<?php echo e($__hospital['value']); ?>" data-aliases="<?php echo e(implode('|', $__hospital['aliases'])); ?>"><?php echo e($__hospital['label']); ?></option>
+                                    <?php endforeach; ?>
+                                    <option value="__other__">Other &middot; enter hospital name</option>
+                                </select>
+                                <div id="hospitalOtherWrap" class="mt-2" style="display: none;">
+                                    <input type="text" class="form-control" id="hospitalOther" placeholder="Enter hospital name" aria-label="Other hospital name" aria-hidden="true">
+                                </div>
+                                <input type="hidden" id="hospitalNameValue" name="hospital_name" value="">
                             </div>
                             <div>
                                 <label for="dateTime" class="form-label">Endorsement Date & Time</label>
@@ -1691,6 +1750,35 @@ $current_user = get_auth_user();
                             </div>
                         </div>
 
+                        <!-- Refusal Waiver -->
+                        <section class="waiver-card" id="waiverCard" aria-labelledby="waiverTitle">
+                            <div class="waiver-card-header">
+                                <div class="waiver-card-icon"><i class="bi bi-shield-exclamation"></i></div>
+                                <div>
+                                    <h3 id="waiverTitle">Refusal of Treatment / Transport</h3>
+                                    <p>Use this only when the patient refuses treatment and/or transportation.</p>
+                                </div>
+                                <label class="waiver-toggle" for="waiverRequired">
+                                    <input type="checkbox" id="waiverRequired" name="waiver_required" value="1">
+                                    <span>Waiver required</span>
+                                </label>
+                            </div>
+                            <div class="waiver-fields" id="waiverFields" hidden>
+                                <div class="waiver-notice">
+                                    <i class="bi bi-info-circle-fill"></i>
+                                    <span>Upload the completed paper waiver with the patient, witness, received-by, and date/time details.</span>
+                                </div>
+                                <label class="form-label required-field" for="waiverAttachment">Signed waiver document</label>
+                                <input type="file" class="form-control waiver-file-input" id="waiverAttachment" name="waiver_attachment" accept="image/jpeg,image/png,image/gif,image/webp">
+                                <small class="waiver-help">JPG, PNG, GIF, or WebP. Maximum 20MB.</small>
+                                <div class="waiver-upload-error" id="waiverUploadError" role="alert" aria-live="polite"></div>
+                                <div class="waiver-preview" id="waiverPreview" hidden>
+                                    <img id="waiverPreviewImage" src="" alt="Signed waiver preview">
+                                    <span><i class="bi bi-check-circle-fill"></i> Signed waiver ready</span>
+                                </div>
+                            </div>
+                        </section>
+
                     </div>
                 </div>
 
@@ -1698,7 +1786,7 @@ $current_user = get_auth_user();
                 <div class="tab-pane fade" id="section7" role="tabpanel">
                     <div class="form-section">
                         <div class="section-title">
-                            <i class="bi bi-check-circle"></i> Form Summary
+                            <i class="bi bi-check2-circle"></i> Form Summary
                         </div>
 
                         <!-- View Summary Button -->
@@ -1797,18 +1885,24 @@ $current_user = get_auth_user();
             </div>
         </div>
 
-        <div class="navigation-buttons">
-            <button type="button" class="btn btn-outline-primary" id="prevBtn" data-action="navigateTab" data-arg="-1">
-                <i class="bi bi-chevron-left"></i> Previous
-            </button>
-            <button type="button" class="btn btn-primary" id="nextBtn" data-action="navigateTab" data-arg="1">
-                Next <i class="bi bi-chevron-right"></i>
-            </button>
-            <button type="button" class="btn btn-success" id="submitBtn" style="display: none;" data-action="submitForm">
-                <i class="bi bi-check2"></i> Save Form
-            </button>
+        <div class="navigation-buttons" aria-label="Form navigation">
+            <div class="navigation-context">
+                <span class="navigation-context-help" id="navigationContextHelp">Complete the required fields to continue.</span>
+            </div>
+            <div class="navigation-actions">
+                <button type="button" class="btn btn-outline-primary" id="prevBtn" data-action="navigateTab" data-arg="-1" aria-label="Go to previous step">
+                    <i class="bi bi-arrow-left"></i><span>Back</span>
+                </button>
+                <button type="button" class="btn btn-primary" id="nextBtn" data-action="navigateTab" data-arg="1" aria-label="Continue to next step">
+                    <span>Continue</span><i class="bi bi-arrow-right"></i>
+                </button>
+                <button type="button" class="btn btn-success" id="submitBtn" style="display: none;" data-action="submitForm">
+                    <i class="bi bi-check2-circle"></i><span>Save Form</span>
+                </button>
+            </div>
         </div>
-    </div>
+                </div>
+            </div>
 
     <!-- Fire Truck Selection Modal -->
     <!-- Ambulance Unit Picker Modal -->
@@ -1868,12 +1962,14 @@ $current_user = get_auth_user();
     <script src="js/modules/utils.js?v=<?php echo asset_version(); ?>"></script>
     <script src="js/modules/injury-tracker.js?v=<?php echo asset_version(); ?>"></script>
     <script src="js/modules/camera.js?v=<?php echo asset_version(); ?>"></script>
-    <script src="js/modules/form-tabs.js?v=<?php echo asset_version(); ?>"></script>
-    <script src="js/modules/auto-save.js?v=<?php echo asset_version(); ?>"></script>
+    <script src="js/modules/form-tabs.js?v=<?php echo asset_version(); ?>&ui=clinical-v3"></script>
+    <script src="js/modules/auto-save.js?v=<?php echo asset_version(); ?>&ui=clinical-v5"></script>
     <script src="js/modules/validation.js?v=<?php echo asset_version(); ?>"></script>
     <script src="js/prehospital-form.js?v=<?php echo asset_version(); ?>"></script>
-    <!-- Custom Date Components - Month/Day/Year dropdowns -->
-    <script src="js/custom-date.js?v=<?php echo asset_version(); ?>"></script>
+    <script src="js/hospital-picker.js?v=<?php echo asset_version(); ?>"></script>
+    <script src="js/waiver-picker.js?v=<?php echo asset_version(); ?>"></script>
+    <!-- Custom date components for secondary dates; incident date uses the native picker. -->
+    <script src="js/custom-date.js?v=<?php echo asset_version(); ?>&ui=clinical-v3"></script>
     <!-- Material Design Time Picker Modal -->
     <script src="js/time-picker-modal.js?v=<?php echo asset_version(); ?>"></script>
     <script nonce="<?php echo CSP_NONCE; ?>">
@@ -2043,6 +2139,15 @@ $current_user = get_auth_user();
             const form = document.getElementById('preHospitalForm');
             if (form) {
                 form.reset();
+                if (typeof window.hydrateHospitalSelect === 'function') {
+                    window.hydrateHospitalSelect('');
+                }
+                if (typeof window.hydrateArrivalHospitalSelect === 'function') {
+                    window.hydrateArrivalHospitalSelect('');
+                }
+                if (typeof window.resetWaiverPicker === 'function') {
+                    window.resetWaiverPicker();
+                }
                 // Also reset custom date/datetime dropdowns (Month/Day/Year selects)
                 form.querySelectorAll('.custom-date-input select').forEach(function(sel) {
                     sel.selectedIndex = 0;
@@ -2132,6 +2237,10 @@ $current_user = get_auth_user();
 
         // Function to collect all form data
         function collectFormData() {
+            if (typeof window.syncHospitalSelect === 'function') {
+                window.syncHospitalSelect();
+            }
+
             // Combine SAMPLE fields before collecting
             combineSampleFields();
 
@@ -2178,6 +2287,10 @@ $current_user = get_auth_user();
                     }
                 }
             });
+
+            // Unchecked checkboxes are omitted by the browser; keep waiver
+            // state explicit so drafts can restore it correctly.
+            data.waiver_required = document.getElementById('waiverRequired')?.checked ? 1 : 0;
 
             // Add draft_id if exists
             if (currentDraftId) {
@@ -2343,11 +2456,12 @@ fetch(API_BASE + 'autosave_draft.php', {
                         populateForm(result.data);
                         // Set the draft_id in the hidden field so it updates on submit
                         document.getElementById('draftIdField').value = draftId;
-                        Notiflix.Report.success(
-                            'Draft Loaded',
-                            'Your previous work has been restored. Continue where you left off!',
-                            'Continue Editing'
-                        );
+                        if (typeof setFormDraftStatus === 'function') {
+                            setFormDraftStatus('Draft loaded', 'saved');
+                        }
+                        Notiflix.Notify.success('Draft loaded. Continue editing.', {
+                            timeout: 2200,
+                        });
                     } else {
                         // Check if draft was already completed/submitted
                         if (result.message && result.message.includes('Draft not found')) {
@@ -2455,7 +2569,7 @@ fetch(API_BASE + 'autosave_draft.php', {
                 // Skip non-field columns and already-handled emergency fields
                 if (['id', 'form_number', 'created_by', 'created_at', 'updated_at', 'status',
                      'endorsement_attachment', 'patient_documentation', 'waiver_patient_signature',
-                     'waiver_witness_signature', 'emergency_medical', 'emergency_medical_details',
+                     'waiver_witness_signature', 'waiver_attachment', 'waiver_required', 'emergency_medical', 'emergency_medical_details',
                      'emergency_trauma', 'emergency_trauma_details', 'emergency_ob', 'emergency_ob_details',
                      'emergency_general', 'emergency_general_details', 'received_by', 'endorsement'].includes(key)) {
                     continue;
@@ -2561,6 +2675,23 @@ fetch(API_BASE + 'autosave_draft.php', {
                 }
             }
 
+            const waiverCheckbox = document.getElementById('waiverRequired');
+            if (waiverCheckbox) {
+                waiverCheckbox.checked = Number(data.waiver_required || 0) === 1;
+                if (typeof window.syncWaiverSelection === 'function') {
+                    window.syncWaiverSelection();
+                }
+            }
+
+            // Rebuild the Hospital Endorsement dropdown from the saved value,
+            // including legacy abbreviations such as BDH and MHO.
+            if (typeof window.hydrateHospitalSelect === 'function') {
+                window.hydrateHospitalSelect(data.hospital_name || '');
+            }
+            if (typeof window.hydrateArrivalHospitalSelect === 'function') {
+                window.hydrateArrivalHospitalSelect(data.arrival_hospital_name || '');
+            }
+
             // Populate individual SAMPLE fields from combined data
             if (data.fast_sample_details || data.sample_details) {
                 populateSampleFields(data.fast_sample_details || data.sample_details);
@@ -2620,8 +2751,10 @@ fetch(API_BASE + 'autosave_draft.php', {
                 // Find and activate the tab
                 const tab = document.querySelector(`[data-bs-target="${savedSection}"]`);
                 if (tab) {
-                    const bsTab = new bootstrap.Tab(tab);
-                    bsTab.show();
+                    const restoredIndex = Array.from(document.querySelectorAll('.nav-tabs .nav-link')).indexOf(tab);
+                    if (restoredIndex >= 0 && typeof activateStep === 'function') {
+                        activateStep(restoredIndex, { skipScroll: true, scrollWorkspace: false });
+                    }
                 }
             } else {
                 console.log('Starting fresh at Section 1 (new navigation)');
@@ -2636,7 +2769,7 @@ fetch(API_BASE + 'autosave_draft.php', {
 
         // Add listeners to all tabs to save current section
         document.addEventListener('DOMContentLoaded', function() {
-            const tabs = document.querySelectorAll('.nav-link[data-bs-toggle="tab"]');
+            const tabs = document.querySelectorAll('.nav-tabs .nav-link');
             tabs.forEach(tab => {
                 tab.addEventListener('shown.bs.tab', function() {
                     saveCurrentSection();
@@ -2664,6 +2797,7 @@ fetch(API_BASE + 'autosave_draft.php', {
 
             function els(type) {
                 return {
+                    checkbox: document.getElementById(type),
                     select: document.getElementById(type + 'Category'),
                     other:  document.getElementById(type + 'Other'),
                     hidden: document.getElementById(type + 'Specify'),
@@ -2671,12 +2805,38 @@ fetch(API_BASE + 'autosave_draft.php', {
                 };
             }
 
+            function applyControlState(type, clearWhenDisabled) {
+                const e = els(type);
+                if (!e.checkbox || !e.select) return false;
+                const enabled = e.checkbox.checked;
+
+                if (!enabled && clearWhenDisabled) {
+                    e.select.value = '';
+                    if (e.other) e.other.value = '';
+                    if (e.hidden) e.hidden.value = '';
+                    if (e.gp) e.gp.value = '';
+                }
+
+                e.select.disabled = !enabled;
+                if (e.gp) e.gp.disabled = !enabled;
+
+                const showOther = enabled && e.select.value === '__other__';
+                if (e.other) {
+                    e.other.disabled = !showOther;
+                    e.other.classList.toggle('d-none', !showOther);
+                }
+                return enabled;
+            }
+
             // Push the current visible state into the hidden *_specify field.
             function syncToHidden(type) {
                 const e = els(type);
                 if (!e.select || !e.hidden) return;
+                if (!applyControlState(type, false)) {
+                    applyControlState(type, true);
+                    return;
+                }
                 const isOther = e.select.value === '__other__';
-                if (e.other) e.other.classList.toggle('d-none', !isOther);
                 let base = isOther ? (e.other ? e.other.value.trim() : '') : e.select.value;
                 if (type === 'ob' && e.gp && e.gp.value.trim() && base) {
                     base = base + ' (' + e.gp.value.trim() + ')';
@@ -2684,6 +2844,7 @@ fetch(API_BASE + 'autosave_draft.php', {
                     base = e.gp.value.trim();
                 }
                 e.hidden.value = base;
+                applyControlState(type, false);
             }
 
             // Rebuild the visible controls from the hidden value (draft/edit load).
@@ -2691,8 +2852,18 @@ fetch(API_BASE + 'autosave_draft.php', {
             function hydrate(type) {
                 const e = els(type);
                 if (!e.select || !e.hidden) return;
+                if (!applyControlState(type, false)) {
+                    applyControlState(type, true);
+                    return;
+                }
                 let raw = (e.hidden.value || '').trim();
-                if (raw === '') { e.select.value = ''; if (e.other) { e.other.value = ''; e.other.classList.add('d-none'); } return; }
+                if (raw === '') {
+                    e.select.value = '';
+                    if (e.other) e.other.value = '';
+                    if (e.gp) e.gp.value = '';
+                    applyControlState(type, false);
+                    return;
+                }
 
                 // OB: peel a trailing "(G1P0)"-style token back into the Gravida/Para box.
                 if (type === 'ob' && e.gp) {
@@ -2706,15 +2877,20 @@ fetch(API_BASE + 'autosave_draft.php', {
                 const match = Array.from(e.select.options).some(o => o.value === raw && o.value !== '__other__');
                 if (match) {
                     e.select.value = raw;
-                    if (e.other) { e.other.value = ''; e.other.classList.add('d-none'); }
+                    if (e.other) e.other.value = '';
                 } else {
                     e.select.value = '__other__';
-                    if (e.other) { e.other.value = raw; e.other.classList.remove('d-none'); }
+                    if (e.other) e.other.value = raw;
                 }
+                applyControlState(type, false);
             }
 
             TYPES.forEach(type => {
                 const e = els(type);
+                if (e.checkbox) e.checkbox.addEventListener('change', () => {
+                    applyControlState(type, !e.checkbox.checked);
+                    if (e.checkbox.checked) syncToHidden(type);
+                });
                 if (e.select) e.select.addEventListener('change', () => syncToHidden(type));
                 if (e.other)  e.other.addEventListener('input', () => syncToHidden(type));
                 if (e.gp)     e.gp.addEventListener('input', () => syncToHidden(type));
@@ -2970,69 +3146,20 @@ fetch(API_BASE + 'autosave_draft.php', {
             setTimeout(setupSidebarInterception, 1000);
         }
 
-        // Manual save button - positioned in top-right, below navbar (Corporate Design)
+        // Manual save button - rendered in the clinical header and reused by the bottom action bar.
         const manualSaveBtn = document.createElement('button');
         manualSaveBtn.type = 'button';
         manualSaveBtn.className = 'btn save-draft-btn-corporate';
+        manualSaveBtn.setAttribute('aria-label', 'Save current form as draft');
         manualSaveBtn.innerHTML = `
             <span class="save-draft-icon">
                 <i class="bi bi-cloud-arrow-up-fill"></i>
             </span>
             <span class="save-draft-text">Save Draft</span>
         `;
-        manualSaveBtn.style.cssText = `
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            z-index: 1001;
-            box-shadow: 0 4px 16px rgba(30, 58, 95, 0.25);
-            background: linear-gradient(135deg, #3730a3 0%, #4f46e5 100%);
-            color: #ffffff;
-            border: none;
-            padding: 0;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.875rem;
-            transition: all 0.25s ease;
-            display: flex;
-            align-items: center;
-            gap: 0;
-            overflow: hidden;
-            cursor: pointer;
-        `;
-
-        // Style the icon container
-        const iconSpan = manualSaveBtn.querySelector('.save-draft-icon');
-        iconSpan.style.cssText = `
-            background: rgba(255, 255, 255, 0.15);
-            padding: 0.625rem 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-        `;
-
-        // Style the text
-        const textSpan = manualSaveBtn.querySelector('.save-draft-text');
-        textSpan.style.cssText = `
-            padding: 0.625rem 1rem 0.625rem 0.75rem;
-            letter-spacing: 0.3px;
-        `;
-
-        // Add hover effect
-        manualSaveBtn.addEventListener('mouseenter', () => {
-            manualSaveBtn.style.background = 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)';
-            manualSaveBtn.style.transform = 'translateY(-2px)';
-            manualSaveBtn.style.boxShadow = '0 6px 20px rgba(30, 58, 95, 0.35)';
-        });
-
-        manualSaveBtn.addEventListener('mouseleave', () => {
-            manualSaveBtn.style.background = 'linear-gradient(135deg, #3730a3 0%, #4f46e5 100%)';
-            manualSaveBtn.style.transform = 'translateY(0)';
-            manualSaveBtn.style.boxShadow = '0 4px 16px rgba(30, 58, 95, 0.25)';
-        });
 
         manualSaveBtn.onclick = () => {
+            if (typeof setFormDraftStatus === 'function') setFormDraftStatus('Saving draft…', 'saving');
             // Enable autosave when manually saving
             if (!autosaveEnabled) {
                 autosaveEnabled = true;
@@ -3041,7 +3168,8 @@ fetch(API_BASE + 'autosave_draft.php', {
             isFormDirty = true;
             performAutosave();
         };
-        document.body.appendChild(manualSaveBtn);
+        const manualSaveSlot = document.getElementById('manualSaveSlot');
+        (manualSaveSlot || document.body).appendChild(manualSaveBtn);
 
         // ============================================
         // NARRATIVE REPORT GENERATION
@@ -3741,6 +3869,9 @@ fetch(API_BASE + 'autosave_draft.php', {
             case 'copySummaryToClipboard': copySummaryToClipboard(); break;
             case 'printSummary': printSummary(); break;
             case 'navigateTab': navigateTab(parseInt(arg)); break;
+            case 'saveDraft':
+                if (typeof manualSaveBtn !== 'undefined') manualSaveBtn.click();
+                break;
             case 'submitForm': submitForm(); break;
         }
     });

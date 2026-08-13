@@ -1,0 +1,1391 @@
+/* =====================================================================
+   RESQ-LINK EMS LIST PAGES — CLEAN CLINICAL WORKSPACE
+   Shared by Drafts and Records, using the same visual language as the
+   guided pre-hospital form:
+   indigo navigation, teal clinical states, white surfaces, calm spacing,
+   and full-width responsive content.
+   ===================================================================== */
+
+:root {
+    --drafts-indigo: #4f46e5;
+    --drafts-indigo-dark: #3730a3;
+    --drafts-indigo-soft: #eef2ff;
+    --drafts-teal: #0f766e;
+    --drafts-teal-soft: #ecfdf5;
+    --drafts-ink: #172033;
+    --drafts-muted: #64748b;
+    --drafts-subtle: #94a3b8;
+    --drafts-canvas: #f5f7fb;
+    --drafts-border: #e5e7eb;
+    --drafts-border-soft: #eef1f5;
+    --drafts-shadow: 0 14px 34px rgba(30, 41, 59, 0.07), 0 2px 6px rgba(30, 41, 59, 0.04);
+    --drafts-shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --drafts-radius: 18px;
+    --drafts-radius-sm: 12px;
+}
+
+/* Page composition */
+.content {
+    background: var(--drafts-canvas) !important;
+    color: var(--drafts-ink);
+}
+
+.content .drafts-page-shell {
+    width: 100%;
+    max-width: none !important;
+    margin: 0;
+    padding: 1rem clamp(1rem, 2.8vw, 3rem) 2rem !important;
+}
+
+.content .drafts-page-header {
+    align-items: center;
+    gap: 2rem;
+    margin: 0 0 1.25rem;
+    padding: 0 0 1rem;
+    border-bottom: 1px solid var(--drafts-border);
+}
+
+.clinical-page-heading { min-width: 0; }
+
+.clinical-page-kicker {
+    display: block;
+    color: var(--drafts-indigo);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+    line-height: 1.3;
+    text-transform: uppercase;
+}
+
+.content .drafts-page-header .page-title {
+    gap: 0.75rem;
+    margin: 0.35rem 0 0;
+    color: var(--drafts-ink);
+    font-size: clamp(1.45rem, 1.2rem + 0.9vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.045em;
+    line-height: 1.1;
+}
+
+.content .drafts-page-header .page-title-icon {
+    width: 2.55rem;
+    height: 2.55rem;
+    border: 1px solid #c7d2fe;
+    border-radius: 14px;
+    background: var(--drafts-indigo-soft);
+    color: var(--drafts-indigo);
+    font-size: 1.25rem;
+    box-shadow: var(--drafts-shadow-soft);
+}
+
+.content .drafts-page-header .page-subtitle {
+    margin: 0.4rem 0 0 3.3rem;
+    color: var(--drafts-muted);
+    font-size: 0.82rem;
+}
+
+.content .drafts-page-header .header-actions {
+    gap: 0.65rem;
+}
+
+/* Angled workflow banner shared with the main clinical form. */
+.content .drafts-workflow-banner {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    min-height: 6.15rem;
+    margin: 0 0 1.25rem;
+    overflow: hidden;
+    border: 1px solid var(--drafts-border);
+    border-radius: var(--drafts-radius-sm) var(--drafts-radius-sm) 0 0;
+    background: #fff;
+    box-shadow: var(--drafts-shadow-soft);
+}
+
+.content .drafts-workflow-banner::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 2;
+    height: 0.34rem;
+    background: #17135f;
+}
+
+.content .drafts-workflow-copy {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    width: min(46%, 42rem);
+    min-height: 6.15rem;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0.95rem clamp(1rem, 2.4vw, 2rem) 1rem clamp(1rem, 2.4vw, 2rem);
+    color: #fff;
+    background: #17135f;
+    clip-path: polygon(0 0, 88% 0, 100% 100%, 0 100%);
+}
+
+.drafts-workflow-eyebrow {
+    margin-bottom: 0.25rem;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+    line-height: 1.2;
+}
+
+.content .drafts-workflow-copy h2 {
+    margin: 0;
+    color: #fff;
+    font-size: clamp(1.05rem, 0.9rem + 0.45vw, 1.35rem);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.1;
+}
+
+.content .drafts-workflow-copy p {
+    margin: 0.4rem 0 0;
+    color: #e0e7ff;
+    font-size: 0.76rem;
+    line-height: 1.35;
+}
+
+.content .drafts-workflow-actions {
+    position: relative;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 1rem 1.25rem 1rem 0.5rem;
+}
+
+/* Shared clinical controls */
+.content .drafts-page-shell .btn-primary,
+.content .drafts-page-shell .btn-ghost {
+    min-height: 2.55rem;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+.content .drafts-page-shell .btn-primary {
+    background: var(--drafts-indigo);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.18);
+}
+
+.content .drafts-page-shell .btn-primary:hover {
+    background: var(--drafts-indigo-dark);
+}
+
+.content .drafts-page-shell .btn-ghost {
+    border-color: #dbe4ef;
+    color: #475569;
+    background: #fff;
+}
+
+.content .drafts-page-shell .btn-ghost:hover {
+    border-color: #c7d2fe;
+    background: var(--drafts-indigo-soft);
+    color: var(--drafts-indigo-dark);
+}
+
+.content .drafts-page-shell :is(button, a, input, select):focus-visible {
+    outline: 3px solid rgba(79, 70, 229, 0.2);
+    outline-offset: 2px;
+}
+
+/* Summary cards */
+.content .drafts-page-shell .stats-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1.25rem !important;
+}
+
+.content .drafts-page-shell .stat-card {
+    min-height: 9.25rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--drafts-border);
+    border-radius: var(--drafts-radius-sm);
+    box-shadow: var(--drafts-shadow-soft);
+}
+
+.content .drafts-page-shell .stat-card::before {
+    height: 3px;
+    opacity: 1;
+}
+
+.content .drafts-page-shell .stat-card:hover {
+    border-color: #dbe4ef;
+    box-shadow: var(--drafts-shadow);
+    transform: translateY(-1px);
+}
+
+.content .drafts-page-shell .stat-card-top {
+    margin-bottom: 0.75rem;
+}
+
+.content .drafts-page-shell .stat-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 10px;
+}
+
+.content .drafts-page-shell .stat-label {
+    color: var(--drafts-muted);
+    font-size: 0.67rem;
+    letter-spacing: 0.1em;
+}
+
+.content .drafts-page-shell .stat-value {
+    color: var(--drafts-ink);
+    font-size: 1.65rem;
+}
+
+.content .drafts-page-shell .stat-sub {
+    color: var(--drafts-subtle);
+}
+
+/* List-page metrics: stronger visual identity without turning the dashboard
+   into a noisy analytics screen. */
+.content .drafts-page-shell .stat-card {
+    --metric-soft: #eef2ff;
+    --metric-border: #c7d2fe;
+    --metric-strong: #3730a3;
+    position: relative;
+    min-height: 10.5rem;
+    padding: 1.15rem 1.25rem 1.05rem;
+    overflow: hidden;
+    isolation: isolate;
+    background: linear-gradient(145deg, #fff 0%, #fff 66%, var(--metric-soft) 160%);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 18px rgba(15, 23, 42, 0.035);
+}
+
+.content .drafts-page-shell .stat-card::before {
+    right: 0;
+    left: 0;
+    z-index: 2;
+    height: 4px;
+    opacity: 1;
+    background: linear-gradient(90deg, var(--metric-strong), var(--metric-border));
+}
+
+.content .drafts-page-shell .stat-card::after {
+    content: '';
+    position: absolute;
+    right: -2.2rem;
+    bottom: -3.2rem;
+    z-index: -1;
+    width: 9rem;
+    height: 9rem;
+    border: 1rem solid color-mix(in srgb, var(--metric-soft) 70%, transparent);
+    border-radius: 50%;
+    background: var(--metric-soft);
+    opacity: 0.75;
+}
+
+.content .drafts-page-shell .stat-card.accent-indigo {
+    --metric-soft: #eef2ff;
+    --metric-border: #a5b4fc;
+    --metric-strong: #4f46e5;
+}
+
+.content .drafts-page-shell .stat-card.accent-emerald {
+    --metric-soft: #ecfdf5;
+    --metric-border: #6ee7b7;
+    --metric-strong: #059669;
+}
+
+.content .drafts-page-shell .stat-card.accent-amber {
+    --metric-soft: #fffbeb;
+    --metric-border: #fbbf24;
+    --metric-strong: #d97706;
+}
+
+.content .drafts-page-shell .stat-card.accent-purple {
+    --metric-soft: #f5f3ff;
+    --metric-border: #c4b5fd;
+    --metric-strong: #7c3aed;
+}
+
+.content .drafts-page-shell .stat-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.content .drafts-page-shell .stat-card-top {
+    min-height: 2.7rem;
+    margin-bottom: 0.75rem;
+}
+
+.content .drafts-page-shell .stat-icon {
+    width: 2.7rem;
+    height: 2.7rem;
+    border: 1px solid var(--metric-border);
+    border-radius: 12px;
+    background: linear-gradient(145deg, #fff, var(--metric-soft));
+    color: var(--metric-strong);
+    font-size: 1.05rem;
+    box-shadow: 0 5px 12px color-mix(in srgb, var(--metric-strong) 14%, transparent);
+}
+
+.content .drafts-page-shell .stat-label {
+    color: var(--metric-strong);
+    font-size: 0.68rem;
+    letter-spacing: 0.11em;
+}
+
+.content .drafts-page-shell .stat-value {
+    margin-top: 0.15rem;
+    color: var(--metric-strong);
+    font-size: 2rem;
+    letter-spacing: -0.055em;
+}
+
+.content .drafts-page-shell .stat-sub {
+    color: var(--drafts-muted);
+    font-size: 0.73rem;
+}
+
+.content .drafts-page-shell .stat-trend.up {
+    border: 1px solid #a7f3d0;
+    background: #f0fdf7;
+    color: #047857;
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.08);
+}
+
+.content .drafts-page-shell .stat-card:hover {
+    border-color: var(--metric-border);
+    box-shadow: 0 12px 24px color-mix(in srgb, var(--metric-strong) 12%, transparent);
+    transform: translateY(-2px);
+}
+
+/* Search, filters, and result controls */
+.content .drafts-page-shell .toolbar {
+    align-items: stretch;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.content .drafts-page-shell .toolbar-search {
+    min-width: 260px;
+}
+
+.content .drafts-page-shell .toolbar-search input {
+    min-height: 2.75rem;
+    border-color: #dbe4ef;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: var(--drafts-shadow-soft);
+}
+
+.content .drafts-page-shell .toolbar-search input:focus {
+    border-color: var(--drafts-indigo);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.content .drafts-page-shell .toolbar-actions {
+    gap: 0.5rem;
+}
+
+.content .drafts-page-shell .batch-toolbar {
+    border-color: #c7d2fe;
+    border-radius: var(--drafts-radius-sm);
+    background: var(--drafts-indigo-soft);
+    box-shadow: var(--drafts-shadow-soft);
+}
+
+.content .drafts-page-shell .filters-panel {
+    border-color: var(--drafts-border);
+    border-radius: var(--drafts-radius-sm);
+    box-shadow: var(--drafts-shadow-soft);
+}
+
+.content .drafts-page-shell .filter-field label {
+    color: var(--drafts-muted);
+}
+
+.content .drafts-page-shell .filter-field select,
+.content .drafts-page-shell .filter-field input,
+.content .drafts-page-shell .quick-sort {
+    min-height: 2.45rem;
+    border-color: #dbe4ef;
+    border-radius: 9px;
+    color: #334155;
+    background: #fff;
+}
+
+.content .drafts-page-shell .filter-field select:focus,
+.content .drafts-page-shell .filter-field input:focus,
+.content .drafts-page-shell .quick-sort:focus {
+    border-color: var(--drafts-indigo);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.content .drafts-page-shell .result-bar {
+    min-height: 2.5rem;
+    margin-bottom: 0.6rem;
+}
+
+.content .drafts-page-shell .result-count-text {
+    color: var(--drafts-muted);
+}
+
+.content .drafts-page-shell .result-count-text strong {
+    color: var(--drafts-ink);
+}
+
+/* Draft collection surface */
+.content .drafts-page-shell .table-card {
+    border-color: var(--drafts-border);
+    border-radius: var(--drafts-radius);
+    box-shadow: var(--drafts-shadow-soft);
+    background: #fff;
+}
+
+.content .drafts-page-shell .records-table thead th {
+    padding: 0.85rem 0.75rem;
+    border-bottom: 1px solid var(--drafts-border);
+    background: #f8fafc;
+    color: var(--drafts-muted);
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+}
+
+.content .drafts-page-shell .records-table tbody td {
+    padding: 0.85rem 0.75rem;
+    border-bottom-color: var(--drafts-border-soft);
+    color: #475569;
+}
+
+.content .drafts-page-shell .records-table tbody tr,
+.content .drafts-page-shell .records-table tbody tr:nth-child(even) {
+    background: #fff;
+}
+
+.content .drafts-page-shell .records-table tbody tr:hover,
+.content .drafts-page-shell .records-table tbody tr:nth-child(even):hover {
+    background: #f8faff;
+}
+
+/* Records table refinements: denser scanning, stable dates, and clearer row
+   hierarchy at desktop widths. */
+.content .records-page-shell .records-table {
+    table-layout: auto;
+}
+
+.content .records-page-shell .records-table thead th {
+    padding: 0.78rem 0.72rem;
+    vertical-align: middle;
+}
+
+.content .records-page-shell .records-table tbody td {
+    padding: 0.72rem 0.72rem;
+    line-height: 1.3;
+    vertical-align: middle;
+}
+
+.content .records-page-shell .records-table td[data-label="Date"],
+.content .records-page-shell .records-table td[data-label="Form #"],
+.content .records-page-shell .records-table td[data-label="Age/Gender"],
+.content .records-page-shell .records-table td[data-label="Vehicle"],
+.content .records-page-shell .records-table td[data-label="Status"],
+.content .records-page-shell .records-table td[data-label="Last Modified"] {
+    white-space: nowrap;
+}
+
+.content .records-page-shell .records-table td[data-label="Date"] {
+    min-width: 6.4rem;
+    color: #475569;
+    font-variant-numeric: tabular-nums;
+}
+
+.content .records-page-shell .records-table td[data-label="Form #"] {
+    min-width: 13rem;
+}
+
+.content .records-page-shell .records-table td[data-label="Patient"] {
+    min-width: 15rem;
+    white-space: nowrap;
+}
+
+.content .records-page-shell .records-table td[data-label="Patient"] .patient-link {
+    font-size: 0.82rem;
+    letter-spacing: -0.01em;
+}
+
+.content .records-page-shell .records-table td[data-label="Age/Gender"] {
+    min-width: 7.5rem;
+}
+
+.content .records-page-shell .records-table td[data-label="Location"],
+.content .records-page-shell .records-table td[data-label="Vehicle"] {
+    min-width: 7.5rem;
+}
+
+.content .records-page-shell .records-table td[data-label="Last Modified"] {
+    color: #64748b;
+    font-size: 0.76rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.content .records-page-shell .records-table tbody tr:hover td:first-child {
+    box-shadow: inset 3px 0 0 var(--drafts-indigo);
+}
+
+.content .records-page-shell .records-table tbody tr.record-status-draft td:first-child {
+    border-left: 3px solid #818cf8;
+}
+
+.content .records-page-shell .records-table tbody tr.record-status-completed td:first-child {
+    border-left: 3px solid #10b981;
+}
+
+.content .records-page-shell .records-table tbody tr.record-status-archived td:first-child {
+    border-left: 3px solid #8b5cf6;
+}
+
+.content .records-page-shell .records-table tbody tr.record-status-draft:hover td:first-child {
+    box-shadow: inset 3px 0 0 #4f46e5;
+}
+
+.content .records-page-shell .records-table tbody tr.record-status-completed:hover td:first-child {
+    box-shadow: inset 3px 0 0 #059669;
+}
+
+.content .records-page-shell .records-table tbody tr.record-status-archived:hover td:first-child {
+    box-shadow: inset 3px 0 0 #7c3aed;
+}
+
+.content .records-page-shell .badge-status-pill {
+    min-height: 1.65rem;
+    padding: 0.25rem 0.62rem;
+    border: 1px solid transparent;
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+    box-shadow: 0 2px 5px rgba(15, 23, 42, 0.04);
+}
+
+.content .records-page-shell .badge-status-pill.completed {
+    border-color: #a7f3d0;
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.content .records-page-shell .badge-status-pill.draft {
+    border-color: #c7d2fe;
+    background: #eef2ff;
+    color: #4338ca;
+}
+
+.content .records-page-shell .badge-status-pill.archived {
+    border-color: #ddd6fe;
+    background: #f5f3ff;
+    color: #6d28d9;
+}
+
+.content .records-page-shell .badge-vehicle {
+    min-height: 1.65rem;
+    padding: 0.25rem 0.62rem;
+    border: 1px solid #c7d2fe;
+    background: #eef2ff;
+    color: #4f46e5;
+    box-shadow: 0 2px 5px rgba(79, 70, 229, 0.06);
+}
+
+.content .records-page-shell .col-actions .btn-view-sm {
+    min-height: 2.35rem;
+    padding: 0.4rem 0.7rem;
+    border-color: #cbd5e1;
+    background: #fff;
+    color: #475569;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.content .records-page-shell .col-actions .btn-view-sm:hover,
+.content .records-page-shell .col-actions .btn-view-sm[aria-expanded="true"] {
+    border-color: #a5b4fc;
+    background: #eef2ff;
+    color: #3730a3;
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.12);
+}
+
+.content .records-page-shell .records-table tbody td span[style*="gray-400"] {
+    color: #a3afbf !important;
+}
+
+@media (min-width: 769px) {
+    .content .records-page-shell .records-table {
+        width: 100%;
+        min-width: 0;
+        table-layout: fixed;
+    }
+
+    .content .records-page-shell .records-table th:nth-child(1),
+    .content .records-page-shell .records-table td:nth-child(1) { width: 4.5%; }
+    .content .records-page-shell .records-table th:nth-child(2),
+    .content .records-page-shell .records-table td:nth-child(2) { width: 18.5%; }
+    .content .records-page-shell .records-table th:nth-child(3),
+    .content .records-page-shell .records-table td:nth-child(3) { width: 10%; }
+    .content .records-page-shell .records-table th:nth-child(4),
+    .content .records-page-shell .records-table td:nth-child(4) { width: 17%; }
+    .content .records-page-shell .records-table th:nth-child(5),
+    .content .records-page-shell .records-table td:nth-child(5) { width: 10%; }
+    .content .records-page-shell .records-table th:nth-child(6),
+    .content .records-page-shell .records-table td:nth-child(6) { width: 10%; }
+    .content .records-page-shell .records-table th:nth-child(7),
+    .content .records-page-shell .records-table td:nth-child(7) { width: 12%; }
+    .content .records-page-shell .records-table th:nth-child(8),
+    .content .records-page-shell .records-table td:nth-child(8) { width: 9%; }
+    .content .records-page-shell .records-table th:nth-child(9),
+    .content .records-page-shell .records-table td:nth-child(9) { width: 9%; }
+
+    .content .records-page-shell .records-table tbody td {
+        min-width: 0 !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .content .records-page-shell .records-table td[data-label="Form #"] .form-number-link,
+    .content .records-page-shell .records-table td[data-label="Patient"] .patient-link {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .content .records-page-shell .records-table td[data-label="Vehicle"],
+    .content .records-page-shell .records-table td[data-label="Status"] {
+        overflow: visible;
+        text-overflow: clip;
+    }
+
+    .content .records-page-shell .records-table th.col-actions,
+    .content .records-page-shell .records-table td.col-actions {
+        overflow: visible;
+    }
+
+    /* Drafts uses the same compact table treatment, with Location in place
+       of Records' Vehicle column. */
+    .content .drafts-page-shell:not(.records-page-shell) .records-table {
+        width: 100%;
+        min-width: 0;
+        table-layout: fixed;
+    }
+
+    .content .drafts-page-shell:not(.records-page-shell) .records-table th:nth-child(1),
+    .content .drafts-page-shell:not(.records-page-shell) .records-table td:nth-child(1) { width: 3.5%; }
+    .content .drafts-page-shell:not(.records-page-shell) .records-table th:nth-child(2),
+    .content .drafts-page-shell:not(.records-page-shell) .records-table td:nth-child(2) { width: 18.5%; }
+    .content .drafts-page-shell:not(.records-page-shell) .records-table th:nth-child(3),
+    .content .drafts-page-shell:not(.records-page-shell) .records-table td:nth-child(3) { width: 10%; }
+    .content .drafts-page-shell:not(.records-page-shell) .records-table th:nth-child(4),
+    .content .drafts-page-shell:not(.records-page-shell) .records-table td:nth-child(4) { width: 18%; }
+    .content .drafts-page-shell:not(.records-page-shell) .records-table th:nth-child(5),
+    .content .drafts-page-shell:not(.records-page-shell) .records-table td:nth-child(5) { width: 10%; }
+    .content .drafts-page-shell:not(.records-page-shell) .records-table th:nth-child(6),
+    .content .drafts-page-shell:not(.records-page-shell) .records-table td:nth-child(6) { width: 11%; }
+    .content .drafts-page-shell:not(.records-page-shell) .records-table th:nth-child(7),
+    .content .drafts-page-shell:not(.records-page-shell) .records-table td:nth-child(7) { width: 13%; }
+    .content .drafts-page-shell:not(.records-page-shell) .records-table th:nth-child(8),
+    .content .drafts-page-shell:not(.records-page-shell) .records-table td:nth-child(8) { width: 8%; }
+    .content .drafts-page-shell:not(.records-page-shell) .records-table th:nth-child(9),
+    .content .drafts-page-shell:not(.records-page-shell) .records-table td:nth-child(9) { width: 8%; }
+
+    .content .drafts-page-shell:not(.records-page-shell) .records-table tbody td {
+        min-width: 0 !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .content .drafts-page-shell:not(.records-page-shell) .records-table td[data-label="Form #"] .form-number-link,
+    .content .drafts-page-shell:not(.records-page-shell) .records-table td[data-label="Patient"] .patient-link {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .content .drafts-page-shell:not(.records-page-shell) .records-table td[data-label="Date"],
+    .content .drafts-page-shell:not(.records-page-shell) .records-table td[data-label="Age/Gender"] {
+        white-space: nowrap;
+    }
+
+    .content .drafts-page-shell:not(.records-page-shell) .records-table td[data-label="Status"],
+    .content .drafts-page-shell:not(.records-page-shell) .records-table td.col-actions {
+        overflow: visible;
+        text-overflow: clip;
+    }
+}
+
+.content .drafts-page-shell .form-number-link {
+    color: var(--drafts-indigo-dark);
+}
+
+.content .drafts-page-shell .patient-link {
+    color: var(--drafts-ink);
+    font-weight: 700;
+}
+
+.content .drafts-page-shell .patient-link:hover,
+.content .drafts-page-shell .form-number-link:hover {
+    color: var(--drafts-indigo);
+}
+
+.content .drafts-page-shell .badge-status-pill.draft {
+    border: 1px solid #dbe4ef;
+    background: #f8fafc;
+    color: #475569;
+}
+
+.content .drafts-page-shell .draft-age-badge {
+    padding: 0.2rem 0.55rem;
+    border: 1px solid transparent;
+    font-size: 0.65rem;
+}
+
+.content .drafts-page-shell .draft-age-badge.fresh {
+    border-color: #a7f3d0;
+    background: var(--drafts-teal-soft);
+    color: #047857;
+}
+
+.content .drafts-page-shell .draft-age-badge.aging {
+    border-color: #fde68a;
+    background: #fffbeb;
+    color: #b45309;
+}
+
+.content .drafts-page-shell .draft-age-badge.old {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.content .drafts-page-shell .btn-view-sm {
+    min-height: 2.25rem;
+    border-color: #dbe4ef;
+    border-radius: 9px;
+    color: #475569;
+}
+
+.content .drafts-page-shell .btn-view-sm:hover {
+    border-color: #c7d2fe;
+    background: var(--drafts-indigo-soft);
+    color: var(--drafts-indigo-dark);
+}
+
+.content .drafts-page-shell .action-dropdown .dropdown-menu {
+    z-index: 1085;
+    min-width: 12rem;
+    max-height: none;
+    overflow: visible;
+    padding: 0.4rem !important;
+    border: 1px solid #dbe4ef;
+    border-radius: 14px !important;
+    background: #fff;
+    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.14), 0 3px 8px rgba(15, 23, 42, 0.06) !important;
+}
+
+.content .drafts-page-shell .action-dropdown .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-height: 2.55rem;
+    padding: 0.42rem 0.55rem;
+    border-radius: 9px;
+    color: #334155;
+    font-size: 0.82rem;
+    font-weight: 650;
+    transition: background 0.16s ease, color 0.16s ease, transform 0.16s ease;
+}
+
+.content .drafts-page-shell .action-dropdown .dropdown-item i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 2rem;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.9rem;
+    transition: background 0.16s ease, color 0.16s ease;
+}
+
+.content .drafts-page-shell .action-dropdown .dropdown-item:hover,
+.content .drafts-page-shell .action-dropdown .dropdown-item:focus {
+    background: #f5f7ff;
+    color: var(--drafts-indigo-dark);
+    transform: translateX(1px);
+}
+
+.content .drafts-page-shell .action-dropdown .action-resume i,
+.content .drafts-page-shell .action-edit i {
+    background: var(--drafts-indigo-soft);
+    color: var(--drafts-indigo);
+}
+
+.content .drafts-page-shell .action-dropdown .action-view i,
+.content .drafts-page-shell .action-complete i {
+    background: var(--drafts-teal-soft);
+    color: var(--drafts-teal);
+}
+
+.content .drafts-page-shell .action-dropdown .action-resume:hover,
+.content .drafts-page-shell .action-dropdown .action-edit:hover {
+    background: var(--drafts-indigo-soft);
+    color: var(--drafts-indigo-dark);
+}
+
+.content .drafts-page-shell .action-dropdown .action-view:hover,
+.content .drafts-page-shell .action-dropdown .action-complete:hover {
+    background: var(--drafts-teal-soft);
+    color: var(--drafts-teal);
+}
+
+.content .drafts-page-shell .action-dropdown .dropdown-item-danger {
+    color: #b91c1c;
+}
+
+.content .drafts-page-shell .action-dropdown .dropdown-item-danger i {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.content .drafts-page-shell .action-dropdown .dropdown-item-danger:hover,
+.content .drafts-page-shell .action-dropdown .dropdown-item-danger:focus {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.content .drafts-page-shell .action-dropdown .dropdown-divider {
+    margin: 0.35rem 0.4rem;
+    border-color: #eef2f7;
+}
+
+/* Allow the desktop action menu to overflow the horizontal scroll container
+   instead of being clipped by its default overflow. On mobile the menu is
+   pinned to fixed coordinates by JS, so scrolling stays enabled there. */
+@media (min-width: 769px) {
+    .content .drafts-page-shell .table-card,
+    .content .drafts-page-shell .table-responsive {
+        overflow: visible;
+    }
+}
+
+.content .drafts-page-shell .empty-state {
+    padding: 4rem 1.5rem;
+}
+
+.content .drafts-page-shell .empty-state-icon {
+    border: 1px solid #c7d2fe;
+    background: var(--drafts-indigo-soft);
+    color: var(--drafts-indigo);
+}
+
+.content .drafts-page-shell .empty-state-title {
+    color: var(--drafts-ink);
+}
+
+.content .drafts-page-shell .empty-state-description {
+    max-width: 360px;
+    color: var(--drafts-muted);
+}
+
+/* Pagination uses the same rounded, indigo state treatment as form controls. */
+.content .drafts-page-shell .pagination-nav {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--drafts-border);
+    border-radius: var(--drafts-radius-sm);
+    background: #fff;
+    box-shadow: var(--drafts-shadow-soft);
+}
+
+.content .drafts-page-shell .pagination-nav .pagination {
+    margin: 0;
+    gap: 0.25rem;
+}
+
+.content .drafts-page-shell .pagination-nav .page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.2rem;
+    height: 2.2rem;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.content .drafts-page-shell .pagination-nav .page-link:hover {
+    border-color: #c7d2fe;
+    background: var(--drafts-indigo-soft);
+    color: var(--drafts-indigo-dark);
+}
+
+.content .drafts-page-shell .pagination-nav .page-item.active .page-link {
+    border-color: var(--drafts-indigo);
+    background: var(--drafts-indigo);
+    color: #fff;
+}
+
+/* Touch-friendly, stacked mobile layout */
+@media (max-width: 992px) {
+    .content .drafts-page-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .content .drafts-page-header .header-actions {
+        width: 100%;
+    }
+
+    .content .drafts-page-header .header-actions .btn-primary,
+    .content .drafts-page-header .header-actions .btn-ghost {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .content .drafts-page-shell .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .content .drafts-page-shell {
+        padding: 0.75rem 1rem 1.5rem !important;
+    }
+
+    .content .drafts-page-header .page-subtitle {
+        margin-left: 0;
+    }
+
+    .content .drafts-page-shell .toolbar {
+        margin-bottom: 0.65rem;
+    }
+
+    .content .drafts-page-shell .toolbar-actions {
+        justify-content: stretch;
+    }
+
+    .content .drafts-page-shell .toolbar-actions > * {
+        flex: 1;
+        justify-content: center;
+        min-height: 2.75rem;
+    }
+
+    .content .drafts-page-shell .table-card {
+        border-radius: var(--drafts-radius-sm);
+    }
+
+    .content .drafts-page-shell .records-table {
+        min-width: 760px;
+    }
+
+    .content .drafts-workflow-banner {
+        display: block;
+        min-height: auto;
+        border-radius: var(--drafts-radius-sm);
+    }
+
+    .content .drafts-workflow-copy {
+        width: 100%;
+        min-height: 5.5rem;
+        padding: 0.85rem 1rem 0.9rem;
+        clip-path: none;
+    }
+
+    .content .drafts-workflow-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: stretch;
+        width: 100%;
+        gap: 0.5rem;
+        padding: 0.65rem 0.85rem 0.95rem;
+    }
+
+    .content .drafts-workflow-actions .btn-primary,
+    .content .drafts-workflow-actions .btn-ghost {
+        flex: 1 1 0;
+        min-width: 0;
+        justify-content: center;
+        padding-inline: 0.65rem;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 576px) {
+    .content .drafts-page-shell {
+        padding-inline: 0.75rem !important;
+    }
+
+    .content .drafts-page-header .page-title {
+        font-size: 1.35rem;
+    }
+
+    .content .drafts-page-header .page-title-icon {
+        width: 2.25rem;
+        height: 2.25rem;
+        font-size: 1.05rem;
+    }
+
+    .content .drafts-page-header .header-actions {
+        flex-direction: row;
+    }
+
+    .content .drafts-page-header .header-actions .btn-primary,
+    .content .drafts-page-header .header-actions .btn-ghost {
+        width: auto;
+        min-width: 0;
+        padding-inline: 0.7rem;
+    }
+
+    .content .drafts-page-shell .stats-grid {
+        gap: 0.6rem;
+    }
+
+    .content .drafts-page-shell .stat-card {
+        min-height: 8.6rem;
+        padding: 0.85rem;
+    }
+
+    .content .drafts-page-shell .stat-value {
+        font-size: 1.35rem;
+    }
+
+    .content .drafts-page-shell .result-bar-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .content .drafts-workflow-banner {
+        min-height: auto;
+        border-radius: var(--drafts-radius-sm);
+    }
+
+    .content .drafts-workflow-copy {
+        width: 100%;
+        min-height: 5.25rem;
+        padding: 0.8rem 0.9rem 0.85rem;
+        clip-path: none;
+    }
+
+    .drafts-workflow-eyebrow {
+        max-width: 100%;
+        font-size: 0.58rem;
+        letter-spacing: 0.08em;
+    }
+
+    .content .drafts-workflow-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: stretch;
+        width: 100%;
+        gap: 0.45rem;
+        padding: 0.6rem 0.7rem 0.85rem;
+    }
+
+    .content .drafts-workflow-actions .btn-primary,
+    .content .drafts-workflow-actions .btn-ghost {
+        flex: 1 1 0;
+        min-width: 0;
+        justify-content: center;
+        padding-inline: 0.45rem;
+        font-size: 0.7rem;
+        white-space: nowrap;
+    }
+
+    .content .drafts-workflow-copy h2 {
+        font-size: 1rem;
+    }
+
+    .content .drafts-workflow-copy p {
+        margin-top: 0.25rem;
+        font-size: 0.68rem;
+    }
+}
+
+/* On phones, convert the wide data grid into readable record cards. This
+   keeps Actions in the visible card instead of forcing users to drag to the
+   far-right table column. */
+@media (max-width: 768px) {
+    .content .drafts-page-shell .table-card {
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        overflow: visible;
+    }
+
+    .content .drafts-page-shell .table-responsive {
+        max-width: 100%;
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+    }
+
+    .content .drafts-page-shell .records-table {
+        display: block;
+        width: 100%;
+        min-width: 0 !important;
+    }
+
+    .content .drafts-page-shell .records-table thead {
+        display: none;
+    }
+
+    .content .drafts-page-shell .records-table tbody {
+        display: grid;
+        gap: 0.7rem;
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        overflow: visible;
+        border: 1px solid var(--drafts-border);
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: var(--drafts-shadow-soft);
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row:hover {
+        background: #fff;
+        box-shadow: var(--drafts-shadow);
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row td {
+        display: grid;
+        grid-template-columns: 6.1rem minmax(0, 1fr);
+        align-items: center;
+        min-width: 0 !important;
+        width: 100%;
+        overflow: visible;
+        padding: 0.52rem 0.72rem;
+        border: 0;
+        white-space: normal !important;
+        text-overflow: clip;
+        gap: 0.55rem;
+        font-size: 0.78rem;
+        line-height: 1.35;
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row td::before {
+        content: attr(data-label);
+        flex: 0 0 5.4rem;
+        color: var(--drafts-subtle);
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        line-height: 1.2;
+        text-transform: uppercase;
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row td.col-check,
+    .content .drafts-page-shell .records-table tbody tr.record-row td.col-actions {
+        grid-column: 1 / -1;
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row td.col-check {
+        min-height: 2.25rem;
+        padding-bottom: 0.25rem;
+        border-bottom: 1px solid var(--drafts-border-soft);
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row td.col-check::before,
+    .content .drafts-page-shell .records-table tbody tr.record-row td.col-actions::before {
+        display: none;
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row td.col-check {
+        display: flex;
+        align-items: center;
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row td.col-check input {
+        width: 1.1rem;
+        height: 1.1rem;
+        margin: 0;
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row td[data-label="Form #"] {
+        padding-top: 0.75rem;
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row td[data-label="Form #"] .form-number-link,
+    .content .drafts-page-shell .records-table tbody tr.record-row td[data-label="Patient"] .patient-link {
+        display: block;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row td[data-label="Status"] {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        white-space: nowrap !important;
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row td[data-label="Status"]::before {
+        flex: 0 0 6.1rem;
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row td[data-label="Status"] .draft-age-badge,
+    .content .drafts-page-shell .records-table tbody tr.record-row td[data-label="Status"] .badge-status-pill {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row td.col-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        width: 100%;
+        margin-top: 0.2rem;
+        padding-top: 0.7rem;
+        padding-bottom: 0.75rem;
+        border-top: 1px solid var(--drafts-border-soft);
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row td.col-actions .action-dropdown {
+        position: relative;
+        margin-left: auto;
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row td.col-actions .btn-view-sm {
+        min-width: 7rem;
+        justify-content: center;
+    }
+
+    .content .drafts-page-shell .records-table tbody tr:not(.record-row) {
+        display: block;
+    }
+}
+
+/* Preferred phone behavior: preserve the familiar table and let users swipe
+   the table region horizontally when they need the right-side actions. */
+@media (max-width: 768px) {
+    .content .drafts-page-shell .table-card {
+        overflow: hidden;
+        border: 1px solid var(--drafts-border);
+        background: #fff;
+        box-shadow: var(--drafts-shadow-soft);
+    }
+
+    .content .drafts-page-shell .table-responsive {
+        max-width: 100%;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        border: 0;
+        border-radius: 0;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+    }
+
+    .content .drafts-page-shell .records-table {
+        display: table !important;
+        width: 100%;
+        min-width: 760px !important;
+    }
+
+    .content .drafts-page-shell.records-page-shell .records-table {
+        min-width: 980px !important;
+    }
+
+    .content .drafts-page-shell .records-table thead {
+        display: table-header-group !important;
+    }
+
+    .content .drafts-page-shell .records-table tbody {
+        display: table-row-group !important;
+        gap: 0;
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row,
+    .content .drafts-page-shell .records-table tbody tr:not(.record-row) {
+        display: table-row !important;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row td {
+        display: table-cell !important;
+        width: auto;
+        min-width: 0 !important;
+        overflow: visible;
+        padding: 0.72rem 0.75rem;
+        border-bottom: 1px solid var(--drafts-border-soft);
+        white-space: nowrap !important;
+        text-overflow: ellipsis;
+        font-size: 0.76rem;
+        line-height: 1.3;
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row td::before {
+        display: none !important;
+        content: none;
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row td.col-actions {
+        text-align: right;
+    }
+
+    .content .drafts-page-shell .records-table tbody tr.record-row td.col-actions .action-dropdown {
+        position: relative;
+        margin-left: auto;
+    }
+
+}
+
+/* Viewport-level copy used only on phones. The original Bootstrap menu stays
+   in the table; this layer is never clipped by the table's scroll container. */
+.mobile-action-menu-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    pointer-events: none;
+}
+
+.mobile-action-menu-layer.is-open {
+    pointer-events: auto;
+}
+
+.mobile-action-menu-shell {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+}
+
+.mobile-action-menu-layer .mobile-action-menu {
+    display: block !important;
+    position: fixed !important;
+    inset: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    margin: 0 !important;
+    overflow-y: auto !important;
+    pointer-events: auto;
+    transform: none !important;
+    z-index: 2001;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .content .drafts-page-shell *,
+    .content .drafts-page-shell *::before,
+    .content .drafts-page-shell *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}

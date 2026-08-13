@@ -511,24 +511,24 @@ $current_user = get_auth_user();
             .vr-footer { flex-direction: column; gap: 0.5rem; align-items: center; }
         }
     </style>
+    <link href="css/view-record-redesign.css?v=<?php echo time(); ?>" rel="stylesheet">
 </head>
 <body>
     <?php include '../includes/sidebar.php'; ?>
 
-    <div class="content">
+    <div class="content view-record-page">
         <div class="container-fluid py-4">
             <?php show_flash(); ?>
 
             <!-- Page Header -->
-            <div class="page-header-inline no-print">
+            <div class="page-header-inline no-print view-record-page-header">
                 <div>
                     <h1 class="page-title">
                         <span class="page-title-icon"><i class="bi bi-file-earmark-medical"></i></span>
-                        View Record
+                        Patient Care Record
                     </h1>
                     <p class="page-subtitle">
-                        Detailed view of <strong><?php echo e($record['form_number']); ?></strong>
-                        &middot; Created <?php echo date('M d, Y', strtotime($record['created_at'])); ?>
+                        Review the complete pre-hospital response record.
                     </p>
                 </div>
                 <div class="header-actions">
@@ -555,7 +555,9 @@ $current_user = get_auth_user();
                             <i class="bi bi-clipboard2-pulse"></i>
                         </div>
                         <div class="vr-header-info">
+                            <span class="vr-header-kicker">Field documentation / ResQ-Link EMS</span>
                             <h1>Pre-Hospital Care Record</h1>
+                            <p class="vr-header-patient"><?php echo e($record['patient_name'] ?: 'Patient not identified'); ?></p>
                             <div class="vr-header-meta">
                                 <span><i class="bi bi-hash"></i> Form No: <strong><?php echo e($record['form_number']); ?></strong></span>
                                 <span><i class="bi bi-calendar3"></i> <?php echo date('M d, Y', strtotime($record['created_at'])); ?></span>
@@ -577,7 +579,7 @@ $current_user = get_auth_user();
                 </div>
 
                 <!-- Basic Information -->
-                <div class="vr-section">
+                <div class="vr-section vr-section--full">
                     <div class="vr-section-header">
                         <i class="bi bi-info-circle"></i> Basic Information
                     </div>
@@ -629,7 +631,7 @@ $current_user = get_auth_user();
                 </div>
 
                 <!-- Scene Information -->
-                <div class="vr-section">
+                <div class="vr-section vr-section--half">
                     <div class="vr-section-header">
                         <i class="bi bi-geo-alt"></i> Scene Information
                     </div>
@@ -656,7 +658,7 @@ $current_user = get_auth_user();
                 </div>
 
                 <!-- Patient Information -->
-                <div class="vr-section">
+                <div class="vr-section vr-section--half">
                     <div class="vr-section-header">
                         <i class="bi bi-person-badge"></i> Patient Information
                     </div>
@@ -699,7 +701,7 @@ $current_user = get_auth_user();
                 </div>
 
                 <!-- Informant Details -->
-                <div class="vr-section">
+                <div class="vr-section vr-section--full">
                     <div class="vr-section-header">
                         <i class="bi bi-person-lines-fill"></i> Informant Details
                     </div>
@@ -763,7 +765,7 @@ $current_user = get_auth_user();
                 </div>
 
                 <!-- Emergency Type & Care Management -->
-                <div class="vr-section">
+                <div class="vr-section vr-section--full">
                     <div class="vr-section-header">
                         <i class="bi bi-exclamation-triangle"></i> Emergency Type & Care Management
                     </div>
@@ -848,7 +850,7 @@ $current_user = get_auth_user();
                 </div>
 
                 <!-- Vital Signs -->
-                <div class="vr-section">
+                <div class="vr-section vr-section--full">
                     <div class="vr-section-header">
                         <i class="bi bi-heart-pulse"></i> Vital Signs
                     </div>
@@ -951,7 +953,7 @@ $current_user = get_auth_user();
 
                 <!-- Injuries -->
                 <?php if (!empty($injuries)): ?>
-                <div class="vr-section">
+                <div class="vr-section vr-section--full">
                     <div class="vr-section-header">
                         <i class="bi bi-bandaid"></i> Injuries
                         <span class="vr-section-count"><?php echo count($injuries); ?> total</span>
@@ -989,7 +991,7 @@ $current_user = get_auth_user();
                 <?php endif; ?>
 
                 <!-- Incident Time -->
-                <div class="vr-section">
+                <div class="vr-section vr-section--full">
                     <div class="vr-section-header">
                         <i class="bi bi-clock-history"></i> Incident Time
                     </div>
@@ -1004,7 +1006,7 @@ $current_user = get_auth_user();
                 </div>
 
                 <!-- Hospital & Transport Information -->
-                <div class="vr-section">
+                <div class="vr-section vr-section--half">
                     <div class="vr-section-header">
                         <i class="bi bi-hospital"></i> Hospital & Transport
                     </div>
@@ -1031,7 +1033,7 @@ $current_user = get_auth_user();
                 </div>
 
                 <!-- Team Information -->
-                <div class="vr-section">
+                <div class="vr-section vr-section--half">
                     <div class="vr-section-header">
                         <i class="bi bi-people"></i> Team Information
                     </div>
@@ -1067,9 +1069,45 @@ $current_user = get_auth_user();
                     </div>
                 </div>
 
+                <?php if (!empty($record['waiver_required']) || !empty($record['waiver_attachment'])): ?>
+                <!-- Refusal Waiver -->
+                <div class="vr-section vr-section--full">
+                    <div class="vr-section-header">
+                        <i class="bi bi-shield-check"></i> Refusal Waiver
+                    </div>
+                    <div class="vr-section-body">
+                        <div class="vr-grid">
+                            <?php
+                            $waiver_has_file = !empty($record['waiver_attachment']);
+                            $waiver_is_required = !empty($record['waiver_required']);
+                            $waiver_status_icon = ($waiver_is_required && $waiver_has_file) ? 'bi-check-circle-fill' : ($waiver_is_required ? 'bi-exclamation-circle-fill' : 'bi-archive-fill');
+                            $waiver_status_class = ($waiver_is_required && $waiver_has_file) ? 'is-complete' : ($waiver_is_required ? 'is-missing' : 'is-inactive');
+                            ?>
+                            <div class="vr-item">
+                                <span class="vr-label"><i class="bi bi-shield-check"></i> Waiver Status</span>
+                                <span class="vr-value vr-waiver-status <?php echo $waiver_status_class; ?>">
+                                    <i class="bi <?php echo $waiver_status_icon; ?>"></i>
+                                    <?php if ($waiver_is_required && $waiver_has_file): ?>Signed document on file<?php elseif ($waiver_is_required): ?>Required — document missing<?php else: ?>Inactive — document retained for audit<?php endif; ?>
+                                </span>
+                            </div>
+                            <?php if ($waiver_has_file): ?>
+                            <div class="vr-item">
+                                <span class="vr-label"><i class="bi bi-file-earmark-check"></i> Signed Waiver</span>
+                                <span class="vr-value"><a class="vr-waiver-link" href="../api/serve_file.php?file=../<?php echo e($record['waiver_attachment']); ?>" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> Open signed waiver document</a></span>
+                            </div>
+                            <?php endif; ?>
+                            <div class="vr-item vr-item--full">
+                                <span class="vr-label"><i class="bi bi-info-circle"></i> Notice</span>
+                                <span class="vr-value vr-waiver-notice"><i class="bi bi-shield-lock"></i> The uploaded signed paper waiver is the authoritative refusal document.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <!-- Narrative Report -->
                 <?php if (!empty($record['narrative_report'])): ?>
-                <div class="vr-section">
+                <div class="vr-section vr-section--full">
                     <div class="vr-section-header">
                         <i class="bi bi-journal-text"></i> Narrative Report
                     </div>
@@ -1080,7 +1118,7 @@ $current_user = get_auth_user();
                 <?php endif; ?>
 
                 <!-- Record Meta Footer -->
-                <div class="vr-section">
+                <div class="vr-section vr-section--full">
                     <div class="vr-footer">
                         <span><i class="bi bi-calendar-plus"></i> Created: <?php echo date('F d, Y g:i A', strtotime($record['created_at'])); ?></span>
                         <span><i class="bi bi-calendar-check"></i> Last Updated: <?php echo date('F d, Y g:i A', strtotime($record['updated_at'])); ?></span>

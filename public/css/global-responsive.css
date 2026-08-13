@@ -6,7 +6,18 @@
 
 /* ===== RESPONSIVE CONTENT AREA ===== */
 @media (max-width: 768px) {
+    /* Keep the mobile workspace anchored. Horizontal movement belongs only
+       to intentionally scrollable regions such as tables and steppers. */
+    html,
+    body {
+        max-width: 100%;
+        overflow-x: hidden;
+        overscroll-behavior-x: none;
+    }
+
     .content {
+        max-width: 100%;
+        overflow-x: hidden;
         padding-top: 70px !important;
         padding-left: clamp(0.5rem, 3vw, 1.25rem) !important;
         padding-right: clamp(0.5rem, 3vw, 1.25rem) !important;
@@ -49,6 +60,8 @@
         margin-bottom: 0;
         border: 1px solid #e5e7eb;
         border-radius: 8px;
+        max-width: 100%;
+        overscroll-behavior-x: contain;
     }
 
     table {

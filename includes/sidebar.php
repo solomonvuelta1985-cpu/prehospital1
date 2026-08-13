@@ -29,6 +29,19 @@ $current_user = get_auth_user();
 $user_full = $current_user['full_name'] ?? $_SESSION['username'] ?? 'Guest';
 $user_name = $_SESSION['username'] ?? 'guest';
 $user_role = strtolower($current_user['role'] ?? 'guest');
+$draft_count = 0;
+try {
+    if (isset($current_user['id'])) {
+        $draft_count_result = db_query(
+            "SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND status = 'draft'",
+            [$current_user['id']]
+        );
+        $draft_count_data = $draft_count_result ? $draft_count_result->fetch() : null;
+        $draft_count = $draft_count_data ? (int)$draft_count_data['count'] : 0;
+    }
+} catch (Exception $e) {
+    $draft_count = 0;
+}
 
 $initials = '';
 $name_parts = explode(' ', $user_full);
@@ -48,11 +61,11 @@ if (count($name_parts) >= 2) {
     <div class="mobile-header-content">
         <div class="mobile-logo">
             <img src="<?= $base_path ?>uploads/logo.png" alt="Logo" class="mobile-logo-img">
-            <h4>RESQ-link</h4>
+            <h4>RESCUE 116-link</h4>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
             <div class="user-profile-dropdown">
-                <button class="user-profile-btn mobile-avatar-btn" id="mobileUserProfileBtn" type="button">
+                <button class="user-profile-btn mobile-avatar-btn" id="mobileUserProfileBtn" type="button" aria-label="Open account menu" aria-haspopup="menu" aria-expanded="false">
                     <div class="user-avatar mobile-avatar"><?php echo htmlspecialchars($initials); ?></div>
                 </button>
                 <div class="user-dropdown-menu" id="mobileUserDropdownMenu">
@@ -85,7 +98,7 @@ if (count($name_parts) >= 2) {
 <nav class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <img src="<?= $base_path ?>uploads/logo.png" alt="Logo" class="sidebar-logo">
-        <h4><span>RESCUE116-link</span></h4>
+        <h4><span>RESCUE 116-link</span></h4>
     </div>
     <ul class="sidebar-menu">
         <li class="sidebar-heading">Overview</li>
@@ -104,17 +117,12 @@ if (count($name_parts) >= 2) {
         </li>
         <li>
             <a href="<?= $base_path ?>drafts.php" class="<?php echo ($current_page === 'drafts.php') ? 'active' : ''; ?>" data-tooltip="Resume Draft">
-                <i class="bi bi-pencil-square"></i><span>Resume Draft</span>
-                <?php
-                try {
-                    if (isset($current_user['id'])) {
-                        $draft_count_result = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND status = 'draft'", [$current_user['id']]);
-                        $draft_count_data = $draft_count_result->fetch();
-                        $draft_count = $draft_count_data ? (int)$draft_count_data['count'] : 0;
-                        if ($draft_count > 0):
-                ?>
-                    <span style="margin-left: auto; background: #dc3545; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: 600;"><?= $draft_count ?></span>
-                <?php endif; } } catch (Exception $e) {} ?>
+                <i class="bi bi-file-earmark-text"></i><span>Resume Draft</span>
+                <?php if ($draft_count > 0): ?>
+                    <span class="sidebar-draft-count" aria-label="<?= $draft_count ?> draft<?= $draft_count === 1 ? '' : 's' ?>">
+                        <?= $draft_count > 99 ? '99+' : $draft_count ?>
+                    </span>
+                <?php endif; ?>
             </a>
         </li>
         <li>
@@ -157,7 +165,7 @@ if (count($name_parts) >= 2) {
 </nav>
 
 <div class="top-navbar" id="topNavbar">
-    <button type="button" id="sidebarCollapse" title="Toggle Sidebar"><i class="bi bi-list"></i></button>
+    <button type="button" id="sidebarCollapse" title="Toggle Sidebar" aria-label="Toggle sidebar" aria-expanded="true"><i class="bi bi-list"></i></button>
     <div class="top-navbar-logo">
         <img src="<?= $base_path ?>uploads/logo.png" alt="Logo" class="top-navbar-logo-img">
         <span class="top-navbar-title">RESCUE 116-link</span>
@@ -166,25 +174,15 @@ if (count($name_parts) >= 2) {
     <div class="navbar-actions">
         <span class="navbar-datechip"><i class="bi bi-calendar3"></i> <?php echo date('l, F j, Y'); ?></span>
         <a href="<?= $base_path ?>reports.php" class="navbar-iconbtn" title="Reports &amp; Analytics"><i class="bi bi-bar-chart"></i></a>
-        <a href="<?= $base_path ?>drafts.php" class="navbar-iconbtn" title="Drafts">
-            <i class="bi bi-bell"></i>
-            <?php
-            $nav_draft_count = 0;
-            try {
-                if (isset($current_user['id'])) {
-                    $nav_dc = db_query("SELECT COUNT(*) as count FROM prehospital_forms WHERE created_by = ? AND status = 'draft'", [$current_user['id']]);
-                    $nav_dc_row = $nav_dc ? $nav_dc->fetch() : null;
-                    $nav_draft_count = $nav_dc_row ? (int)$nav_dc_row['count'] : 0;
-                }
-            } catch (Exception $e) { $nav_draft_count = 0; }
-            if ($nav_draft_count > 0):
-            ?>
-            <span class="navbar-dot-badge"><?php echo $nav_draft_count > 99 ? '99+' : $nav_draft_count; ?></span>
+        <a href="<?= $base_path ?>drafts.php" class="navbar-iconbtn" title="Drafts" aria-label="Resume drafts">
+            <i class="bi bi-file-earmark-text"></i>
+            <?php if ($draft_count > 0): ?>
+            <span class="navbar-dot-badge"><?php echo $draft_count > 99 ? '99+' : $draft_count; ?></span>
             <?php endif; ?>
         </a>
     </div>
     <div class="user-profile-dropdown">
-        <button class="user-profile-btn" id="userProfileBtn" type="button">
+        <button class="user-profile-btn" id="userProfileBtn" type="button" aria-label="Open account menu" aria-haspopup="menu" aria-expanded="false">
             <div class="user-avatar"><?php echo htmlspecialchars($initials); ?></div>
             <div class="user-profile-info">
                 <span class="user-name"><?php echo htmlspecialchars($user_full); ?></span>
@@ -247,11 +245,11 @@ body.sidebar-open .hamburger-icon span:nth-child(1) { transform: translateY(7px)
 body.sidebar-open .hamburger-icon span:nth-child(2) { opacity: 0; transform: scaleX(0); }
 body.sidebar-open .hamburger-icon span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-.mobile-header { display: none; background: var(--sidebar-bg); color: var(--text-primary); padding: 16px 20px; position: fixed; top: 0; left: 0; right: 0; z-index: 1100; box-shadow: 0 2px 8px rgba(0,0,0,0.2); border-bottom: 1px solid rgba(148,163,184,0.15); }
+.mobile-header { display: none; background: var(--sidebar-bg); color: var(--text-primary); padding: 12px 16px; position: fixed; top: 0; left: 0; right: 0; z-index: 1100; box-shadow: 0 4px 18px rgba(2, 6, 23, 0.22); border-bottom: 1px solid rgba(148,163,184,0.15); }
 .mobile-header-content { display: flex; justify-content: space-between; align-items: center; }
 .mobile-logo { display: flex; align-items: center; gap: 10px; }
-.mobile-logo-img { height: 32px; width: auto; }
-.mobile-header h4 { margin: 0; font-size: 1rem; font-weight: 600; letter-spacing: -0.02em; }
+.mobile-logo-img { height: 30px; width: auto; }
+.mobile-header h4 { margin: 0; font-size: 0.95rem; font-weight: 700; letter-spacing: -0.02em; }
 #mobileSidebarToggle { background: none; border: none; color: var(--text-primary); cursor: pointer; padding: 8px; border-radius: 8px; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
 #mobileSidebarToggle:hover { background: rgba(59,130,246,0.15); transform: scale(1.05); }
 
@@ -273,6 +271,7 @@ body.sidebar-open .hamburger-icon span:nth-child(3) { transform: translateY(-7px
 .navbar-datechip i { color: var(--primary-color); font-size: 14px; }
 .navbar-iconbtn { position: relative; width: 38px; height: 38px; border-radius: 50%; background: #f8fafc; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; color: #4b5563; font-size: 16px; text-decoration: none; transition: all 0.18s cubic-bezier(0.4,0,0.2,1); }
 .navbar-iconbtn:hover { background: rgba(59,130,246,0.10); color: var(--primary-color); border-color: #bfdbfe; transform: translateY(-1px); }
+.navbar-iconbtn:focus-visible, #sidebarCollapse:focus-visible, #mobileSidebarToggle:focus-visible, .user-profile-btn:focus-visible, .sidebar-menu li a:focus-visible { outline: 3px solid rgba(96, 165, 250, 0.55); outline-offset: 2px; }
 .navbar-dot-badge { position: absolute; top: -3px; right: -3px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px; background: #dc2626; color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
 .user-profile-dropdown { margin-left: 16px; margin-right: 20px; position: relative; }
 .user-profile-btn { display: flex; align-items: center; gap: 12px; padding: 6px 12px 6px 6px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4,0,0.2,1); font-family: inherit; }
@@ -306,25 +305,25 @@ body.sidebar-open .hamburger-icon span:nth-child(3) { transform: translateY(-7px
 .dropdown-item.logout-item { color: #dc2626; }
 .dropdown-item.logout-item:hover { background: #fef2f2; color: #b91c1c; }
 
-.sidebar { position: fixed; left: 0; top: 0; width: var(--sidebar-width); height: 100vh; background: var(--sidebar-bg); color: var(--text-primary); padding: 0; z-index: 1000; box-shadow: 2px 0 8px rgba(0,0,0,0.2); border-right: 1px solid rgba(148,163,184,0.1); display: flex; flex-direction: column; transition: width 0.35s cubic-bezier(0.32,0.72,0,1); overflow: hidden; }
+.sidebar { position: fixed; left: 0; top: 0; width: var(--sidebar-width); height: 100vh; background: var(--sidebar-bg); color: var(--text-primary); padding: 0; z-index: 1000; box-shadow: 4px 0 18px rgba(2, 6, 23, 0.16); border-right: 1px solid rgba(148,163,184,0.1); display: flex; flex-direction: column; transition: width 0.35s cubic-bezier(0.32,0.72,0,1); overflow: hidden; }
 .sidebar-collapsed .sidebar { width: var(--sidebar-collapsed-width); }
-.sidebar-header { padding: 20px; background: var(--sidebar-bg); border-bottom: 1px solid rgba(148,163,184,0.15); white-space: nowrap; overflow: hidden; min-height: 64px; display: flex; align-items: center; gap: 12px; }
+.sidebar-header { padding: 16px 18px; background: var(--sidebar-bg); border-bottom: 1px solid rgba(148,163,184,0.15); white-space: nowrap; overflow: hidden; min-height: 68px; display: flex; align-items: center; gap: 10px; }
 .sidebar-logo { height: 32px; width: auto; min-width: 32px; }
-.sidebar-header h4 { margin: 0; font-size: 1rem; font-weight: 600; display: flex; align-items: center; letter-spacing: -0.02em; }
+.sidebar-header h4 { margin: 0; font-size: 0.98rem; font-weight: 750; display: flex; align-items: center; letter-spacing: -0.025em; }
 .sidebar-header h4 span { transition: opacity 0.25s cubic-bezier(0.32,0.72,0,1), transform 0.3s cubic-bezier(0.32,0.72,0,1); }
 .sidebar-collapsed .sidebar-header h4 span { opacity: 0; transform: translateX(-8px); pointer-events: none; }
 
-.sidebar-menu { list-style: none; padding: 12px 0; margin: 0; flex: 1; overflow-y: auto; overflow-x: hidden; }
+.sidebar-menu { list-style: none; padding: 14px 0 18px; margin: 0; flex: 1; overflow-y: auto; overflow-x: hidden; }
 .sidebar-menu::-webkit-scrollbar { width: 6px; }
 .sidebar-menu::-webkit-scrollbar-track { background: transparent; }
 .sidebar-menu::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.3); border-radius: 3px; }
 .sidebar-menu::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.5); }
-.sidebar-menu li a { display: flex; align-items: center; padding: 10px 16px; margin: 2px 12px; color: var(--text-secondary); text-decoration: none; transition: all 0.22s cubic-bezier(0.4,0,0.2,1); border-radius: 8px; font-size: 13.5px; font-weight: 500; line-height: 1.5; white-space: nowrap; position: relative; gap: 12px; }
-.sidebar-menu li a:hover { background: var(--sidebar-item-hover); color: var(--text-primary); transform: translateX(2px); }
+.sidebar-menu li a { display: flex; align-items: center; min-height: 44px; padding: 10px 14px; margin: 3px 12px; color: var(--text-secondary); text-decoration: none; transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease; border: 1px solid transparent; border-radius: 10px; font-size: 13.5px; font-weight: 500; line-height: 1.5; white-space: nowrap; position: relative; gap: 11px; }
+.sidebar-menu li a:hover { background: var(--sidebar-item-hover); color: var(--text-primary); border-color: rgba(96, 165, 250, 0.12); }
 .sidebar-menu li a:active { transform: scale(0.98) translateX(2px); }
-.sidebar-menu li a.active { background: var(--sidebar-item-active); color: var(--accent-active-text); font-weight: 600; transform: translateX(0); animation: menuItemActivate 0.4s cubic-bezier(0.4,0,0.2,1); }
+.sidebar-menu li a.active { background: var(--sidebar-item-active); color: var(--accent-active-text); font-weight: 650; transform: translateX(0); border-color: rgba(96, 165, 250, 0.16); }
 @keyframes menuItemActivate { 0% { background: transparent; transform: translateX(-4px); opacity: 0.7; } 30% { background: var(--sidebar-item-hover); } 60% { transform: translateX(5px); opacity: 1; } 100% { background: var(--sidebar-item-active); transform: translateX(0); opacity: 1; } }
-.sidebar-menu li a.active::before { content: ''; position: absolute; left: -12px; top: 50%; transform: translateY(-50%); width: 3px; height: 22px; background: var(--accent-color); border-radius: 0 4px 4px 0; animation: slideIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+.sidebar-menu li a.active::before { content: ''; position: absolute; left: -12px; top: 50%; transform: translateY(-50%); width: 3px; height: 24px; background: #60a5fa; border-radius: 0 4px 4px 0; }
 @keyframes slideIn { 0% { transform: translateY(-50%) scaleY(0); opacity: 0; height: 0; } 60% { transform: translateY(-50%) scaleY(1.1); height: 26px; } 100% { transform: translateY(-50%) scaleY(1); opacity: 1; height: 22px; } }
 
 .sidebar-menu li a:hover i { transform: scale(1.08); }
@@ -332,13 +331,42 @@ body.sidebar-open .hamburger-icon span:nth-child(3) { transform: translateY(-7px
 @keyframes iconPulse { 0% { transform: scale(1); opacity: 0.7; } 40% { transform: scale(1.2); opacity: 1; } 70% { transform: scale(0.95); } 100% { transform: scale(1); opacity: 1; } }
 
 .sidebar-menu li a span:not(i) { font-size: 13.5px; transition: opacity 0.25s cubic-bezier(0.32,0.72,0,1), transform 0.3s cubic-bezier(0.32,0.72,0,1); font-weight: 500; }
+.sidebar-menu li a .sidebar-draft-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-width: 1.45rem;
+    height: 1.45rem;
+    margin-left: auto;
+    padding: 0 0.32rem;
+    border: 2px solid rgba(15, 23, 42, 0.92);
+    border-radius: 999px;
+    background: linear-gradient(145deg, #fb7185, #e11d48);
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    box-shadow: 0 3px 9px rgba(225, 29, 72, 0.28);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.sidebar-menu li a:hover .sidebar-draft-count {
+    transform: translateY(-1px) scale(1.04);
+    box-shadow: 0 5px 12px rgba(225, 29, 72, 0.34);
+}
+.sidebar-menu li a.active .sidebar-draft-count {
+    border-color: #c7d2fe;
+    box-shadow: 0 3px 10px rgba(225, 29, 72, 0.3);
+}
 .sidebar-collapsed .sidebar-menu li a span:not(i) { opacity: 0; transform: translateX(-8px); pointer-events: none; position: absolute; }
+.sidebar-collapsed .sidebar-menu li a .sidebar-draft-count { display: none; }
 .sidebar-collapsed .sidebar-menu li a { justify-content: center; padding: 14px 10px; margin: 4px 10px; }
 .sidebar-collapsed .sidebar-menu li a i { margin: 0; font-size: 20px; }
 .sidebar-collapsed .sidebar-menu li a.active::before { left: -10px; }
 
 .sidebar-divider { border-top: 1px solid rgba(148,163,184,0.15); margin: 12px 16px; }
-.sidebar-heading { padding: 14px 20px 8px; font-size: 10.5px; text-transform: uppercase; color: #64748b; font-weight: 600; letter-spacing: 0.05em; white-space: nowrap; overflow: hidden; transition: opacity 0.25s cubic-bezier(0.32,0.72,0,1), padding 0.35s cubic-bezier(0.32,0.72,0,1); }
+.sidebar-heading { padding: 16px 20px 8px; font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.09em; white-space: nowrap; overflow: hidden; transition: opacity 0.25s cubic-bezier(0.32,0.72,0,1), padding 0.35s cubic-bezier(0.32,0.72,0,1); }
 .sidebar-collapsed .sidebar-heading { opacity: 0; padding: 8px 0; margin: 0; }
 .sidebar-collapsed .sidebar-divider { margin: 8px 16px; }
 .sidebar-collapsed .sidebar-logo { margin: 0 auto; }
@@ -419,8 +447,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (sidebarCollapse) {
         sidebarCollapse.addEventListener('click', function() {
-            body.classList.toggle('sidebar-collapsed');
-            localStorage.setItem('sidebarCollapsed', body.classList.contains('sidebar-collapsed'));
+            const isCollapsed = !body.classList.contains('sidebar-collapsed');
+            body.classList.toggle('sidebar-collapsed', isCollapsed);
+            sidebarCollapse.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+            localStorage.setItem('sidebarCollapsed', isCollapsed ? 'true' : 'false');
         });
     }
     if (mobileSidebarToggle) {
@@ -461,7 +491,10 @@ document.addEventListener('DOMContentLoaded', function() {
         isSwiping = false;
     }, { passive: true });
 
-    if (localStorage.getItem('sidebarCollapsed') === 'true' && window.innerWidth > 768) body.classList.add('sidebar-collapsed');
+    if (localStorage.getItem('sidebarCollapsed') === 'true' && window.innerWidth > 768) {
+        body.classList.add('sidebar-collapsed');
+        if (sidebarCollapse) sidebarCollapse.setAttribute('aria-expanded', 'false');
+    }
 
     const activeMenuItem = document.querySelector('.sidebar-menu a.active');
     if (activeMenuItem) { activeMenuItem.style.animation = 'none'; setTimeout(() => { activeMenuItem.style.animation = ''; }, 10); }
@@ -475,28 +508,32 @@ document.addEventListener('DOMContentLoaded', function() {
     if (userProfileBtn && userDropdownMenu) {
         userProfileBtn.addEventListener('click', function(e) {
             e.stopPropagation();
-            userProfileBtn.classList.toggle('active');
-            userDropdownMenu.classList.toggle('show');
+            const isOpen = !userDropdownMenu.classList.contains('show');
+            userProfileBtn.classList.toggle('active', isOpen);
+            userDropdownMenu.classList.toggle('show', isOpen);
+            userProfileBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
             if (mobileUserProfileBtn && mobileUserDropdownMenu) { mobileUserProfileBtn.classList.remove('active'); mobileUserDropdownMenu.classList.remove('show'); }
         });
     }
     if (mobileUserProfileBtn && mobileUserDropdownMenu) {
         mobileUserProfileBtn.addEventListener('click', function(e) {
             e.stopPropagation();
-            mobileUserProfileBtn.classList.toggle('active');
-            mobileUserDropdownMenu.classList.toggle('show');
+            const isOpen = !mobileUserDropdownMenu.classList.contains('show');
+            mobileUserProfileBtn.classList.toggle('active', isOpen);
+            mobileUserDropdownMenu.classList.toggle('show', isOpen);
+            mobileUserProfileBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
             if (userProfileBtn && userDropdownMenu) { userProfileBtn.classList.remove('active'); userDropdownMenu.classList.remove('show'); }
         });
     }
     document.addEventListener('click', function(e) {
-        if (userProfileBtn && userDropdownMenu && !userProfileBtn.contains(e.target) && !userDropdownMenu.contains(e.target)) { userProfileBtn.classList.remove('active'); userDropdownMenu.classList.remove('show'); }
-        if (mobileUserProfileBtn && mobileUserDropdownMenu && !mobileUserProfileBtn.contains(e.target) && !mobileUserDropdownMenu.contains(e.target)) { mobileUserProfileBtn.classList.remove('active'); mobileUserDropdownMenu.classList.remove('show'); }
+        if (userProfileBtn && userDropdownMenu && !userProfileBtn.contains(e.target) && !userDropdownMenu.contains(e.target)) { userProfileBtn.classList.remove('active'); userDropdownMenu.classList.remove('show'); userProfileBtn.setAttribute('aria-expanded', 'false'); }
+        if (mobileUserProfileBtn && mobileUserDropdownMenu && !mobileUserProfileBtn.contains(e.target) && !mobileUserDropdownMenu.contains(e.target)) { mobileUserProfileBtn.classList.remove('active'); mobileUserDropdownMenu.classList.remove('show'); mobileUserProfileBtn.setAttribute('aria-expanded', 'false'); }
     });
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             if (sidebar.classList.contains('active')) closeSidebar();
-            if (userProfileBtn && userDropdownMenu) { userProfileBtn.classList.remove('active'); userDropdownMenu.classList.remove('show'); }
-            if (mobileUserProfileBtn && mobileUserDropdownMenu) { mobileUserProfileBtn.classList.remove('active'); mobileUserDropdownMenu.classList.remove('show'); }
+            if (userProfileBtn && userDropdownMenu) { userProfileBtn.classList.remove('active'); userDropdownMenu.classList.remove('show'); userProfileBtn.setAttribute('aria-expanded', 'false'); }
+            if (mobileUserProfileBtn && mobileUserDropdownMenu) { mobileUserProfileBtn.classList.remove('active'); mobileUserDropdownMenu.classList.remove('show'); mobileUserProfileBtn.setAttribute('aria-expanded', 'false'); }
         }
     });
 });

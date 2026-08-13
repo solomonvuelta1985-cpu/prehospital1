@@ -174,30 +174,24 @@ $completion_rate = $total_records > 0 ? round(($completed_count / $total_records
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="css/records-style.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <link href="css/drafts-redesign.css?v=<?php echo time(); ?>&ui=clinical-v2" rel="stylesheet">
+    <link href="css/records-modal-redesign.css?v=<?php echo time(); ?>" rel="stylesheet">
 </head>
 <body>
     <?php include '../includes/sidebar.php'; ?>
 
     <div class="content">
-        <div class="container-fluid py-4">
+        <div class="container-fluid drafts-page-shell records-page-shell">
             <?php show_flash(); ?>
 
-            <!-- Page Header -->
-            <div class="page-header-inline">
-                <div>
-                    <h1 class="page-title">
-                        <span class="page-title-icon"><i class="bi bi-file-earmark-medical"></i></span>
-                        Patient Care Records
-                    </h1>
-                    <p class="page-subtitle">
-                        <?php if (is_admin()): ?>
-                            Viewing <strong>all records</strong> across users &middot; <strong><?php echo number_format($total_records); ?></strong> total
-                        <?php else: ?>
-                            Your personal pre-hospital care records &middot; <strong><?php echo number_format($total_records); ?></strong> total
-                        <?php endif; ?>
-                    </p>
+            <!-- ===== CLINICAL WORKFLOW BANNER ===== -->
+            <section class="drafts-workflow-banner records-workflow-banner" aria-labelledby="recordsWorkflowTitle">
+                <div class="drafts-workflow-copy">
+                    <span class="drafts-workflow-eyebrow">FIELD DOCUMENTATION / RESQ-LINK EMS</span>
+                    <h2 id="recordsWorkflowTitle">Patient Care Records</h2>
+                    <p>Review and manage pre-hospital response records.</p>
                 </div>
-                <div class="header-actions">
+                <div class="drafts-workflow-actions" aria-label="Record actions">
                     <a href="reports.php" class="btn-ghost">
                         <i class="bi bi-bar-chart"></i> Reports
                     </a>
@@ -205,7 +199,7 @@ $completion_rate = $total_records > 0 ? round(($completed_count / $total_records
                         <i class="bi bi-plus-lg"></i> New Record
                     </a>
                 </div>
-            </div>
+            </section>
 
             <!-- Statistics Cards -->
             <div class="stats-grid mb-4">
@@ -230,7 +224,7 @@ $completion_rate = $total_records > 0 ? round(($completed_count / $total_records
 
                 <div class="stat-card accent-amber">
                     <div class="stat-card-top">
-                        <div class="stat-icon amber"><i class="bi bi-calendar-day-fill"></i></div>
+                        <div class="stat-icon amber"><i class="bi bi-calendar-event-fill"></i></div>
                     </div>
                     <div class="stat-label">Today</div>
                     <div class="stat-value"><?php echo number_format($today_count); ?></div>
@@ -449,7 +443,7 @@ $completion_rate = $total_records > 0 ? round(($completed_count / $total_records
                                     decrypt_record_fields($record);
                                     $status_class = ['completed'=>'completed','draft'=>'draft','archived'=>'archived'][$record['status']] ?? 'draft';
                                 ?>
-                                    <tr class="record-row" data-record-id="<?php echo (int)$record['id']; ?>">
+                                    <tr class="record-row record-status-<?php echo e($status_class); ?>" data-record-id="<?php echo (int)$record['id']; ?>">
                                         <td class="col-check" data-label="Select">
                                             <input type="checkbox" class="record-checkbox" value="<?php echo (int)$record['id']; ?>">
                                         </td>
@@ -497,25 +491,25 @@ $completion_rate = $total_records > 0 ? round(($completed_count / $total_records
                                                 <ul class="dropdown-menu dropdown-menu-end">
                                                     <?php if ($record['status'] === 'draft'): ?>
                                                     <li>
-                                                        <a class="dropdown-item" href="prehospital_form.php?draft_id=<?php echo (int)$record['id']; ?>">
+                                                        <a class="dropdown-item action-resume" href="prehospital_form.php?draft_id=<?php echo (int)$record['id']; ?>">
                                                             <i class="bi bi-play-fill"></i> Resume
                                                         </a>
                                                     </li>
                                                     <li><hr class="dropdown-divider"></li>
                                                     <?php endif; ?>
                                                     <li>
-                                                        <a class="dropdown-item" href="javascript:void(0)" data-view-record="<?php echo (int)$record['id']; ?>">
+                                                        <a class="dropdown-item action-view" href="javascript:void(0)" data-view-record="<?php echo (int)$record['id']; ?>">
                                                             <i class="bi bi-eye"></i> View
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item" href="edit_record.php?id=<?php echo (int)$record['id']; ?>">
+                                                        <a class="dropdown-item action-edit" href="edit_record.php?id=<?php echo (int)$record['id']; ?>" data-edit-record="<?php echo (int)$record['id']; ?>">
                                                             <i class="bi bi-pencil"></i> Edit
                                                         </a>
                                                     </li>
                                                     <?php if ($record['status'] === 'draft'): ?>
                                                     <li>
-                                                        <a class="dropdown-item" href="javascript:void(0)" data-mark-completed="<?php echo (int)$record['id']; ?>">
+                                                        <a class="dropdown-item action-complete" href="javascript:void(0)" data-mark-completed="<?php echo (int)$record['id']; ?>">
                                                             <i class="bi bi-check-circle"></i> Mark Completed
                                                         </a>
                                                     </li>
@@ -635,33 +629,39 @@ $completion_rate = $total_records > 0 ? round(($completed_count / $total_records
     </button>
 
     <!-- View Record Modal -->
-    <div class="modal fade" id="viewRecordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade records-view-modal" id="viewRecordModal" tabindex="-1" aria-labelledby="viewRecordModalLabel" aria-describedby="viewRecordModalDescription" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-file-earmark-medical me-2"></i>View Record</h5>
-                    <div class="modal-header-actions">
-                        <button type="button" class="btn-ghost btn-sm" id="viewFullDetailsBtn">
-                            <i class="bi bi-arrows-fullscreen"></i> Full Details
+                <div class="modal-header records-modal-header">
+                    <div class="records-modal-heading">
+                        <span class="records-modal-kicker"><i class="bi bi-shield-check"></i> Clinical record</span>
+                        <h2 class="records-modal-title" id="viewRecordModalLabel">View patient record</h2>
+                        <p class="records-modal-description" id="viewRecordModalDescription">Review the response details and clinical documentation.</p>
+                    </div>
+                    <div class="records-modal-header-actions">
+                        <button type="button" class="records-modal-action records-modal-action--secondary" id="viewFullDetailsBtn">
+                            <i class="bi bi-arrows-fullscreen"></i><span>Full Details</span>
                         </button>
-                        <button type="button" class="btn-primary btn-sm" id="editRecordBtn">
-                            <i class="bi bi-pencil"></i> Edit
+                        <button type="button" class="records-modal-action records-modal-action--primary" id="editRecordBtn">
+                            <i class="bi bi-pencil"></i><span>Edit</span>
                         </button>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="records-modal-close" data-bs-dismiss="modal" aria-label="Close record preview">
+                            <i class="bi bi-x-lg" aria-hidden="true"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="modal-body" id="modalRecordContent">
-                    <div class="text-center py-5">
-                        <div class="spinner-border" role="status" style="color:var(--primary);">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="mt-3" style="color:var(--gray-500);">Loading record details...</p>
+                    <div class="records-modal-loading" role="status">
+                        <div class="records-modal-loading-icon"><i class="bi bi-file-earmark-medical"></i></div>
+                        <div class="spinner-border spinner-border-sm" aria-hidden="true"></div>
+                        <p>Loading record details...</p>
+                        <span class="visually-hidden">Loading record details</span>
                     </div>
                 </div>
                 <div class="modal-footer modal-footer-record">
-                    <span class="modal-footer-hint"><i class="bi bi-info-circle"></i> Use the tabs to navigate sections</span>
-                    <button type="button" class="btn-ghost btn-sm" data-bs-dismiss="modal">
-                        <i class="bi bi-x-lg"></i> Close
+                    <span class="modal-footer-hint"><i class="bi bi-info-circle"></i> Select a section to review more details.</span>
+                    <button type="button" class="records-modal-footer-close" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg"></i><span>Close</span>
                     </button>
                 </div>
             </div>
@@ -691,10 +691,34 @@ $completion_rate = $total_records > 0 ? round(($completed_count / $total_records
         </div>
     </div>
 
+    <!-- Edit Confirmation Modal -->
+    <div class="modal fade" id="editConfirmModal" tabindex="-1" aria-labelledby="editConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title" id="editConfirmModalLabel" style="color:var(--primary);">
+                        <i class="bi bi-pencil-square me-2"></i>Edit Record
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p style="color:var(--gray-700);">Are you sure you want to edit this record?</p>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn-ghost btn-sm" id="cancelEditBtn" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn-primary btn-sm" id="confirmEditBtn">
+                        <i class="bi bi-pencil"></i> Continue to Edit
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- CSRF token for JS -->
     <input type="hidden" id="csrfToken" value="<?php echo generate_token(); ?>">
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/action-menu-mobile.js?v=<?php echo time(); ?>"></script>
     <script src="js/records.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>

@@ -71,6 +71,10 @@ function submitForm() {
         window.syncEmergencySpecify();
     }
 
+    if (typeof window.validateWaiverSelection === 'function' && !window.validateWaiverSelection()) {
+        return;
+    }
+
     const requiredFields = [
         { id: 'formDate', name: 'Date' },
         { id: 'patientName', name: 'Patient Name' },
@@ -97,6 +101,15 @@ function submitForm() {
             missingFields.push('Age (use years for age > 24 months)');
         } else if (ageValue === 0 && ageUnit === 'years') {
             missingFields.push('Age (use months for infants under 1 year)');
+        }
+    }
+
+    const formDateElement = document.getElementById('formDate');
+    if (formDateElement && formDateElement.value) {
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        if (formDateElement.value > today) {
+            missingFields.push('Date (cannot be in the future)');
         }
     }
 
@@ -243,6 +256,15 @@ function clearForm() {
         'Cancel',
         function okCb() {
             document.getElementById('preHospitalForm').reset();
+            if (typeof window.resetWaiverPicker === 'function') {
+                window.resetWaiverPicker();
+            }
+            if (typeof window.hydrateHospitalSelect === 'function') {
+                window.hydrateHospitalSelect('');
+            }
+            if (typeof window.hydrateArrivalHospitalSelect === 'function') {
+                window.hydrateArrivalHospitalSelect('');
+            }
             clearAllInjuries();
             currentTab = 0;
             navigateTab(0);

@@ -7,7 +7,7 @@
 
 // Current application version - increment when deploying changes to static assets
 if (!defined('APP_VERSION')) {
-    define('APP_VERSION', '1.2.9');
+    define('APP_VERSION', '1.2.12');
 }
 
 // Asset version helper function

@@ -291,6 +291,98 @@ function handle_upload($file, $allowed_types = ['jpg', 'jpeg', 'png', 'pdf']) {
 }
 
 /**
+ * Validate and securely store an uploaded image inside the private uploads
+ * directory. The returned path is the relative path persisted in the record.
+ */
+function store_secure_image_upload($file, $folder, $prefix) {
+    if (!is_array($file) || !isset($file['error']) || is_array($file['error'])) {
+        throw new Exception('Invalid image upload');
+    }
+
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        throw new Exception('Image upload failed');
+    }
+
+    if (empty($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+        throw new Exception('Invalid uploaded image');
+    }
+
+    if ((int)$file['size'] > MAX_FILE_SIZE) {
+        throw new Exception('Image file size exceeds the 20MB limit');
+    }
+
+    $allowed_mime_types = [
+        'image/jpeg' => ['jpg', 'jpeg'],
+        'image/png'  => ['png'],
+        'image/gif'  => ['gif'],
+        'image/webp' => ['webp'],
+    ];
+    $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime_type = $finfo ? finfo_file($finfo, $file['tmp_name']) : false;
+    if ($finfo) {
+        finfo_close($finfo);
+    }
+
+    $extension = strtolower((string)pathinfo($file['name'] ?? '', PATHINFO_EXTENSION));
+    if (!isset($allowed_mime_types[$mime_type]) || !in_array($extension, $allowed_extensions, true)) {
+        throw new Exception('Invalid image type. Only JPG, PNG, GIF, and WebP files are allowed');
+    }
+
+    if (!in_array($extension, $allowed_mime_types[$mime_type], true)) {
+        throw new Exception('Image extension does not match its content');
+    }
+
+    $image_info = @getimagesize($file['tmp_name']);
+    if ($image_info === false) {
+        throw new Exception('Uploaded file is not a valid image');
+    }
+
+    $folder = trim((string)$folder, '/\\');
+    if ($folder === '' || preg_match('/(^|[\\\/])\.\.([\\\/]|$)/', $folder)) {
+        throw new Exception('Invalid upload folder');
+    }
+
+    $date_folder = date('Y-m-d');
+    $relative_directory = 'uploads/' . $folder . '/' . $date_folder;
+    $absolute_directory = rtrim(UPLOAD_DIR, '/\\') . DIRECTORY_SEPARATOR . $folder . DIRECTORY_SEPARATOR . $date_folder;
+    if (!is_dir($absolute_directory) && !mkdir($absolute_directory, 0750, true)) {
+        throw new Exception('Failed to create image upload directory');
+    }
+
+    $safe_prefix = preg_replace('/[^a-z0-9_-]+/i', '_', (string)$prefix) ?: 'image';
+    $safe_filename = $safe_prefix . '_' . date('YmdHis') . '_' . bin2hex(random_bytes(16)) . '.' . $extension;
+    $target_path = $absolute_directory . DIRECTORY_SEPARATOR . $safe_filename;
+
+    if (!move_uploaded_file($file['tmp_name'], $target_path)) {
+        throw new Exception('Failed to save uploaded image');
+    }
+
+    return $relative_directory . '/' . $safe_filename;
+}
+
+/**
+ * Resolve a stored uploads-relative path without allowing traversal outside
+ * the configured uploads directory.
+ */
+function resolve_upload_path($relative_path) {
+    $relative_path = ltrim(str_replace('\\', '/', (string)$relative_path), '/');
+    if (strpos($relative_path, 'uploads/') !== 0 || strpos($relative_path, '..') !== false) {
+        return false;
+    }
+
+    $relative_file = substr($relative_path, strlen('uploads/'));
+    $base_path = realpath(UPLOAD_DIR);
+    $file_path = realpath(rtrim(UPLOAD_DIR, '/\\') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative_file));
+    if (!$base_path || !$file_path || strpos($file_path, $base_path . DIRECTORY_SEPARATOR) !== 0) {
+        return false;
+    }
+
+    return $file_path;
+}
+
+/**
  * Get client IP address
  * Security: Only trust proxy headers if explicitly enabled
  */
@@ -685,6 +777,89 @@ function general_specify_options() {
         'Strangulation',
         'Electrocution',
     ];
+}
+
+/**
+ * Common destinations used in the Hospital Endorsement section.
+ * Aliases keep legacy abbreviations and spelling variants selectable without
+ * duplicating them as separate user-facing options.
+ */
+function hospital_endorsement_options() {
+    return [
+        [
+            'value' => 'BAGGAO DISTRICT HOSPITAL',
+            'label' => 'Baggao District Hospital (BDH)',
+            'aliases' => [
+                'BDH',
+                'BAGGAO DISTRICT HOSPITAL',
+                'BAGGAO DISTRICT HISPITAL',
+                'BAGGAO DISTRICT HOSPITA',
+                'BAGGAO DISTRICT HOPITAL',
+                'BAGGAO DSTRICT HOSPITAL',
+                'BAGGAO DISTRICT HOSPITQL',
+                'BAGGAO DISTRICT HOAPITAL',
+                'BAGGAO DISTRICT HOSPITAL F',
+                'BAGGAO DISRICT HOSPITAL',
+            ],
+        ],
+        [
+            'value' => 'MUNICIPAL HEALTH OFFICE',
+            'label' => 'Municipal Health Office (MHO)',
+            'aliases' => [
+                'MHO',
+                'MUNICIPAL HEALTH OFFICE',
+                'MHO POBLACION',
+                'MUNIIPAL HEALTH OFFICE',
+                'MDHO',
+                'MUNICIPAL HEALTH UNIT',
+            ],
+        ],
+        [
+            'value' => 'ALCALA MUNICIPAL HOSPITAL',
+            'label' => 'Alcala Municipal Hospital (AMH)',
+            'aliases' => [
+                'AMH',
+                'ALCALA MUNICIPAL HOSPITAL',
+                'ALACALA MUNICIPAL HOSPITAL',
+            ],
+        ],
+        [
+            'value' => 'RURAL HEALTH UNIT',
+            'label' => 'Rural Health Unit (RHU)',
+            'aliases' => [
+                'RURAL HEALTH UNIT',
+                'RHU',
+                'RHU POBLACION',
+                'RHU SAN JOSE',
+            ],
+        ],
+        [
+            'value' => 'NOLASCO HOSPITAL (GATTARAN)',
+            'label' => 'Nolasco Hospital (Gattaran)',
+            'aliases' => ['NOLASCO HOSPITAL (GATTARAN)'],
+        ],
+        [
+            'value' => 'CVMC',
+            'label' => 'Cagayan Valley Medical Center (CVMC)',
+            'aliases' => ['CVMC'],
+        ],
+    ];
+}
+
+/** Return the canonical Hospital Endorsement value for a legacy alias. */
+function hospital_endorsement_canonical($value) {
+    $candidate = trim((string)($value ?? ''));
+    if ($candidate === '') return '';
+
+    $normalized = mb_strtoupper(preg_replace('/\s+/', ' ', $candidate), 'UTF-8');
+    foreach (hospital_endorsement_options() as $option) {
+        foreach ($option['aliases'] as $alias) {
+            $aliasNormalized = mb_strtoupper(preg_replace('/\s+/', ' ', trim($alias)), 'UTF-8');
+            if ($normalized === $aliasNormalized) return $option['value'];
+        }
+    }
+
+    return '';
 }
 
 /**

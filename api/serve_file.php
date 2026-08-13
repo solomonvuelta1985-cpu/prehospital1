@@ -26,11 +26,35 @@ if (empty($filePath)) {
     die('Invalid file path');
 }
 
-// Security: Ensure file path is within uploads_private directory
-$realPath = realpath($filePath);
-$uploadDir = realpath(UPLOAD_DIR);
+// Resolve relative paths from the API directory as well as the current
+// process directory. New waiver files live in private uploads; the legacy
+// public uploads directory remains supported for older attachments.
+$path_candidates = [
+    $filePath,
+    __DIR__ . DIRECTORY_SEPARATOR . ltrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $filePath), DIRECTORY_SEPARATOR),
+];
+$realPath = false;
+foreach ($path_candidates as $candidate) {
+    $resolved = realpath($candidate);
+    if ($resolved !== false) {
+        $realPath = $resolved;
+        break;
+    }
+}
 
-if (!$realPath || !$uploadDir || strpos($realPath, $uploadDir) !== 0) {
+$allowed_upload_roots = array_filter([
+    realpath(UPLOAD_DIR),
+    realpath(__DIR__ . '/../public/uploads'),
+]);
+$is_allowed_path = false;
+foreach ($allowed_upload_roots as $allowed_root) {
+    if ($realPath && ($realPath === $allowed_root || strpos($realPath, $allowed_root . DIRECTORY_SEPARATOR) === 0)) {
+        $is_allowed_path = true;
+        break;
+    }
+}
+
+if (!$realPath || !$is_allowed_path) {
     http_response_code(403);
     die('Access denied');
 }

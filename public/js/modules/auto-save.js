@@ -6,14 +6,44 @@
 const AUTO_SAVE_KEY = 'prehospital_autosave_draft';
 const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
 let autoSaveTimer = null;
+let draftStatusHideTimer = null;
+
+function setFormDraftStatus(message, state) {
+    const status = document.getElementById('formDraftStatus');
+    const statusText = document.getElementById('formDraftStatusText');
+    if (statusText) statusText.textContent = message;
+    if (status) {
+        if (draftStatusHideTimer) {
+            clearTimeout(draftStatusHideTimer);
+            draftStatusHideTimer = null;
+        }
+        status.classList.remove('is-hidden');
+        status.classList.toggle('is-saving', state === 'saving');
+        status.classList.toggle('is-saved', state === 'saved');
+        status.classList.toggle('is-error', state === 'error');
+
+        // Saved/restored is a transient confirmation, not a permanent header label.
+        if (state === 'saved') {
+            draftStatusHideTimer = setTimeout(() => {
+                status.classList.add('is-hidden');
+            }, 3000);
+        }
+    }
+}
 
 function initAutoSave() {
     const form = document.getElementById('preHospitalForm');
     if (!form || document.getElementById('editForm')) return; // Only for new forms
 
-    // Check for existing draft on page load
+    setFormDraftStatus('Autosave ready', 'ready');
+
+    // A server draft opened with ?draft_id= is already the authoritative
+    // record. Do not interrupt it with the separate localStorage restore prompt.
+    const hasServerDraft = new URLSearchParams(window.location.search).has('draft_id');
+
+    // Check for an existing local draft only on a fresh form
     const savedDraft = localStorage.getItem(AUTO_SAVE_KEY);
-    if (savedDraft) {
+    if (savedDraft && !hasServerDraft) {
         try {
             const draftData = JSON.parse(savedDraft);
             const savedTime = new Date(draftData._savedAt);
@@ -79,6 +109,7 @@ function autoSaveForm() {
         localStorage.setItem(AUTO_SAVE_KEY, JSON.stringify(formData));
 
         // Show subtle indicator
+        setFormDraftStatus('Draft saved just now', 'saved');
         showAutoSaveIndicator();
     } catch (e) {
         // Silent fail for auto-save
@@ -132,6 +163,7 @@ function restoreAutoSave(draftData) {
     if (typeof Notiflix !== 'undefined') {
         Notiflix.Notify.success('Draft restored successfully!');
     }
+    setFormDraftStatus('Draft restored', 'saved');
 }
 
 function clearAutoSave() {
@@ -143,7 +175,7 @@ function showAutoSaveIndicator() {
     if (!indicator) {
         indicator = document.createElement('div');
         indicator.id = 'autoSaveIndicator';
-        indicator.style.cssText = 'position:fixed;bottom:20px;right:20px;background:rgba(40,167,69,0.9);color:#fff;padding:6px 14px;border-radius:20px;font-size:0.8rem;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;';
+        indicator.className = 'clinical-autosave-toast';
         document.body.appendChild(indicator);
     }
     indicator.textContent = 'Draft saved';

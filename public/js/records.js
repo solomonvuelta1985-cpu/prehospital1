@@ -10,20 +10,50 @@
 
     var recordIdsToDelete = null;
     var currentRecordId = null;
-    var deleteModal, viewRecordModal;
+    var editRecordIdToOpen = null;
+    var editConfirmationFromView = false;
+    var lastViewTrigger = null;
+    var lastImageTrigger = null;
+    var deleteModal, editConfirmModal, viewRecordModal;
 
     document.addEventListener('DOMContentLoaded', function() {
         deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-        viewRecordModal = new bootstrap.Modal(document.getElementById('viewRecordModal'));
+        var editModalElement = document.getElementById('editConfirmModal');
+        editConfirmModal = editModalElement ? new bootstrap.Modal(editModalElement) : null;
+        var viewModalElement = document.getElementById('viewRecordModal');
+        viewRecordModal = viewModalElement ? new bootstrap.Modal(viewModalElement) : null;
+
+        if (viewModalElement) {
+            viewModalElement.addEventListener('hidden.bs.modal', function() {
+                if (lastViewTrigger && document.contains(lastViewTrigger)) {
+                    lastViewTrigger.focus({ preventScroll: true });
+                }
+                closeRecordImagePreview();
+                lastViewTrigger = null;
+            });
+        }
+
+        if (editModalElement) {
+            editModalElement.addEventListener('hidden.bs.modal', function() {
+                // If the user cancelled from the preview modal, return them to
+                // the same preview instead of leaving them on the records list.
+                if (editConfirmationFromView && editRecordIdToOpen !== null) {
+                    if (viewRecordModal) viewRecordModal.show();
+                }
+                editRecordIdToOpen = null;
+                editConfirmationFromView = false;
+            });
+        }
 
         initFilters();
         initSearch();
         initBatchActions();
         initEventDelegation();
-        initActionMenuPositioning();
         initAJAX();
         initColumnToggle();
         initBackToTop();
+
+        showPendingEditToast();
 
         // Restore column visibility
         restoreColumnVisibility();
@@ -53,6 +83,17 @@
         var toast = new bootstrap.Toast(toastEl, { delay: 4000 });
         toast.show();
         toastEl.addEventListener('hidden.bs.toast', function() { toastEl.remove(); });
+    }
+
+    function showPendingEditToast() {
+        try {
+            var message = sessionStorage.getItem('recordEditToast');
+            if (!message) return;
+            sessionStorage.removeItem('recordEditToast');
+            showToast(message, 'secondary');
+        } catch (storageError) {
+            // Ignore storage access errors; the page remains usable.
+        }
     }
 
     // ===== FILTERS TOGGLE =====
@@ -125,9 +166,9 @@
             var statusClass = {draft:'draft',completed:'completed',archived:'archived'}[record.status] || 'draft';
             var statusIcon = statusClass === 'completed' ? '<i class="bi bi-check-circle-fill"></i> ' : (statusClass === 'draft' ? '<i class="bi bi-pencil-fill"></i> ' : '');
             var vehicleHtml = record.vehicle_used ? '<span class="badge-vehicle"><i class="bi bi-truck"></i> ' + escapeHtml(ucfirst(record.vehicle_used)) + '</span>' : '<span style="color:#94a3b8;">—</span>';
-            var draftResume = record.status === 'draft' ? '<li><a class="dropdown-item" href="prehospital_form.php?draft_id=' + record.id + '"><i class="bi bi-play-fill"></i> Resume</a></li><li><hr class="dropdown-divider"></li>' : '';
-            var markCompletedHtml = record.status === 'draft' ? '<li><a class="dropdown-item" href="javascript:void(0)" data-mark-completed="' + record.id + '"><i class="bi bi-check-circle"></i> Mark Completed</a></li>' : '';
-            html += '<tr class="record-row" data-record-id="' + record.id + '">' +
+            var draftResume = record.status === 'draft' ? '<li><a class="dropdown-item action-resume" href="prehospital_form.php?draft_id=' + record.id + '"><i class="bi bi-play-fill"></i> Resume</a></li><li><hr class="dropdown-divider"></li>' : '';
+            var markCompletedHtml = record.status === 'draft' ? '<li><a class="dropdown-item action-complete" href="javascript:void(0)" data-mark-completed="' + record.id + '"><i class="bi bi-check-circle"></i> Mark Completed</a></li>' : '';
+            html += '<tr class="record-row record-status-' + statusClass + '" data-record-id="' + record.id + '">' +
                 '<td class="col-check" data-label="Select"><input type="checkbox" class="record-checkbox" value="' + record.id + '"></td>' +
                 '<td class="col-form-number" data-label="Form #"><a href="javascript:void(0)" data-view-record="' + record.id + '" class="form-number-link"><strong>' + escapeHtml(record.form_number) + '</strong></a></td>' +
                 '<td class="col-date" data-label="Date">' + formatDateDisplay(record.form_date) + '</td>' +
@@ -139,8 +180,8 @@
                 '<td class="col-actions" data-label="Actions">' +
                     '<div class="dropdown action-dropdown"><button class="btn-view-sm" type="button" data-bs-toggle="dropdown">Actions <i class="bi bi-chevron-down ms-1" style="font-size:0.625rem;"></i></button>' +
                     '<ul class="dropdown-menu dropdown-menu-end">' + draftResume +
-                    '<li><a class="dropdown-item" href="javascript:void(0)" data-view-record="' + record.id + '"><i class="bi bi-eye"></i> View</a></li>' +
-                    '<li><a class="dropdown-item" href="edit_record.php?id=' + record.id + '"><i class="bi bi-pencil"></i> Edit</a></li>' +
+                    '<li><a class="dropdown-item action-view" href="javascript:void(0)" data-view-record="' + record.id + '"><i class="bi bi-eye"></i> View</a></li>' +
+                    '<li><a class="dropdown-item action-edit" href="edit_record.php?id=' + record.id + '" data-edit-record="' + record.id + '"><i class="bi bi-pencil"></i> Edit</a></li>' +
                     markCompletedHtml + '<li><hr class="dropdown-divider"></li>' +
                     '<li><a class="dropdown-item dropdown-item-danger" href="javascript:void(0)" data-delete-record="' + record.id + '"><i class="bi bi-trash"></i> Delete</a></li>' +
                     '</ul></div></td></tr>';
@@ -256,6 +297,18 @@
     // ===== EVENT DELEGATION =====
     function initEventDelegation() {
         document.addEventListener('click', function(e) {
+            var editBtn = e.target.closest('[data-edit-record], .action-edit');
+            if (editBtn) {
+                e.preventDefault();
+                var id = parseInt(editBtn.getAttribute('data-edit-record'), 10);
+                if (isNaN(id)) {
+                    var href = editBtn.getAttribute('href') || '';
+                    var match = href.match(/[?&]id=(\d+)/);
+                    id = match ? parseInt(match[1], 10) : NaN;
+                }
+                if (!isNaN(id)) showEditConfirmation(id);
+                return;
+            }
             var deleteBtn = e.target.closest('[data-delete-record]');
             if (deleteBtn) {
                 e.preventDefault();
@@ -266,56 +319,15 @@
                 return;
             }
             var viewBtn = e.target.closest('[data-view-record]');
-            if (viewBtn) { e.preventDefault(); viewRecord(parseInt(viewBtn.getAttribute('data-view-record'), 10)); return; }
+            if (viewBtn) {
+                e.preventDefault();
+                lastViewTrigger = viewBtn;
+                viewRecord(parseInt(viewBtn.getAttribute('data-view-record'), 10));
+                return;
+            }
             var markBtn = e.target.closest('[data-mark-completed]');
             if (markBtn) { e.preventDefault(); markCompleted(parseInt(markBtn.getAttribute('data-mark-completed'), 10)); return; }
         });
-    }
-
-    // ===== ACTIONS MENU POSITIONING (mobile) =====
-    function initActionMenuPositioning() {
-        var MOBILE_MAX = 768;
-        function isMobile() { return window.innerWidth <= MOBILE_MAX; }
-        function placeMenu(btn, menu) {
-            var r = btn.getBoundingClientRect();
-            var mw = menu.offsetWidth || 200;
-            var mh = menu.offsetHeight || 0;
-            var left = Math.max(8, r.right - mw);
-            if (left + mw > window.innerWidth - 8) left = window.innerWidth - mw - 8;
-            var top = r.bottom + 4;
-            if (mh && top + mh > window.innerHeight - 8) top = Math.max(8, r.top - mh - 4);
-            menu.style.setProperty('top', top + 'px', 'important');
-            menu.style.setProperty('left', left + 'px', 'important');
-        }
-        document.addEventListener('show.bs.dropdown', function(e) {
-            var dd = e.target.closest('.action-dropdown');
-            if (!dd || !isMobile()) return;
-            var menu = dd.querySelector('.dropdown-menu');
-            if (!menu) return;
-            menu.classList.add('action-menu-floating');
-        });
-        document.addEventListener('shown.bs.dropdown', function(e) {
-            var dd = e.target.closest('.action-dropdown');
-            if (!dd || !isMobile()) return;
-            var menu = dd.querySelector('.dropdown-menu.show');
-            if (!menu) return;
-            placeMenu(e.target, menu);
-            menu._floatingBtn = e.target;
-        });
-        document.addEventListener('hide.bs.dropdown', function(e) {
-            var dd = e.target.closest('.action-dropdown');
-            if (!dd || !isMobile()) return;
-            var menu = dd.querySelector('.dropdown-menu.show');
-            if (!menu) return;
-            menu.classList.remove('action-menu-floating');
-            ['top', 'left'].forEach(function(p) { menu.style.removeProperty(p); });
-            delete menu._floatingBtn;
-        });
-        window.addEventListener('scroll', function() {
-            if (!isMobile()) return;
-            var openMenu = document.querySelector('.action-dropdown .dropdown-menu.action-menu-floating.show');
-            if (openMenu && openMenu._floatingBtn) placeMenu(openMenu._floatingBtn, openMenu);
-        }, true);
     }
 
     // ===== DELETE CONFIRMATION =====
@@ -345,40 +357,184 @@
         var modalContent = document.getElementById('modalRecordContent');
         var editBtn = document.getElementById('editRecordBtn');
         var viewFullDetailsBtn = document.getElementById('viewFullDetailsBtn');
-        modalContent.innerHTML = '<div class="text-center py-5"><div class="spinner-border" role="status" style="color:var(--primary);"><span class="visually-hidden">Loading...</span></div><p class="mt-3" style="color:#64748b;">Loading record details...</p></div>';
-        editBtn.onclick = function() { window.location.href = 'edit_record.php?id=' + id; };
-        viewFullDetailsBtn.onclick = function() { window.location.href = 'view_record.php?id=' + id; };
+        if (!modalContent || !viewRecordModal) return;
+        modalContent.innerHTML = '<div class="records-modal-loading" role="status"><div class="records-modal-loading-icon"><i class="bi bi-file-earmark-medical"></i></div><div class="spinner-border spinner-border-sm" aria-hidden="true"></div><p>Loading record details...</p><span class="visually-hidden">Loading record details</span></div>';
+        if (editBtn) editBtn.onclick = function() { showEditConfirmation(id); };
+        if (viewFullDetailsBtn) viewFullDetailsBtn.onclick = function() { window.location.href = 'view_record.php?id=' + id; };
         viewRecordModal.show();
-        fetch('../api/get_record.php?id=' + id)
+        fetch('../api/get_record.php?id=' + id + '&context=records')
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (data.success) {
                     modalContent.innerHTML = data.html;
                     initModalTabs();
+                    initRecordImagePreview();
                 } else {
-                    modalContent.innerHTML = '<div class="alert" style="background:var(--danger-light);color:var(--danger);border:1px solid var(--danger-border);border-radius:8px;padding:1rem;"><i class="bi bi-exclamation-triangle-fill"></i> Error: ' + escapeHtml(data.message) + '</div>';
+                    modalContent.innerHTML = '<div class="records-modal-error" role="alert"><i class="bi bi-exclamation-triangle-fill"></i> Error: ' + escapeHtml(data.message) + '</div>';
                 }
             })
-            .catch(function() { modalContent.innerHTML = '<div class="alert" style="background:var(--danger-light);color:var(--danger);border:1px solid var(--danger-border);border-radius:8px;padding:1rem;"><i class="bi bi-exclamation-triangle-fill"></i> Failed to load record.</div>'; });
+            .catch(function() { modalContent.innerHTML = '<div class="records-modal-error" role="alert"><i class="bi bi-exclamation-triangle-fill"></i> Failed to load record.</div>'; });
     }
 
     // ===== MODAL TAB SWITCHING =====
     function initModalTabs() {
-        var tabs = document.querySelectorAll('#modalRecordContent .mv-tab');
-        var panes = document.querySelectorAll('#modalRecordContent .mv-tab-content');
+        var tabs = document.querySelectorAll('#modalRecordContent .records-modal-tab, #modalRecordContent .mv-tab');
+        var panes = document.querySelectorAll('#modalRecordContent .records-modal-panel, #modalRecordContent .mv-tab-content');
+        var tabList = document.querySelector('#modalRecordContent .records-modal-tabs, #modalRecordContent .mv-tabs');
 
-        tabs.forEach(function(tab) {
+        if (!tabs.length) return;
+
+        if (tabList) {
+            tabList.setAttribute('role', 'tablist');
+            tabList.setAttribute('aria-label', 'Record sections');
+        }
+
+        tabs.forEach(function(tab, index) {
+            var target = tab.getAttribute('data-record-tab') || tab.getAttribute('data-mv-tab');
+            var targetPane = document.getElementById('records-modal-panel-' + target) || document.getElementById('mv-tab-' + target);
+            var tabId = tab.id || ('records-modal-tab-' + target);
+
+            tab.id = tabId;
+            tab.setAttribute('role', 'tab');
+            tab.setAttribute('aria-controls', targetPane ? targetPane.id : '');
+            tab.setAttribute('tabindex', index === 0 ? '0' : '-1');
+
+            if (targetPane) {
+                targetPane.setAttribute('role', 'tabpanel');
+                targetPane.setAttribute('aria-labelledby', tabId);
+                targetPane.setAttribute('tabindex', '0');
+            }
+
             tab.addEventListener('click', function() {
-                var target = this.getAttribute('data-mv-tab');
+                activateModalTab(this.getAttribute('data-record-tab') || this.getAttribute('data-mv-tab'), tabs, panes, false);
+            });
 
-                tabs.forEach(function(t) { t.classList.remove('active'); });
-                panes.forEach(function(p) { p.classList.remove('active'); });
+            tab.addEventListener('keydown', function(event) {
+                var nextIndex = index;
+                if (event.key === 'ArrowRight' || event.key === 'ArrowDown') nextIndex = (index + 1) % tabs.length;
+                if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') nextIndex = (index - 1 + tabs.length) % tabs.length;
+                if (event.key === 'Home') nextIndex = 0;
+                if (event.key === 'End') nextIndex = tabs.length - 1;
 
-                this.classList.add('active');
-                var targetPane = document.getElementById('mv-tab-' + target);
-                if (targetPane) targetPane.classList.add('active');
+                if (nextIndex !== index) {
+                    event.preventDefault();
+                    var nextTab = tabs[nextIndex];
+                    activateModalTab(nextTab.getAttribute('data-record-tab') || nextTab.getAttribute('data-mv-tab'), tabs, panes, true);
+                }
             });
         });
+
+        // Always begin a newly loaded record at Overview, even if the modal
+        // previously closed while another section was selected.
+        activateModalTab('overview', tabs, panes, false);
+    }
+
+    function activateModalTab(target, tabs, panes, moveFocus) {
+        var selectedTab = null;
+
+        tabs.forEach(function(tab) {
+            var tabTarget = tab.getAttribute('data-record-tab') || tab.getAttribute('data-mv-tab');
+            var isSelected = tabTarget === target;
+            tab.classList.toggle('active', isSelected);
+            tab.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+            tab.setAttribute('tabindex', isSelected ? '0' : '-1');
+            if (isSelected) selectedTab = tab;
+        });
+
+        panes.forEach(function(pane) {
+            var isActive = pane.id === 'records-modal-panel-' + target || pane.id === 'mv-tab-' + target;
+            pane.classList.toggle('active', isActive);
+            pane.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+        });
+
+        if (moveFocus && selectedTab) selectedTab.focus();
+    }
+
+    function initRecordImagePreview() {
+        document.querySelectorAll('#modalRecordContent .records-modal-image-button').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var image = button.querySelector('img');
+                lastImageTrigger = button;
+                openRecordImagePreview(button.getAttribute('data-record-image'), image ? image.getAttribute('alt') : 'Record attachment');
+            });
+        });
+    }
+
+    // ===== EDIT CONFIRMATION =====
+    function showEditConfirmation(id) {
+        editRecordIdToOpen = id;
+        var viewModalElement = document.getElementById('viewRecordModal');
+        editConfirmationFromView = !!(viewRecordModal && viewModalElement && viewModalElement.classList.contains('show'));
+
+        if (!editConfirmModal) {
+            window.location.href = 'edit_record.php?id=' + encodeURIComponent(id);
+            return;
+        }
+
+        if (editConfirmationFromView && viewRecordModal) {
+            viewRecordModal.hide();
+            viewModalElement.addEventListener('hidden.bs.modal', function showEditModal() {
+                editConfirmModal.show();
+            }, { once: true });
+        } else {
+            editConfirmModal.show();
+        }
+    }
+
+    var confirmEditBtn = document.getElementById('confirmEditBtn');
+    if (confirmEditBtn) {
+        confirmEditBtn.addEventListener('click', function() {
+            if (editRecordIdToOpen === null) return;
+            var id = editRecordIdToOpen;
+            editConfirmationFromView = false;
+            window.location.href = 'edit_record.php?id=' + encodeURIComponent(id);
+        });
+    }
+
+    var cancelEditBtn = document.getElementById('cancelEditBtn');
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', function() {
+            showToast('No changes made', 'secondary');
+        });
+    }
+
+    function openRecordImagePreview(src, alt) {
+        var overlay = document.getElementById('recordsImagePreview');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'recordsImagePreview';
+            overlay.className = 'records-image-preview';
+            overlay.setAttribute('aria-hidden', 'true');
+            overlay.innerHTML = '<div class="records-image-preview-backdrop" data-record-image-close></div><div class="records-image-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="recordsImagePreviewTitle"><div class="records-image-preview-toolbar"><span id="recordsImagePreviewTitle">Attachment preview</span><button type="button" class="records-image-preview-close" data-record-image-close aria-label="Close attachment preview"><i class="bi bi-x-lg"></i></button></div><div class="records-image-preview-stage"><img id="recordsImagePreviewImage" alt=""></div></div>';
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', function(event) {
+                if (event.target.closest('[data-record-image-close]')) closeRecordImagePreview();
+            });
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') closeRecordImagePreview();
+            });
+        }
+        var image = document.getElementById('recordsImagePreviewImage');
+        if (image) {
+            image.src = src;
+            image.alt = alt;
+        }
+        overlay.classList.add('is-open');
+        overlay.setAttribute('aria-hidden', 'false');
+        var closeButton = overlay.querySelector('.records-image-preview-close');
+        if (closeButton) closeButton.focus();
+    }
+
+    function closeRecordImagePreview() {
+        var overlay = document.getElementById('recordsImagePreview');
+        if (overlay) {
+            overlay.classList.remove('is-open');
+            overlay.setAttribute('aria-hidden', 'true');
+        }
+        if (lastImageTrigger && document.contains(lastImageTrigger)) {
+            lastImageTrigger.focus({ preventScroll: true });
+        }
+        lastImageTrigger = null;
     }
 
     // ===== MARK AS COMPLETED =====

@@ -499,6 +499,23 @@ try {
         $endorsement_attachment_path = 'uploads/endorsements/' . $dateFolder . '/' . $safeFileName;
     }
 
+    // Refusal waiver. Existing documents are retained when the toggle is
+    // turned off; a new upload replaces the database link without deleting
+    // the previous audit document from storage.
+    $waiver_required = !empty($_POST['waiver_required']) ? 1 : 0;
+    $waiver_attachment_path = $existing_record['waiver_attachment'] ?? null;
+    $waiver_upload_provided = isset($_FILES['waiver_attachment']) && $_FILES['waiver_attachment']['error'] !== UPLOAD_ERR_NO_FILE;
+    if ($waiver_upload_provided) {
+        if (!$waiver_required) {
+            throw new Exception('Enable the refusal waiver before uploading a waiver document');
+        }
+        $waiver_attachment_path = store_secure_image_upload($_FILES['waiver_attachment'], 'waivers', 'waiver');
+    }
+    $existing_waiver_is_available = !empty($waiver_attachment_path) && resolve_upload_path($waiver_attachment_path) !== false;
+    if ($waiver_required && !$waiver_upload_provided && !$existing_waiver_is_available) {
+        throw new Exception('A signed waiver image is required when the waiver is enabled');
+    }
+
     // Encrypt sensitive fields (must match save_prehospital_form.php)
     $patient_name = encrypt_field($patient_name);
     $address = !empty($address) ? encrypt_field($address) : $address;
@@ -621,6 +638,8 @@ try {
         narrative_report = ?,
         waiver_patient_signature = ?,
         waiver_witness_signature = ?,
+        waiver_required = ?,
+        waiver_attachment = ?,
         updated_at = NOW()
         WHERE id = ?";
 
@@ -721,6 +740,8 @@ try {
         $narrative_report,
         $waiver_patient_signature,
         $waiver_witness_signature,
+        $waiver_required,
+        $waiver_attachment_path,
         $record_id
     ];
 

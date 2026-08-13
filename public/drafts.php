@@ -112,50 +112,23 @@ $active_filters = (int)!empty($search);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="css/records-style.css?v=<?php echo time(); ?>" rel="stylesheet">
-    <style>
-        /* Drafts-specific overrides (records-style.css provides everything else) */
-        .action-separator {
-            width: 1px;
-            height: 20px;
-            background-color: var(--gray-200);
-        }
-
-        .draft-age-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            padding: 0.15rem 0.5rem;
-            border-radius: 999px;
-            font-size: 0.65rem;
-            font-weight: 600;
-            background: #fefce8;
-            color: #a16207;
-        }
-
-        .draft-age-badge.fresh { background: var(--success-light); color: var(--success); }
-        .draft-age-badge.aging { background: var(--warning-light); color: var(--warning); }
-        .draft-age-badge.old { background: var(--danger-light); color: var(--danger); }
-    </style>
+    <link href="css/drafts-redesign.css?v=<?php echo time(); ?>&ui=clinical-v1" rel="stylesheet">
 </head>
 <body>
     <?php include '../includes/sidebar.php'; ?>
 
     <div class="content">
-        <div class="container-fluid py-4">
+        <div class="container-fluid drafts-page-shell">
             <?php show_flash(); ?>
 
-            <!-- ===== PAGE HEADER ===== -->
-            <div class="page-header-inline">
-                <div>
-                    <h1 class="page-title">
-                        <span class="page-title-icon"><i class="bi bi-file-earmark-text"></i></span>
-                        Draft Forms
-                    </h1>
-                    <p class="page-subtitle">
-                        Your in-progress form entries &middot; <strong><?php echo number_format($total_records); ?></strong> drafts total
-                    </p>
+            <!-- ===== CLINICAL WORKFLOW BANNER ===== -->
+            <section class="drafts-workflow-banner" aria-labelledby="draftsWorkflowTitle">
+                <div class="drafts-workflow-copy">
+                    <span class="drafts-workflow-eyebrow">FIELD DOCUMENTATION / RESQ-LINK EMS</span>
+                    <h2 id="draftsWorkflowTitle">Draft Forms</h2>
+                    <p>Continue an in-progress response record.</p>
                 </div>
-                <div class="header-actions">
+                <div class="drafts-workflow-actions" aria-label="Draft actions">
                     <a href="records.php" class="btn-ghost">
                         <i class="bi bi-table"></i> Records
                     </a>
@@ -163,7 +136,7 @@ $active_filters = (int)!empty($search);
                         <i class="bi bi-plus-lg"></i> New Form
                     </a>
                 </div>
-            </div>
+            </section>
 
             <!-- ===== STATISTICS CARDS ===== -->
             <div class="stats-grid mb-4">
@@ -410,22 +383,22 @@ $active_filters = (int)!empty($search);
                                                 </button>
                                                 <ul class="dropdown-menu dropdown-menu-end">
                                                     <li>
-                                                        <a class="dropdown-item" href="prehospital_form.php?draft_id=<?php echo (int)$draft['id']; ?>">
+                                                        <a class="dropdown-item action-resume" href="prehospital_form.php?draft_id=<?php echo (int)$draft['id']; ?>">
                                                             <i class="bi bi-play-fill"></i> Resume
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item" href="javascript:void(0)" data-view-record="<?php echo (int)$draft['id']; ?>">
+                                                        <a class="dropdown-item action-view" href="javascript:void(0)" data-view-record="<?php echo (int)$draft['id']; ?>">
                                                             <i class="bi bi-eye"></i> View
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item" href="edit_record.php?id=<?php echo (int)$draft['id']; ?>">
+                                                        <a class="dropdown-item action-edit" href="edit_record.php?id=<?php echo (int)$draft['id']; ?>">
                                                             <i class="bi bi-pencil"></i> Edit
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item" href="javascript:void(0)" data-mark-completed="<?php echo (int)$draft['id']; ?>">
+                                                        <a class="dropdown-item action-complete" href="javascript:void(0)" data-mark-completed="<?php echo (int)$draft['id']; ?>">
                                                             <i class="bi bi-check-circle"></i> Mark Completed
                                                         </a>
                                                     </li>
@@ -569,6 +542,7 @@ $active_filters = (int)!empty($search);
     <input type="hidden" id="csrfToken" value="<?php echo generate_token(); ?>">
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/action-menu-mobile.js?v=<?php echo time(); ?>"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-3.2.6.min.css">
     <script src="https://cdn.jsdelivr.net/npm/notiflix@3.2.6/dist/notiflix-aio-3.2.6.min.js"></script>
     <script nonce="<?php echo CSP_NONCE; ?>">

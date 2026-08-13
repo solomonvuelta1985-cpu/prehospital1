@@ -227,4 +227,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Walk In / Call toggle: hide Departure Time + Arrival Scene fields when Walk In is selected
     setupWalkInToggle();
+
+    // Normalize legacy negative FAST labels that may have been saved with
+    // an incorrectly encoded minus sign.
+    document.querySelectorAll('.toggle-negative').forEach(function(label) {
+        label.textContent = 'Negative';
+    });
 });

@@ -706,6 +706,59 @@ body {
 .dropdown-item-danger:hover { background: var(--danger-light); color: var(--danger); }
 .dropdown-divider { border-color: var(--gray-100); margin: 0.25rem 0; }
 
+/* Clinical action menu shared by Records and Draft Forms. */
+.action-dropdown .dropdown-menu {
+    padding: 0.4rem !important;
+    border: 1px solid #dbe4ef;
+    border-radius: 14px !important;
+    background: #fff;
+    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.14), 0 3px 8px rgba(15, 23, 42, 0.06) !important;
+}
+.action-dropdown .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-height: 2.55rem;
+    padding: 0.42rem 0.55rem;
+    border-radius: 9px;
+    color: #334155;
+    font-size: 0.82rem;
+    font-weight: 650;
+    transition: background 0.16s ease, color 0.16s ease, transform 0.16s ease;
+}
+.action-dropdown .dropdown-item i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 2rem;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.9rem;
+    transition: background 0.16s ease, color 0.16s ease;
+}
+.action-dropdown .dropdown-item:hover,
+.action-dropdown .dropdown-item:focus {
+    background: #f5f7ff;
+    color: var(--primary-hover);
+    transform: translateX(1px);
+}
+.action-dropdown .action-resume i,
+.action-dropdown .action-edit i { background: var(--primary-light); color: var(--primary); }
+.action-dropdown .action-view i,
+.action-dropdown .action-complete i { background: var(--teal-light); color: var(--teal); }
+.action-dropdown .action-resume:hover,
+.action-dropdown .action-edit:hover { background: var(--primary-light); color: var(--primary-hover); }
+.action-dropdown .action-view:hover,
+.action-dropdown .action-complete:hover { background: var(--teal-light); color: var(--teal); }
+.action-dropdown .dropdown-item-danger { color: #b91c1c; }
+.action-dropdown .dropdown-item-danger i { background: var(--danger-light); color: var(--danger); }
+.action-dropdown .dropdown-item-danger:hover,
+.action-dropdown .dropdown-item-danger:focus { background: var(--danger-light); color: #b91c1c; }
+.action-dropdown .dropdown-divider { margin: 0.35rem 0.4rem; border-color: #eef2f7; }
+
 /* ===== PAGINATION BAR ===== */
 .pagination-bar {
     display: flex;

@@ -804,6 +804,49 @@ body:not(.loading) .nav-tabs .nav-link {
     border-radius: 10px;
 }
 
+/* Date + time fields stay together on the same row on larger screens. The
+   date controls are allowed to shrink so the manual time field does not fall
+   onto a second line inside the endorsement field. */
+.custom-datetime-input {
+    display: flex !important;
+    align-items: center;
+    gap: 0.75rem !important;
+    width: 100%;
+    min-width: 0;
+    flex-wrap: nowrap !important;
+}
+
+.custom-datetime-input .custom-date-input {
+    flex: 1 1 auto;
+    width: auto !important;
+    min-width: 0;
+}
+
+.custom-datetime-input .custom-date-input > .form-control,
+.custom-datetime-input .custom-date-input > .form-select {
+    min-width: 0;
+}
+
+.custom-datetime-input > .time-input-12hr {
+    flex: 0 0 9.5rem !important;
+    width: 9.5rem !important;
+    max-width: 9.5rem !important;
+}
+
+@media (max-width: 768px) {
+    .custom-datetime-input {
+        align-items: stretch;
+        flex-wrap: wrap !important;
+    }
+
+    .custom-datetime-input .custom-date-input,
+    .custom-datetime-input > .time-input-12hr {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
 /* Radio/checkbox row reads as a subtle pill group.
    min-height matched to input-h so pills and text inputs
    share the same visual height in the same grid row.

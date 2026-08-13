@@ -451,7 +451,8 @@ $outcome_sql = "
     SELECT
         SUM(CASE WHEN arrival_hospital_name IS NOT NULL AND TRIM(arrival_hospital_name) <> '' THEN 1 ELSE 0 END) AS transported,
         SUM(CASE WHEN (arrival_hospital_name IS NULL OR TRIM(arrival_hospital_name) = '')
-                  AND waiver_patient_signature IS NOT NULL AND TRIM(waiver_patient_signature) <> '' THEN 1 ELSE 0 END) AS refused,
+                  AND (waiver_required = 1
+                       OR (waiver_patient_signature IS NOT NULL AND TRIM(waiver_patient_signature) <> '')) THEN 1 ELSE 0 END) AS refused,
         COUNT(*) AS total
     FROM prehospital_forms pf
     WHERE $where_clause
@@ -1482,16 +1483,64 @@ $rpt_type_total = array_sum(array_column($rpt_type_rows, 1));
             </div>
 
             <!-- ===== DARK FOOTER BAND ===== -->
+            <footer class="rpt-footer-v4">
+                <div class="rpt-footer-v4-inner">
+                    <div class="rpt-footer-v4-brand">
+                        <div class="rpt-footer-v4-mark"><i class="bi bi-heart-pulse-fill"></i></div>
+                        <div><strong>RESCUE 116-link</strong><span>Pre-Hospital Emergency Care System</span></div>
+                    </div>
+                    <div class="rpt-footer-v4-details">
+                        <div><span>Emergency line</span><strong><i class="bi bi-telephone-fill"></i> 0967 379 7967</strong></div>
+                        <div><span>Report scope</span><strong><?php echo number_format((int)$summary['total_forms']); ?> filtered records</strong></div>
+                        <div class="rpt-footer-v4-status"><i class="bi bi-check-circle-fill"></i><span>System operational</span></div>
+                    </div>
+                    <div class="rpt-footer-v4-bottom"><span>&copy; <?php echo date('Y'); ?> RESCUE 116-link</span><span>Baggao MDRRMO &middot; Emergency response 24/7</span></div>
+                </div>
+            </footer>
+            <footer class="rpt-footer-v3">
+                <div class="rpt-footer-v3-inner">
+                    <div class="rpt-footer-v3-identity">
+                        <div class="rpt-footer-v3-brand">
+                            <div class="rpt-footer-v3-mark"><i class="bi bi-heart-pulse-fill"></i></div>
+                            <div>
+                                <span class="rpt-footer-v3-eyebrow">RESCUE 116 / MDRRMO</span>
+                                <h2>RESCUE 116-link</h2>
+                                <p>Pre-Hospital Emergency Care System</p>
+                            </div>
+                        </div>
+                        <div class="rpt-footer-v3-hotline">
+                            <span><i class="bi bi-telephone-fill"></i> Emergency hotline</span>
+                            <strong>0967 379 7967</strong>
+                            <small>Available 24 hours</small>
+                        </div>
+                    </div>
+                    <div class="rpt-footer-v3-information">
+                        <div class="rpt-footer-v3-mission">
+                            <span>REPORT SCOPE</span>
+                            <strong><?php echo number_format((int)$summary['total_forms']); ?> filtered records</strong>
+                            <small><?php echo e(date('M j, Y', strtotime($date_from))); ?> &ndash; <?php echo e(date('M j, Y', strtotime($date_to))); ?></small>
+                        </div>
+                        <div class="rpt-footer-v3-metrics" aria-label="Report summary">
+                            <div><i class="bi bi-file-earmark-text-fill"></i><strong><?php echo number_format((int)$summary['total_forms']); ?></strong><small>Records</small></div>
+                            <div><i class="bi bi-hospital-fill"></i><strong><?php echo number_format(count($hospital_data)); ?></strong><small>Hospitals</small></div>
+                            <div><i class="bi bi-bar-chart-fill"></i><strong><?php echo $compare_mode ? '2x' : 'Live'; ?></strong><small><?php echo $compare_mode ? 'Comparison' : 'Current view'; ?></small></div>
+                        </div>
+                    </div>
+                    <div class="rpt-footer-v3-legal"><span>&copy; <?php echo date('Y'); ?> RESCUE 116-link &middot; Pre-Hospital Care System</span><span>For authorized responders</span></div>
+                </div>
+            </footer>
             <div class="rpt-footer">
               <div class="rpt-footer-inner">
                 <div class="rpt-footer-top">
                     <div class="rpt-footer-brand">
                         <div class="rpt-footer-logo"><i class="bi bi-heart-pulse-fill"></i></div>
                         <div>
+                            <div class="rpt-footer-kicker">RESCUE 116 / MDRRMO</div>
                             <div class="rpt-footer-name">RESCUE 116-link</div>
                             <div class="rpt-footer-tag">Pre-Hospital Emergency Care System</div>
                         </div>
                     </div>
+                    <div class="rpt-footer-status"><span class="rpt-footer-status-dot"></span><span>System operational</span></div>
                 </div>
                 <div class="rpt-footer-stats">
                     <div class="rpt-footer-stat">
@@ -1528,8 +1577,8 @@ $rpt_type_total = array_sum(array_column($rpt_type_rows, 1));
                     </div>
                 </div>
                 <div class="rpt-footer-bottom">
-                    <span>&copy; <?php echo date('Y'); ?> RESCUE 116-link &middot; Pre-Hospital Care System. All rights reserved.</span>
-                    <span class="pill-tag">EMERGENCY 24/7</span>
+                    <div><span>&copy; <?php echo date('Y'); ?> RESCUE 116-link</span><span class="rpt-footer-separator">•</span><span>Pre-Hospital Care System</span></div>
+                    <div class="rpt-footer-bottom-meta"><span>For authorized responders</span><span class="pill-tag"><i class="bi bi-shield-check"></i> Emergency 24/7</span></div>
                 </div>
               </div>
             </div>

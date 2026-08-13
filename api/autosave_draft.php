@@ -206,6 +206,9 @@ try {
         'hospital_name' => $data['hospital_name'] ?? null,
         'endorsement_datetime' => clean_time_value($data['endorsement_datetime'] ?? null),
 
+        // Refusal Waiver (the signed image is uploaded only on final save)
+        'waiver_required' => !empty($data['waiver_required']) ? 1 : 0,
+
         'status' => 'draft',
         'created_by' => $user_id
     ];

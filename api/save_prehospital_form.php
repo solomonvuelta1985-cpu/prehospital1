@@ -527,6 +527,21 @@ try {
     // Get current user ID
     $created_by = $_SESSION['user_id'];
 
+    // Refusal waiver. The signed paper is retained as an image in the private
+    // uploads directory; the database stores only its relative path.
+    $waiver_required = !empty($_POST['waiver_required']) ? 1 : 0;
+    $waiver_attachment_path = null;
+    $waiver_upload_provided = isset($_FILES['waiver_attachment']) && $_FILES['waiver_attachment']['error'] !== UPLOAD_ERR_NO_FILE;
+    if ($waiver_upload_provided) {
+        if (!$waiver_required) {
+            throw new Exception('Enable the refusal waiver before uploading a waiver document');
+        }
+        $waiver_attachment_path = store_secure_image_upload($_FILES['waiver_attachment'], 'waivers', 'waiver');
+    }
+    if ($waiver_required && !$waiver_attachment_path) {
+        throw new Exception('A signed waiver image is required when the waiver is enabled');
+    }
+
     // Limit check - prevent huge inserts
     $injuries_data = isset($_POST['injuries_data']) ? json_decode($_POST['injuries_data'], true) : [];
     if (empty($injuries_data) && isset($_POST['injuries'])) {
@@ -582,7 +597,7 @@ try {
         $ob_baby_status, $ob_delivery_time, $ob_placenta, $ob_lmp, $ob_aog, $ob_edc,
         $team_leader_notes, $team_leader, $data_recorder, $logistic, $first_aider, $second_aider,
         $hospital_name, $endorsement_attachment_path, $endorsement_datetime,
-        $narrative_report
+        $narrative_report, $waiver_required, $waiver_attachment_path
     ];
 
     if ($is_updating_draft) {
@@ -610,6 +625,7 @@ try {
             team_leader_notes = ?, team_leader = ?, data_recorder = ?, logistic = ?, first_aider = ?, second_aider = ?,
             hospital_name = ?, endorsement_attachment = ?, endorsement_datetime = ?,
             narrative_report = ?,
+            waiver_required = ?, waiver_attachment = ?,
             status = 'completed',
             updated_at = NOW()
             WHERE id = ? AND created_by = ?";
@@ -643,6 +659,7 @@ try {
             team_leader_notes, team_leader, data_recorder, logistic, first_aider, second_aider,
             hospital_name, endorsement_attachment, endorsement_datetime,
             narrative_report,
+            waiver_required, waiver_attachment,
             created_by, status
         ) VALUES (
             ?, ?, ?, ?, ?, ?, ?,
@@ -666,8 +683,8 @@ try {
             ?, ?, ?, ?, ?, ?,
             ?, ?, ?, ?, ?, ?,
             ?, ?, ?,
-            ?,
-            ?, 'completed'
+            ?, ?,
+            ?, ?, 'completed'
         )";
 
         $params = array_merge($common_params, [$created_by]);

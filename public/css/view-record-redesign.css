@@ -1,0 +1,882 @@
+/* =====================================================================
+   VIEW RECORD — CLEAN CLINICAL WORKSPACE
+   Presentation-only layer for public/view_record.php.
+   Existing record fields, actions, print behavior, and data contract stay intact.
+   ===================================================================== */
+
+.view-record-page {
+    --vr-ink: #172033;
+    --vr-muted: #64748b;
+    --vr-subtle: #94a3b8;
+    --vr-border: #dfe6ef;
+    --vr-border-soft: #edf1f6;
+    --vr-indigo: #4f46e5;
+    --vr-indigo-dark: #19165f;
+    --vr-indigo-soft: #eef2ff;
+    --vr-teal: #0f766e;
+    --vr-teal-soft: #ecfdf5;
+    --vr-amber: #b45309;
+    --vr-amber-soft: #fffbeb;
+    --vr-danger: #b42318;
+    --vr-danger-soft: #fff1f2;
+    --vr-shadow: 0 12px 30px rgba(15, 23, 42, 0.055);
+    --vr-radius: 16px;
+    background: #f5f7fb;
+    min-height: 100vh;
+}
+
+.view-record-page > .container-fluid {
+    width: min(100%, 1560px);
+    margin: 0 auto;
+    padding: clamp(1rem, 2.5vw, 2.25rem) clamp(0.75rem, 3vw, 2.5rem) 3rem;
+}
+
+.view-record-page .view-record-page-header {
+    align-items: flex-end;
+    gap: 1.5rem;
+    margin-bottom: 1.25rem;
+    padding: 0.25rem 0.25rem 1.25rem;
+    border-bottom: 1px solid var(--vr-border);
+}
+
+.view-record-page .page-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--vr-ink);
+    font-size: clamp(1.25rem, 2vw, 1.65rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+}
+
+.view-record-page .page-title-icon {
+    width: 44px;
+    height: 44px;
+    border: 1px solid #c7d2fe;
+    border-radius: 13px;
+    background: var(--vr-indigo-soft);
+    color: var(--vr-indigo);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.08);
+}
+
+.view-record-page .page-subtitle {
+    margin: 0.35rem 0 0 3.2rem;
+    color: var(--vr-muted);
+    font-size: 0.8rem;
+}
+
+.view-record-page .header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.view-record-page .header-actions > a,
+.view-record-page .header-actions > button {
+    min-height: 2.5rem;
+    border-radius: 10px;
+    font-size: 0.77rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.view-record-page .header-actions .btn-ghost {
+    border: 1px solid var(--vr-border);
+    background: #fff;
+    color: #475569;
+}
+
+.view-record-page .header-actions .btn-ghost:hover,
+.view-record-page .header-actions .btn-ghost:focus-visible {
+    border-color: #a5b4fc;
+    background: var(--vr-indigo-soft);
+    color: var(--vr-indigo);
+}
+
+.view-record-page .header-actions .btn-danger {
+    border: 1px solid #fecdd3;
+    background: #fff1f2;
+    color: var(--vr-danger);
+}
+
+.view-record-page .header-actions .btn-danger:hover,
+.view-record-page .header-actions .btn-danger:focus-visible {
+    background: #ffe4e6;
+}
+
+.view-record-page .header-actions .btn-primary {
+    border: 1px solid var(--vr-indigo);
+    background: var(--vr-indigo);
+    color: #fff;
+    box-shadow: 0 5px 12px rgba(79, 70, 229, 0.18);
+}
+
+.view-record-page .header-actions .btn-primary:hover,
+.view-record-page .header-actions .btn-primary:focus-visible {
+    border-color: #4338ca;
+    background: #4338ca;
+}
+
+.view-record-page .header-actions > a:focus-visible,
+.view-record-page .header-actions > button:focus-visible {
+    outline: 3px solid rgba(99, 102, 241, 0.25);
+    outline-offset: 2px;
+}
+
+/* The page becomes a balanced clinical workspace instead of one narrow stack. */
+.view-record-page .vr-container {
+    width: 100%;
+    max-width: none;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-items: start;
+    gap: 1rem;
+}
+
+.view-record-page .vr-header,
+.view-record-page .vr-section--full {
+    grid-column: 1 / -1;
+}
+
+.view-record-page .vr-section--half {
+    grid-column: span 6;
+}
+
+/* Record identity banner */
+.view-record-page .vr-header {
+    position: relative;
+    isolation: isolate;
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    overflow: hidden;
+    margin: 0;
+    padding: 1.55rem clamp(1.15rem, 3vw, 2rem);
+    border: 1px solid #27236d;
+    border-radius: var(--vr-radius);
+    background: var(--vr-indigo-dark);
+    box-shadow: 0 14px 28px rgba(25, 22, 95, 0.16);
+    color: #fff;
+}
+
+.view-record-page .vr-header::before {
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(50%, 520px);
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.46), rgba(79, 70, 229, 0.08));
+    clip-path: polygon(0 0, 82% 0, 100% 100%, 0 100%);
+    content: '';
+}
+
+.view-record-page .vr-header::after {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #6366f1 0%, #818cf8 45%, #2dd4bf 100%);
+    content: '';
+}
+
+.view-record-page .vr-header-left,
+.view-record-page .vr-header-right {
+    position: relative;
+    z-index: 1;
+}
+
+.view-record-page .vr-header-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.view-record-page .vr-header-icon {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 auto;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.14);
+    color: #c7d2fe;
+    font-size: 1.4rem;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.view-record-page .vr-header-info {
+    min-width: 0;
+}
+
+.view-record-page .vr-header-kicker {
+    display: block;
+    margin-bottom: 0.3rem;
+    color: #c7d2fe;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.view-record-page .vr-header-info h1 {
+    margin: 0;
+    color: #fff;
+    font-size: clamp(1.15rem, 2vw, 1.65rem);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.15;
+}
+
+.view-record-page .vr-header-patient {
+    max-width: min(62vw, 640px);
+    margin: 0.3rem 0 0.65rem;
+    overflow: hidden;
+    color: #fff;
+    font-size: 0.92rem;
+    font-weight: 700;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.view-record-page .vr-header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem 1rem;
+    color: #dbeafe;
+    font-size: 0.7rem;
+    line-height: 1.4;
+}
+
+.view-record-page .vr-header-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.view-record-page .vr-header-meta i {
+    color: #a5b4fc;
+}
+
+.view-record-page .vr-header-right {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    flex: 0 0 auto;
+}
+
+.view-record-page .vr-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.1rem;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid rgba(167, 243, 208, 0.7);
+    border-radius: 999px;
+    background: rgba(236, 253, 245, 0.96);
+    color: var(--vr-teal);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* Section cards */
+.view-record-page .vr-section {
+    align-self: stretch;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid var(--vr-border);
+    border-radius: var(--vr-radius);
+    background: #fff;
+    box-shadow: var(--vr-shadow);
+}
+
+.view-record-page .vr-section-header {
+    min-height: 3.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.8rem 1.15rem;
+    border-bottom: 1px solid var(--vr-border-soft);
+    background: linear-gradient(180deg, #fff 0%, #fbfcfe 100%);
+    color: var(--vr-ink);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.075em;
+    text-transform: uppercase;
+}
+
+.view-record-page .vr-section-header i {
+    width: 1.8rem;
+    height: 1.8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    border: 1px solid #c7d2fe;
+    border-radius: 8px;
+    background: var(--vr-indigo-soft);
+    color: var(--vr-indigo);
+    font-size: 0.82rem;
+}
+
+.view-record-page .vr-section-header .vr-section-count {
+    margin-left: auto;
+    padding: 0.25rem 0.55rem;
+    border: 1px solid #a7f3d0;
+    border-radius: 999px;
+    background: var(--vr-teal-soft);
+    color: var(--vr-teal);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: none;
+    white-space: nowrap;
+}
+
+.view-record-page .vr-section-body {
+    padding: 1rem 1.15rem 1.15rem;
+}
+
+/* Key/value fields */
+.view-record-page .vr-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.55rem;
+}
+
+.view-record-page .vr-grid--2col {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.view-record-page .vr-grid--4col {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.view-record-page .vr-item {
+    min-width: 0;
+    min-height: 4.15rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--vr-border-soft);
+    border-radius: 10px;
+    background: #fbfcfe;
+}
+
+.view-record-page .vr-item--full {
+    grid-column: 1 / -1;
+}
+
+.view-record-page .vr-label,
+.view-record-page .vr-injury-label {
+    color: var(--vr-subtle);
+    font-size: 0.59rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.view-record-page .vr-value {
+    color: var(--vr-ink);
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.view-record-page .vr-value--empty,
+.view-record-page .vr-vital-value--empty {
+    color: var(--vr-subtle);
+    font-style: italic;
+    font-weight: 500;
+}
+
+.view-record-page .vr-value--bold {
+    color: var(--vr-ink);
+    font-size: 0.94rem;
+    font-weight: 800;
+}
+
+.view-record-page .vr-value--multiline {
+    white-space: pre-wrap;
+}
+
+/* Refusal waiver field icons */
+.view-record-page .vr-label > i {
+    margin-right: 0.3rem;
+    color: var(--vr-indigo);
+    font-size: 0.72rem;
+}
+
+.view-record-page .vr-waiver-status,
+.view-record-page .vr-waiver-link,
+.view-record-page .vr-waiver-notice {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.view-record-page .vr-waiver-status.is-complete > i { color: #059669; }
+.view-record-page .vr-waiver-status.is-missing > i { color: #d97706; }
+.view-record-page .vr-waiver-status.is-inactive > i { color: #64748b; }
+
+.view-record-page .vr-waiver-link > i { color: var(--vr-indigo); }
+.view-record-page .vr-waiver-notice > i { color: #0f766e; }
+
+.view-record-page .vr-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.view-record-page .vr-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.55rem;
+    padding: 0.22rem 0.55rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 0.64rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.view-record-page .vr-chip--emergency {
+    border-color: #fecdd3;
+    background: var(--vr-danger-soft);
+    color: var(--vr-danger);
+}
+
+.view-record-page .vr-chip--care {
+    border-color: #c7d2fe;
+    background: var(--vr-indigo-soft);
+    color: var(--vr-indigo);
+}
+
+.view-record-page .vr-chip--info {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.view-record-page .vr-chip--purple {
+    border-color: #ddd6fe;
+    background: #f5f3ff;
+    color: #7c3aed;
+}
+
+/* Initial/follow-up vital signs */
+.view-record-page .vr-vitals-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+}
+
+.view-record-page .vr-vital-card {
+    overflow: hidden;
+    border: 1px solid var(--vr-border);
+    border-radius: 13px;
+    background: #fff;
+    box-shadow: none;
+}
+
+.view-record-page .vr-vital-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.72rem 0.85rem;
+    border-bottom: 1px solid #c7d2fe;
+    background: var(--vr-indigo-soft);
+    color: var(--vr-indigo);
+    font-size: 0.69rem;
+    font-weight: 800;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+}
+
+.view-record-page .vr-vital-card:nth-child(2) .vr-vital-card-header {
+    border-color: #a7f3d0;
+    background: var(--vr-teal-soft);
+    color: var(--vr-teal);
+}
+
+.view-record-page .vr-vital-card-body {
+    padding: 0.45rem 0.85rem 0.65rem;
+}
+
+.view-record-page .vr-vital-row {
+    min-height: 2.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.42rem 0;
+    border-bottom: 1px solid var(--vr-border-soft);
+}
+
+.view-record-page .vr-vital-row:last-child {
+    border-bottom: 0;
+}
+
+.view-record-page .vr-vital-label {
+    color: var(--vr-muted);
+    font-size: 0.65rem;
+    font-weight: 700;
+}
+
+.view-record-page .vr-vital-value {
+    color: var(--vr-ink);
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+.view-record-page .vr-vital-value .vr-chips {
+    justify-content: flex-end;
+}
+
+/* Injuries and narrative */
+.view-record-page .vr-injuries-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+}
+
+.view-record-page .vr-injury-card {
+    padding: 0.85rem 0.95rem;
+    border: 1px solid #fecdd3;
+    border-left: 3px solid #f43f5e;
+    border-radius: 12px;
+    background: #fffafb;
+    box-shadow: none;
+}
+
+.view-record-page .vr-injury-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.7rem;
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid #ffe4e6;
+    color: var(--vr-ink);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.view-record-page .vr-injury-card-header i {
+    color: #e11d48;
+}
+
+.view-record-page .vr-injury-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+}
+
+.view-record-page .vr-injury-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.view-record-page .vr-injury-item--full {
+    grid-column: 1 / -1;
+}
+
+.view-record-page .vr-injury-value {
+    color: var(--vr-ink);
+    font-size: 0.76rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.view-record-page .vr-narrative {
+    position: relative;
+    padding: 1.15rem 1.2rem 1.15rem 1.4rem;
+    border: 1px solid var(--vr-border);
+    border-radius: 12px;
+    background: #fbfcfe;
+    color: #334155;
+    font-family: var(--font-sans);
+    font-size: 0.84rem;
+    line-height: 1.75;
+    white-space: pre-wrap;
+}
+
+.view-record-page .vr-narrative::before {
+    position: absolute;
+    top: 0.9rem;
+    bottom: 0.9rem;
+    left: 0.75rem;
+    width: 3px;
+    border-radius: 999px;
+    background: linear-gradient(#818cf8, #2dd4bf);
+    content: '';
+}
+
+.view-record-page .vr-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.65rem 1.5rem;
+    padding: 0.85rem 1.15rem;
+    border-top: 0;
+    border-radius: 0;
+    background: #f8fafc;
+    color: var(--vr-muted);
+    font-size: 0.68rem;
+}
+
+.view-record-page .vr-footer span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.view-record-page .vr-footer i {
+    color: var(--vr-teal);
+}
+
+@media (max-width: 1100px) {
+    .view-record-page .vr-grid--4col {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .view-record-page .vr-header::before {
+        width: 100%;
+        background: linear-gradient(145deg, rgba(79, 70, 229, 0.44), rgba(79, 70, 229, 0.06));
+        clip-path: none;
+    }
+
+    .view-record-page .vr-section--half {
+        grid-column: 1 / -1;
+    }
+
+    .view-record-page .vr-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .view-record-page .vr-grid--2col,
+    .view-record-page .vr-grid--4col {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 680px) {
+    .view-record-page > .container-fluid {
+        padding: 0.8rem 0.6rem 1.5rem;
+    }
+
+    .view-record-page .view-record-page-header {
+        align-items: stretch;
+        gap: 0.85rem;
+        margin-bottom: 0.85rem;
+        padding: 0.1rem 0.15rem 0.85rem;
+    }
+
+    .view-record-page .page-title {
+        gap: 0.55rem;
+        font-size: 1.15rem;
+    }
+
+    .view-record-page .page-title-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+    }
+
+    .view-record-page .page-subtitle {
+        margin-left: 2.6rem;
+        font-size: 0.72rem;
+    }
+
+    .view-record-page .header-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+    }
+
+    .view-record-page .header-actions > a,
+    .view-record-page .header-actions > button {
+        width: 100%;
+        min-width: 0;
+        padding-inline: 0.45rem;
+        font-size: 0.68rem;
+    }
+
+    .view-record-page .vr-container {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.75rem;
+    }
+
+    .view-record-page .vr-header,
+    .view-record-page .vr-section--half,
+    .view-record-page .vr-section--full {
+        grid-column: 1 / -1;
+    }
+
+    .view-record-page .vr-header {
+        min-height: 0;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1.15rem 1rem 1.2rem;
+        border-radius: 14px;
+    }
+
+    .view-record-page .vr-header::before {
+        width: 100%;
+        background: linear-gradient(145deg, rgba(79, 70, 229, 0.44), rgba(79, 70, 229, 0.06));
+        clip-path: none;
+    }
+
+    .view-record-page .vr-header-left {
+        width: 100%;
+        gap: 0.7rem;
+    }
+
+    .view-record-page .vr-header-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 11px;
+        font-size: 1.1rem;
+    }
+
+    .view-record-page .vr-header-kicker {
+        font-size: 0.52rem;
+        letter-spacing: 0.1em;
+    }
+
+    .view-record-page .vr-header-info h1 {
+        font-size: 1.12rem;
+    }
+
+    .view-record-page .vr-header-patient {
+        max-width: calc(100vw - 6rem);
+        margin-bottom: 0.5rem;
+        font-size: 0.78rem;
+    }
+
+    .view-record-page .vr-header-meta {
+        gap: 0.35rem 0.7rem;
+        font-size: 0.62rem;
+    }
+
+    .view-record-page .vr-header-right {
+        align-items: flex-start;
+    }
+
+    .view-record-page .vr-status-badge {
+        min-height: 1.9rem;
+        font-size: 0.61rem;
+    }
+
+    .view-record-page .vr-section-header {
+        min-height: 2.9rem;
+        padding: 0.65rem 0.75rem;
+        font-size: 0.63rem;
+    }
+
+    .view-record-page .vr-section-header i {
+        width: 1.65rem;
+        height: 1.65rem;
+        font-size: 0.75rem;
+    }
+
+    .view-record-page .vr-section-body {
+        padding: 0.7rem;
+    }
+
+    .view-record-page .vr-grid,
+    .view-record-page .vr-grid--2col,
+    .view-record-page .vr-grid--4col,
+    .view-record-page .vr-vitals-grid,
+    .view-record-page .vr-injuries-list {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .view-record-page .vr-item {
+        min-height: 3.55rem;
+        padding: 0.6rem 0.7rem;
+    }
+
+    .view-record-page .vr-item--full,
+    .view-record-page .vr-injury-item--full {
+        grid-column: auto;
+    }
+
+    .view-record-page .vr-vital-card-body {
+        padding-inline: 0.7rem;
+    }
+
+    .view-record-page .vr-injury-details {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .view-record-page .vr-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0.75rem;
+    }
+}
+
+@media print {
+    .view-record-page {
+        background: #fff;
+    }
+
+    .view-record-page > .container-fluid {
+        width: 100%;
+        padding: 0;
+    }
+
+    .view-record-page .vr-container {
+        display: block;
+    }
+
+    .view-record-page .vr-header {
+        margin-bottom: 0.5rem;
+        border-radius: 0;
+        box-shadow: none;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .view-record-page .vr-section {
+        margin-bottom: 0.45rem;
+        border-radius: 0;
+        box-shadow: none;
+        break-inside: avoid;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .view-record-page *,
+    .view-record-page *::before,
+    .view-record-page *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}

@@ -20,7 +20,7 @@ $user_role = strtolower($current_user['role'] ?? 'guest');
   <div class="container">
     <a class="navbar-brand fw-bold d-flex align-items-center" href="<?= $base_path ?>dashboard.php">
         <img src="<?= $base_path ?>uploads/logo.png" alt="Logo" style="height: 40px; margin-right: 10px;">
-        RESQ-link
+        RESCUE 116-link
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
       <span class="navbar-toggler-icon"></span>

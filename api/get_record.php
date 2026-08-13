@@ -81,11 +81,185 @@ try {
         if ($user_stmt) { $u = $user_stmt->fetch(); if ($u) $creator_name = $u['full_name']; }
     }
 
-    $hasInjuries = !empty($injuries);
-    $hasNarrative = !empty($record['narrative_report']);
-    $hasPictures = !empty($record['patient_documentation']) || !empty($record['endorsement_attachment']);
+$hasInjuries = !empty($injuries);
+$hasNarrative = !empty($record['narrative_report']);
+$hasPictures = !empty($record['patient_documentation']) || !empty($record['endorsement_attachment']) || !empty($record['waiver_attachment']);
+$records_view = isset($_GET['context']) && $_GET['context'] === 'records';
+
+/* Records uses a presentation-only renderer. The default renderer below is
+   intentionally preserved for Drafts and any other existing callers. */
+if ($records_view) {
+    $records_empty = '<span class="records-modal-empty">&mdash;</span>';
+    $records_value = function($field, $format = null) use ($record, $records_empty) {
+        $value = $record[$field] ?? '';
+        if (empty($value)) return $records_empty;
+        if ($format === 'date') return date('M d, Y', strtotime($value));
+        if ($format === 'datetime') return date('M d, Y g:i A', strtotime($value));
+        if ($format === 'time') return date('g:i A', strtotime($value));
+        return e($value);
+    };
+    $records_field = function($label, $value, $wide = false) {
+        return '<div class="records-modal-field' . ($wide ? ' records-modal-field--wide' : '') . '">' .
+            '<span class="records-modal-field-label">' . e($label) . '</span>' .
+            '<div class="records-modal-field-value">' . $value . '</div></div>';
+    };
+    $records_chips = function($items, $class) {
+        if (empty($items)) return '<span class="records-modal-empty">&mdash;</span>';
+        $html = '<div class="records-modal-chips">';
+        foreach ($items as $item) {
+            $html .= '<span class="records-modal-chip ' . e($class) . '">' . e($item) . '</span>';
+        }
+        return $html . '</div>';
+    };
+    $status_icon = $status_class === 'completed' ? 'bi-check-circle-fill' : ($status_class === 'draft' ? 'bi-pencil-fill' : 'bi-archive-fill');
+    $patient_name = $record['patient_name'] ?: 'Unknown Patient';
 
     ob_start();
+    ?>
+    <div class="records-modal-record">
+        <section class="records-modal-patient-hero" aria-labelledby="recordsModalPatientName">
+            <div class="records-modal-patient-avatar" aria-hidden="true"><?php echo mb_strtoupper(mb_substr($patient_name, 0, 1)); ?></div>
+            <div class="records-modal-patient-main">
+                <div class="records-modal-patient-meta">
+                    <span class="records-modal-form-number">#<?php echo e($record['form_number']); ?></span>
+                    <span class="records-modal-status records-modal-status--<?php echo $status_class; ?>"><i class="bi <?php echo $status_icon; ?>"></i> <?php echo ucfirst($record['status']); ?></span>
+                </div>
+                <h2 class="records-modal-patient-name" id="recordsModalPatientName"><?php echo e($patient_name); ?></h2>
+                <div class="records-modal-patient-facts">
+                    <span><i class="bi bi-calendar3"></i> <?php echo $records_value('form_date', 'date'); ?></span>
+                    <span><i class="bi bi-geo-alt-fill"></i> <?php echo e($record['place_of_incident'] ?: 'Location not specified'); ?></span>
+                    <span><i class="bi bi-person"></i> <?php echo e($creator_name); ?></span>
+                </div>
+            </div>
+        </section>
+
+        <div class="records-modal-tabs" role="tablist" aria-label="Record sections">
+            <button class="records-modal-tab active" id="records-modal-tab-overview" type="button" role="tab" data-record-tab="overview" aria-controls="records-modal-panel-overview" aria-selected="true" tabindex="0"><i class="bi bi-grid-fill"></i><span>Overview</span></button>
+            <button class="records-modal-tab" id="records-modal-tab-vitals" type="button" role="tab" data-record-tab="vitals" aria-controls="records-modal-panel-vitals" aria-selected="false" tabindex="-1"><i class="bi bi-heart-pulse-fill"></i><span>Vitals</span></button>
+            <?php if ($hasInjuries): ?><button class="records-modal-tab" id="records-modal-tab-injuries" type="button" role="tab" data-record-tab="injuries" aria-controls="records-modal-panel-injuries" aria-selected="false" tabindex="-1"><i class="bi bi-bandaid-fill"></i><span>Injuries</span><b><?php echo count($injuries); ?></b></button><?php endif; ?>
+            <?php if ($hasNarrative): ?><button class="records-modal-tab" id="records-modal-tab-narrative" type="button" role="tab" data-record-tab="narrative" aria-controls="records-modal-panel-narrative" aria-selected="false" tabindex="-1"><i class="bi bi-journal-text"></i><span>Narrative</span></button><?php endif; ?>
+            <button class="records-modal-tab" id="records-modal-tab-pictures" type="button" role="tab" data-record-tab="pictures" aria-controls="records-modal-panel-pictures" aria-selected="false" tabindex="-1"><i class="bi bi-camera-fill"></i><span>Attachments</span></button>
+        </div>
+
+        <section class="records-modal-panel active" id="records-modal-panel-overview" role="tabpanel" aria-labelledby="records-modal-tab-overview" tabindex="0">
+            <div class="records-modal-section-grid">
+                <article class="records-modal-section-card">
+                    <div class="records-modal-section-heading"><span class="records-modal-section-icon records-modal-section-icon--indigo"><i class="bi bi-truck"></i></span><div><h3>Incident & response</h3><p>Arrival, transport, and scene timeline</p></div></div>
+                    <div class="records-modal-fields">
+                        <?php echo $records_field('Vehicle Used', $record['vehicle_used'] ? ucfirst(e($record['vehicle_used'])) : $records_empty); ?>
+                        <?php echo $records_field('Driver', $record['driver_name'] ? e($record['driver_name']) : $records_empty); ?>
+                        <?php echo $records_field('Departure', $records_value('departure_time', 'time')); ?>
+                        <?php echo $records_field('Arrival', $records_value('arrival_time', 'time')); ?>
+                        <?php echo $records_field('Place of Incident', $records_value('place_of_incident'), true); ?>
+                        <?php echo $records_field('Scene Arrival', $records_value('arrival_scene_time', 'time')); ?>
+                        <?php echo $records_field('Scene Departure', $records_value('departure_scene_time', 'time')); ?>
+                        <?php echo $records_field('Incident Time', $records_value('incident_time', 'time')); ?>
+                    </div>
+                </article>
+                <article class="records-modal-section-card">
+                    <div class="records-modal-section-heading"><span class="records-modal-section-icon records-modal-section-icon--teal"><i class="bi bi-person-fill"></i></span><div><h3>Patient profile</h3><p>Identity and demographic information</p></div></div>
+                    <div class="records-modal-fields">
+                        <?php echo $records_field('Full Name', $record['patient_name'] ? e($record['patient_name']) : $records_empty, true); ?>
+                        <?php echo $records_field('Age', $record['age'] ? e($record['age']) . ' ' . (($record['age_unit'] ?? 'years') === 'months' ? 'months' : 'years') . ' old' : $records_empty); ?>
+                        <?php echo $records_field('Gender', $record['gender'] ? ucfirst((string)$record['gender']) : $records_empty); ?>
+                        <?php echo $records_field('Date of Birth', $records_value('date_of_birth', 'date')); ?>
+                        <?php echo $records_field('Civil Status', $record['civil_status'] ? ucfirst(e($record['civil_status'])) : $records_empty); ?>
+                        <?php echo $records_field('Occupation', $records_value('occupation')); ?>
+                        <?php echo $records_field('Address', $records_value('address'), true); ?>
+                        <?php echo $records_field('Zone', $records_value('zone')); ?>
+                        <?php echo $records_field('Landmark', $records_value('zone_landmark')); ?>
+                    </div>
+                </article>
+                <?php if ($emergencyTypes || $careItems): ?>
+                <article class="records-modal-section-card records-modal-section-card--wide">
+                    <div class="records-modal-section-heading"><span class="records-modal-section-icon records-modal-section-icon--rose"><i class="bi bi-clipboard2-heart-fill"></i></span><div><h3>Clinical assessment</h3><p>Emergency classification and care delivered</p></div></div>
+                    <div class="records-modal-fields">
+                        <?php if ($emergencyTypes): ?><?php echo $records_field('Type of Emergency', $records_chips($emergencyTypes, 'records-modal-chip--emergency'), true); ?><?php endif; ?>
+                        <?php if ($careItems): ?><?php echo $records_field('Care Provided', $records_chips($careItems, 'records-modal-chip--care'), true); ?><?php endif; ?>
+                    </div>
+                </article>
+                <?php endif; ?>
+                <article class="records-modal-section-card records-modal-section-card--wide">
+                    <div class="records-modal-section-heading"><span class="records-modal-section-icon records-modal-section-icon--amber"><i class="bi bi-hospital-fill"></i></span><div><h3>Hospital & crew</h3><p>Handoff destination and response team</p></div></div>
+                    <div class="records-modal-fields">
+                        <?php echo $records_field('Arrival Hospital', $records_value('arrival_hospital_name'), true); ?>
+                        <?php echo $records_field('Hospital Arrival', $records_value('arrival_hospital_time', 'time')); ?>
+                        <?php echo $records_field('Hospital Departure', $records_value('departure_hospital_time', 'time')); ?>
+                        <?php echo $records_field('Refusal Waiver', !empty($record['waiver_attachment']) ? '<a href="../api/serve_file.php?file=../' . e($record['waiver_attachment']) . '" target="_blank" rel="noopener">Signed document available</a>' : (!empty($record['waiver_required']) ? '<strong>Required, document missing</strong>' : 'Not applicable'), true); ?>
+                        <?php echo $records_field('Team Leader', $records_value('team_leader')); ?>
+                        <?php echo $records_field('Data Recorder', $records_value('data_recorder')); ?>
+                        <?php echo $records_field('Logistic', $records_value('logistic')); ?>
+                        <?php echo $records_field('1st Aider', $records_value('first_aider')); ?>
+                        <?php echo $records_field('2nd Aider', $records_value('second_aider')); ?>
+                        <?php if (!empty($record['team_leader_notes'])): ?><?php echo $records_field('Team Leader Notes', nl2br(e($record['team_leader_notes'])), true); ?><?php endif; ?>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section class="records-modal-panel" id="records-modal-panel-vitals" role="tabpanel" aria-labelledby="records-modal-tab-vitals" tabindex="0">
+            <div class="records-modal-vitals-compare">
+                <?php foreach (['initial' => ['Initial assessment', 'records-modal-vitals-card--initial'], 'followup' => ['Follow-up assessment', 'records-modal-vitals-card--followup']] as $prefix => $vitalCard): ?>
+                <article class="records-modal-vitals-card <?php echo $vitalCard[1]; ?>">
+                    <div class="records-modal-vitals-heading"><span><i class="bi bi-heart-pulse-fill"></i></span><div><h3><?php echo $vitalCard[0]; ?></h3><p><?php echo $prefix === 'initial' ? 'First recorded patient status' : 'Most recent recorded patient status'; ?></p></div></div>
+                    <div class="records-modal-vitals-grid">
+                        <?php
+                        $vitalDefinitions = [
+                            ['Blood Pressure', $prefix . '_bp', 'mmHg', 'bi-droplet-fill', 'records-modal-vital--bp'],
+                            ['Temperature', $prefix . '_temp', '°C', 'bi-thermometer-half', 'records-modal-vital--temp'],
+                            ['Pulse Rate', $prefix . '_pulse', 'BPM', 'bi-heart-fill', 'records-modal-vital--pulse'],
+                            ['SpO2', $prefix . '_spo2', '%', 'bi-lungs-fill', 'records-modal-vital--spo2']
+                        ];
+                        foreach ($vitalDefinitions as $vital):
+                            $vitalValue = $record[$vital[1]] ?? '';
+                        ?>
+                        <div class="records-modal-vital-item"><span class="records-modal-vital-icon <?php echo $vital[4]; ?>"><i class="bi <?php echo $vital[3]; ?>"></i></span><div><span class="records-modal-vital-label"><?php echo $vital[0]; ?></span><strong><?php echo $vitalValue ? e($vitalValue) . ' <small>' . $vital[2] . '</small>' : $records_empty; ?></strong></div></div>
+                        <?php endforeach; ?>
+                        <?php $consciousness = $record[$prefix . '_consciousness'] ?? ''; if ($consciousness) { $decodedConsciousness = json_decode($consciousness, true); $consciousness = is_array($decodedConsciousness) ? implode(', ', array_map('ucfirst', $decodedConsciousness)) : ucfirst((string)$consciousness); } ?>
+                        <div class="records-modal-vital-item records-modal-vital-item--wide"><span class="records-modal-vital-icon records-modal-vital--consciousness"><i class="bi bi-brain"></i></span><div><span class="records-modal-vital-label">Consciousness</span><strong><?php echo $consciousness ? e($consciousness) : $records_empty; ?></strong></div></div>
+                    </div>
+                </article>
+                <?php endforeach; ?>
+            </div>
+        </section>
+
+        <?php if ($hasInjuries): ?>
+        <section class="records-modal-panel" id="records-modal-panel-injuries" role="tabpanel" aria-labelledby="records-modal-tab-injuries" tabindex="0">
+            <div class="records-modal-panel-heading"><span class="records-modal-panel-icon records-modal-section-icon--rose"><i class="bi bi-bandaid-fill"></i></span><div><h3>Injury mapping</h3><p><?php echo count($injuries); ?> documented injury <?php echo count($injuries) === 1 ? 'finding' : 'findings'; ?></p></div></div>
+            <div class="records-modal-injury-list">
+                <?php foreach ($injuries as $injury): ?>
+                <article class="records-modal-injury-card"><span class="records-modal-injury-number">#<?php echo (int)$injury['injury_number']; ?></span><div><div class="records-modal-chips"><span class="records-modal-chip records-modal-chip--emergency"><?php echo ucfirst((string)$injury['injury_type']); ?></span><span class="records-modal-chip records-modal-chip--info"><?php echo e($injury['body_part'] ?? (ucfirst((string)($injury['body_view'] ?? '')) . ' View')); ?></span></div><?php if (!empty($injury['notes'])): ?><p><?php echo e($injury['notes']); ?></p><?php else: ?><p class="records-modal-empty-note">No additional notes recorded.</p><?php endif; ?></div></article>
+                <?php endforeach; ?>
+            </div>
+        </section>
+        <?php endif; ?>
+
+        <?php if ($hasNarrative): ?>
+        <section class="records-modal-panel" id="records-modal-panel-narrative" role="tabpanel" aria-labelledby="records-modal-tab-narrative" tabindex="0">
+            <div class="records-modal-panel-heading"><span class="records-modal-panel-icon records-modal-section-icon--indigo"><i class="bi bi-journal-text"></i></span><div><h3>Narrative report</h3><p>Clinical account recorded for this response</p></div></div>
+            <article class="records-modal-narrative"><div class="records-modal-narrative-label"><i class="bi bi-quote"></i> Response narrative</div><div class="records-modal-narrative-text"><?php echo nl2br(e($record['narrative_report'])); ?></div></article>
+        </section>
+        <?php endif; ?>
+
+        <section class="records-modal-panel" id="records-modal-panel-pictures" role="tabpanel" aria-labelledby="records-modal-tab-pictures" tabindex="0">
+            <div class="records-modal-panel-heading"><span class="records-modal-panel-icon records-modal-section-icon--teal"><i class="bi bi-paperclip"></i></span><div><h3>Record attachments</h3><p>Patient documentation, endorsement, and waiver files</p></div></div>
+            <div class="records-modal-attachment-grid">
+                <?php if (!empty($record['patient_documentation'])): ?><article class="records-modal-attachment"><div class="records-modal-attachment-heading"><span><i class="bi bi-camera-fill"></i></span><div><h3>Patient documentation</h3><p>Patient image attached to the record</p></div></div><button type="button" class="records-modal-image-button" data-record-image="../api/serve_file.php?file=../<?php echo e($record['patient_documentation']); ?>" aria-label="Open patient documentation image"><img src="../api/serve_file.php?file=../<?php echo e($record['patient_documentation']); ?>" alt="Patient documentation"></button></article><?php endif; ?>
+                <?php if (!empty($record['endorsement_attachment'])): ?><article class="records-modal-attachment"><div class="records-modal-attachment-heading"><span><i class="bi bi-file-earmark-check-fill"></i></span><div><h3>Endorsement attachment</h3><p>Handoff documentation attached to the record</p></div></div><button type="button" class="records-modal-image-button" data-record-image="../api/serve_file.php?file=../<?php echo e($record['endorsement_attachment']); ?>" aria-label="Open endorsement attachment image"><img src="../api/serve_file.php?file=../<?php echo e($record['endorsement_attachment']); ?>" alt="Endorsement attachment"></button></article><?php endif; ?>
+                <?php if (!empty($record['waiver_attachment'])): ?><article class="records-modal-attachment"><div class="records-modal-attachment-heading"><span><i class="bi bi-shield-check"></i></span><div><h3>Signed refusal waiver</h3><p>Patient refusal document on file</p></div></div><button type="button" class="records-modal-image-button" data-record-image="../api/serve_file.php?file=../<?php echo e($record['waiver_attachment']); ?>" aria-label="Open signed refusal waiver"><img src="../api/serve_file.php?file=../<?php echo e($record['waiver_attachment']); ?>" alt="Signed refusal waiver"></button></article><?php endif; ?>
+            </div>
+            <?php if (!$hasPictures): ?><div class="records-modal-empty-attachments"><span><i class="bi bi-paperclip"></i></span><h3>No attachments</h3><p>No patient documentation, endorsement, or waiver images have been uploaded for this record.</p></div><?php endif; ?>
+        </section>
+
+        <footer class="records-modal-record-footer"><span><i class="bi bi-clock-history"></i> Created <?php echo $records_value('created_at', 'datetime'); ?></span><span>Updated <?php echo time_ago($record['updated_at'] ?? $record['created_at']); ?></span></footer>
+    </div>
+    <?php
+    $html = ob_get_clean();
+    echo json_encode(['success' => true, 'html' => $html]);
+    exit;
+}
+
+ob_start();
     ?>
     <div class="modal-record-view">
         <div class="mv-header">
@@ -284,11 +458,19 @@ try {
                 </div>
             </div>
             <?php endif; ?>
-            <?php if (empty($record['patient_documentation']) && empty($record['endorsement_attachment'])): ?>
+            <?php if (!empty($record['waiver_attachment'])): ?>
+            <div class="mv-card">
+                <div class="mv-card-header"><i class="bi bi-shield-check"></i> Signed Refusal Waiver</div>
+                <div class="mv-pictures-wrapper">
+                    <img src="../api/serve_file.php?file=../<?php echo e($record['waiver_attachment']); ?>" alt="Signed Refusal Waiver" class="mv-picture-img" onclick="openModalPicture(this.src)">
+                </div>
+            </div>
+            <?php endif; ?>
+            <?php if (empty($record['patient_documentation']) && empty($record['endorsement_attachment']) && empty($record['waiver_attachment'])): ?>
             <div class="mv-empty-state">
                 <div class="mv-empty-icon"><i class="bi bi-camera"></i></div>
                 <div class="mv-empty-title">No Pictures Attached</div>
-                <div class="mv-empty-desc">No patient documentation or endorsement images have been uploaded for this record.</div>
+                <div class="mv-empty-desc">No patient documentation, endorsement, or waiver images have been uploaded for this record.</div>
             </div>
             <?php endif; ?>
         </div>

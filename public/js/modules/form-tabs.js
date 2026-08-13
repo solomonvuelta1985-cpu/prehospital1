@@ -4,20 +4,39 @@
 // ============================================
 
 var currentTab = 0;
-var totalTabs = 7;
+var isEditMode = Boolean(
+    document.getElementById('editForm') ||
+    document.querySelector('[data-workflow-mode="edit"]') ||
+    document.body.classList.contains('edit-record-page') ||
+    /(?:^|\/)edit_record\.php$/i.test(window.location.pathname)
+);
+var totalTabs = isEditMode ? 6 : 7;
+var completedTabs = new Set();
 
-// Adjust for edit form which has 6 tabs
-if (document.getElementById('editForm')) {
-    totalTabs = 6;
+function getStepTabs() {
+    return Array.from(document.querySelectorAll('.nav-tabs .nav-link'));
 }
 
-// Save current tab to sessionStorage
+function getStepPane(index) {
+    var tabs = getStepTabs();
+    var target = tabs[index] ? tabs[index].getAttribute('data-bs-target') : `#section${index + 1}`;
+    return target ? document.querySelector(target) : null;
+}
+
+function getStepMetadata(tab, index) {
+    return {
+        title: tab?.dataset.stepTitle || tab?.querySelector('.step-label')?.textContent.trim() || tab?.textContent.trim() || `Step ${index + 1}`,
+        description: tab?.dataset.stepDescription || 'Complete the fields in this step.',
+        icon: tab?.dataset.stepIcon || 'bi-clipboard-check'
+    };
+}
+
 function saveCurrentTab() {
     var key = document.getElementById('editForm') ? 'editFormCurrentTab' : 'createFormCurrentTab';
     sessionStorage.setItem(key, currentTab);
+    sessionStorage.setItem(`${key}Completed`, JSON.stringify(Array.from(completedTabs)));
 }
 
-// Restore saved tab (only on page refresh, not on fresh navigation)
 function restoreSavedTab() {
     var navEntries = performance.getEntriesByType('navigation');
     var isReload = navEntries.length > 0 && navEntries[0].type === 'reload';
@@ -25,167 +44,233 @@ function restoreSavedTab() {
 
     if (!isReload) {
         sessionStorage.removeItem(key);
+        sessionStorage.removeItem(`${key}Completed`);
         return;
     }
 
-    var savedTab = sessionStorage.getItem(key);
+    try {
+        var savedCompleted = JSON.parse(sessionStorage.getItem(`${key}Completed`) || '[]');
+        completedTabs = new Set(savedCompleted.filter(index => Number.isInteger(index)));
+    } catch (error) {
+        completedTabs = new Set();
+    }
 
-    if (savedTab !== null) {
-        var tabIndex = parseInt(savedTab, 10);
-
-        if (tabIndex >= 0 && tabIndex < totalTabs) {
-            currentTab = tabIndex;
-
-            document.querySelectorAll('.tab-pane').forEach(pane => {
-                pane.classList.remove('show', 'active');
-            });
-
-            var targetPane = document.querySelector(`#section${currentTab + 1}`);
-            if (targetPane) {
-                targetPane.classList.add('show', 'active');
-            }
-
-            document.querySelectorAll('.nav-tabs .nav-link').forEach((tab, index) => {
-                if (index === currentTab) {
-                    tab.classList.add('active');
-                } else {
-                    tab.classList.remove('active');
-                }
-            });
-        }
+    var savedTab = parseInt(sessionStorage.getItem(key), 10);
+    if (!Number.isNaN(savedTab) && savedTab >= 0 && savedTab < totalTabs) {
+        currentTab = savedTab;
     }
 }
 
-function navigateTab(direction) {
-    const tabs = document.querySelectorAll('.nav-tabs .nav-link');
+function hasMeaningfulValue(field) {
+    if (!field || field.disabled || field.type === 'hidden' || field.type === 'file') return false;
+    if (field.type === 'checkbox' || field.type === 'radio') return field.checked;
+    return String(field.value || '').trim() !== '';
+}
 
-    if (direction === 1 && currentTab < totalTabs - 1) {
-        tabs[currentTab].classList.add('completed');
+function getStepState(index) {
+    var pane = getStepPane(index);
+    if (!pane) return { hasData: false, hasError: false };
+
+    var fields = Array.from(pane.querySelectorAll('input, select, textarea'));
+    var hasData = fields.some(hasMeaningfulValue);
+    var hasError = fields.some(field => field.classList.contains('is-invalid'));
+    return { hasData, hasError };
+}
+
+function updateStepStates() {
+    var tabs = getStepTabs();
+    tabs.forEach((tab, index) => {
+        var state = getStepState(index);
+        // An existing record is already saved, so its edit-mode stages are
+        // complete even when the user is currently reviewing one of them.
+        var isCompleted = isEditMode || completedTabs.has(index);
+        // New records must be completed in sequence. Existing records opened
+        // in edit mode may be reviewed and updated from any stage, so their
+        // tabs must never be presented as locked.
+        var isLocked = !isEditMode && index > currentTab && !completedTabs.has(index - 1);
+        var stateText = tab.querySelector('.step-state');
+
+        tab.classList.toggle('completed', isCompleted);
+        tab.classList.toggle('has-error', state.hasError);
+        tab.classList.toggle('locked', isLocked);
+        tab.setAttribute('aria-selected', index === currentTab ? 'true' : 'false');
+        tab.setAttribute('aria-disabled', isLocked ? 'true' : 'false');
+        tab.tabIndex = isLocked ? -1 : 0;
+
+        if (stateText) {
+            stateText.textContent = state.hasError ? 'Needs attention' : isLocked ? 'Locked' : isCompleted ? 'Complete' : index === currentTab ? 'In progress' : state.hasData ? 'In progress' : 'Not started';
+        }
+    });
+}
+
+function updateStepContext() {
+    var tabs = getStepTabs();
+    var metadata = getStepMetadata(tabs[currentTab], currentTab);
+    var title = document.getElementById('currentStepTitle');
+    var description = document.getElementById('currentStepDescription');
+    var icon = document.getElementById('activeStepIcon');
+    var state = document.getElementById('currentStepState');
+
+    if (title) title.textContent = metadata.title;
+    if (description) description.textContent = metadata.description;
+    if (icon) icon.innerHTML = `<i class="bi ${metadata.icon}" aria-hidden="true"></i>`;
+    if (state) {
+        var stepState = getStepState(currentTab);
+        var isComplete = isEditMode || completedTabs.has(currentTab);
+        state.textContent = stepState.hasError ? 'Needs attention' : isComplete ? 'Complete' : 'In progress';
+        state.classList.toggle('has-error', stepState.hasError);
+        state.classList.toggle('is-complete', isComplete && !stepState.hasError);
+    }
+}
+
+function updateNavigation() {
+    var prevBtn = document.getElementById('prevBtn');
+    var nextBtn = document.getElementById('nextBtn');
+    var submitBtn = document.getElementById('submitBtn');
+    var updateBtn = document.getElementById('updateBtn');
+    var navigationHelp = document.getElementById('navigationContextHelp');
+    var isLastStep = currentTab === totalTabs - 1;
+
+    if (prevBtn) prevBtn.style.display = currentTab === 0 ? 'none' : 'inline-flex';
+
+    if (document.getElementById('editForm')) {
+        if (nextBtn) nextBtn.style.display = isLastStep ? 'none' : 'inline-flex';
+        if (updateBtn) updateBtn.style.display = isLastStep ? 'inline-flex' : 'none';
+        if (submitBtn) submitBtn.style.display = 'none';
+    } else {
+        if (nextBtn) nextBtn.style.display = isLastStep ? 'none' : 'inline-flex';
+        if (submitBtn) submitBtn.style.display = isLastStep ? 'inline-flex' : 'none';
+        if (updateBtn) updateBtn.style.display = 'none';
     }
 
-    currentTab += direction;
+    if (navigationHelp) {
+        navigationHelp.textContent = isLastStep
+            ? 'Review the record before saving your changes.'
+            : isEditMode
+                ? 'Open any stage to review or update its details.'
+                : 'Complete the required fields to continue.';
+    }
+}
 
-    if (currentTab >= totalTabs) currentTab = totalTabs - 1;
-    if (currentTab < 0) currentTab = 0;
+function updateProgress() {
+    var progress = ((currentTab + 1) / totalTabs) * 100;
+    var progressBar = document.getElementById('progressBar');
+    var stepIndicator = document.getElementById('stepIndicator');
+    var progressPercent = document.getElementById('stepProgressPercent');
+    var progressTrack = progressBar ? progressBar.parentElement : null;
 
-    document.querySelectorAll('.tab-pane').forEach(pane => {
-        pane.classList.remove('show', 'active');
+    if (progressBar) progressBar.style.width = progress + '%';
+    if (progressTrack) progressTrack.setAttribute('aria-valuenow', String(Math.round(progress)));
+    if (stepIndicator) stepIndicator.textContent = `Step ${currentTab + 1} of ${totalTabs}`;
+    if (progressPercent) progressPercent.textContent = `${Math.round(progress)}%`;
+}
+
+function validateCurrentStep() {
+    var pane = getStepPane(currentTab);
+    if (!pane) return true;
+
+    var invalidFields = Array.from(pane.querySelectorAll('input, select, textarea')).filter(field => {
+        if (field.disabled || field.type === 'hidden' || field.type === 'file') return false;
+        if (field.offsetParent === null && !field.matches('select')) return false;
+        return !field.checkValidity();
     });
 
-    const targetPane = document.querySelector(`#section${currentTab + 1}`);
+    pane.querySelectorAll('.is-invalid').forEach(field => {
+        if (!invalidFields.includes(field)) field.classList.remove('is-invalid');
+    });
+    invalidFields.forEach(field => field.classList.add('is-invalid'));
+
+    if (!invalidFields.length) return true;
+
+    var firstInvalid = invalidFields[0];
+    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    firstInvalid.focus({ preventScroll: true });
+    updateStepStates();
+    updateStepContext();
+    return false;
+}
+
+function activateStep(index, options) {
+    var tabs = getStepTabs();
+    if (index < 0 || index >= totalTabs || !tabs[index]) return;
+    options = options || {};
+    currentTab = index;
+
+    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('show', 'active'));
+    var targetPane = getStepPane(currentTab);
     if (targetPane) {
         targetPane.classList.add('show', 'active');
+        targetPane.setAttribute('aria-hidden', 'false');
     }
+    document.querySelectorAll('.tab-pane').forEach(pane => {
+        if (pane !== targetPane) pane.setAttribute('aria-hidden', 'true');
+    });
+
+    tabs.forEach((tab, tabIndex) => {
+        tab.classList.toggle('active', tabIndex === currentTab);
+        tab.setAttribute('aria-selected', tabIndex === currentTab ? 'true' : 'false');
+    });
 
     if (currentTab === 4 && typeof repositionMarkers === 'function') {
         requestAnimationFrame(() => requestAnimationFrame(() => repositionMarkers()));
     }
 
-    tabs.forEach((tab, index) => {
-        if (index === currentTab) {
-            tab.classList.add('active');
-        } else {
-            tab.classList.remove('active');
-        }
-    });
-
-    const activeTab = tabs[currentTab];
-    if (activeTab) {
-        activeTab.scrollIntoView({
-            behavior: 'smooth',
-            block: 'nearest',
-            inline: 'center'
-        });
+    var activeTab = tabs[currentTab];
+    if (activeTab) activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    if (!options.skipScroll) {
+        var workspace = document.getElementById('formWorkspace');
+        if (workspace && options.scrollWorkspace !== false) workspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        var pageContent = document.querySelector('.content');
+        if (pageContent) pageContent.scrollLeft = 0;
     }
 
     saveCurrentTab();
+    if (typeof saveCurrentSection === 'function') saveCurrentSection();
     updateNavigation();
     updateProgress();
-
-    document.querySelector('.form-body').scrollTop = 0;
+    updateStepStates();
+    updateStepContext();
+    if (currentTab === totalTabs - 1 && typeof generateFormSummary === 'function') generateFormSummary();
 }
 
-function updateNavigation() {
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const submitBtn = document.getElementById('submitBtn');
-    const updateBtn = document.getElementById('updateBtn');
-
-    if (prevBtn) {
-        prevBtn.style.display = currentTab === 0 ? 'none' : 'block';
+function navigateTab(direction) {
+    if (direction === 1 && currentTab < totalTabs - 1) {
+        if (!validateCurrentStep()) return;
+        completedTabs.add(currentTab);
     }
 
-    if (document.getElementById('editForm')) {
-        if (currentTab === totalTabs - 1) {
-            if (nextBtn) nextBtn.style.display = 'none';
-            if (updateBtn) updateBtn.style.display = 'block';
-        } else {
-            if (nextBtn) nextBtn.style.display = 'block';
-            if (updateBtn) updateBtn.style.display = 'none';
-        }
-        if (submitBtn) submitBtn.style.display = 'none';
-    } else {
-        if (currentTab === totalTabs - 1) {
-            if (nextBtn) nextBtn.style.display = 'none';
-            if (submitBtn) submitBtn.style.display = 'block';
-            generateFormSummary();
-        } else {
-            if (nextBtn) nextBtn.style.display = 'block';
-            if (submitBtn) submitBtn.style.display = 'none';
-        }
-        if (updateBtn) updateBtn.style.display = 'none';
-    }
+    var nextIndex = Math.max(0, Math.min(totalTabs - 1, currentTab + direction));
+    activateStep(nextIndex);
 }
 
-function updateProgress() {
-    const progress = ((currentTab + 1) / totalTabs) * 100;
-    const progressBar = document.getElementById('progressBar');
-    const stepIndicator = document.getElementById('stepIndicator');
-
-    if (progressBar) {
-        progressBar.style.width = progress + '%';
+function handleStepClick(event, index) {
+    event.preventDefault();
+    if (!isEditMode && index > currentTab && !completedTabs.has(index - 1)) {
+        var navigationHelp = document.getElementById('navigationContextHelp');
+        if (navigationHelp) navigationHelp.textContent = 'Complete the current step before opening a later step.';
+        return;
     }
-
-    if (stepIndicator) {
-        stepIndicator.textContent = `Step ${currentTab + 1} of ${totalTabs}`;
-    }
+    activateStep(index);
 }
 
-// Tab click event listeners
-document.querySelectorAll('.nav-tabs .nav-link').forEach((tab, index) => {
-    tab.addEventListener('click', function(e) {
-        e.preventDefault();
-        currentTab = index;
-
-        document.querySelectorAll('.tab-pane').forEach(pane => {
-            pane.classList.remove('show', 'active');
-        });
-
-        const targetPane = document.querySelector(`#section${currentTab + 1}`);
-        if (targetPane) {
-            targetPane.classList.add('show', 'active');
-        }
-
-        if (currentTab === 4 && typeof repositionMarkers === 'function') {
-            requestAnimationFrame(() => requestAnimationFrame(() => repositionMarkers()));
-        }
-
-        document.querySelectorAll('.nav-tabs .nav-link').forEach((t, i) => {
-            if (i === currentTab) {
-                t.classList.add('active');
-            } else {
-                t.classList.remove('active');
-            }
-        });
-
-        saveCurrentTab();
-        updateNavigation();
-        updateProgress();
-        if (currentTab === totalTabs - 1) {
-            generateFormSummary();
-        }
-    });
+// Bind the stepper after the markup is present. The existing Bootstrap data
+// attributes remain in place for compatibility, while this controller owns
+// the visual state and current-step behavior.
+getStepTabs().forEach((tab, index) => {
+    tab.addEventListener('click', event => handleStepClick(event, index));
 });
+
+document.querySelectorAll('#preHospitalForm input, #preHospitalForm select, #preHospitalForm textarea').forEach(field => {
+    ['input', 'change'].forEach(eventName => field.addEventListener(eventName, () => {
+        field.classList.remove('is-invalid');
+        updateStepStates();
+        updateStepContext();
+    }));
+});
+
+restoreSavedTab();
+activateStep(currentTab, { skipScroll: true, scrollWorkspace: false });
 
 // ============================================
 // FORM SUMMARY GENERATION
