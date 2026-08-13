@@ -23,8 +23,21 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// The Records and Drafts pages use JSON for status-only actions, while the
+// full edit form still uses multipart/form-data. Normalize the request here
+// so both flows can share this endpoint safely.
+$request_data = $_POST;
+$content_type = $_SERVER['CONTENT_TYPE'] ?? '';
+if (stripos($content_type, 'application/json') !== false) {
+    $decoded_request = json_decode(file_get_contents('php://input'), true);
+    if (!is_array($decoded_request)) {
+        json_response(['success' => false, 'message' => 'Invalid request data'], 400);
+    }
+    $request_data = $decoded_request;
+}
+
 // Verify CSRF token
-if (!verify_token($_POST['csrf_token'] ?? '')) {
+if (!verify_token($request_data['csrf_token'] ?? '')) {
     header('Content-Type: application/json');
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Security token validation failed. Please refresh the page and try again.']);
@@ -32,6 +45,55 @@ if (!verify_token($_POST['csrf_token'] ?? '')) {
 }
 
 try {
+    // Status-only completion requests must pass the same required-field rules
+    // as the form submit flow. Never allow a blank/incomplete draft to become
+    // a completed record just by changing its status.
+    if (($request_data['status'] ?? '') === 'completed') {
+        $record_id = isset($request_data['id'])
+            ? (int)$request_data['id']
+            : (int)($request_data['record_id'] ?? 0);
+
+        if ($record_id <= 0) {
+            throw new Exception('Invalid record ID');
+        }
+
+        if (!can_access_record($record_id)) {
+            json_response(['success' => false, 'message' => 'Access denied. You can only update your own records.'], 403);
+        }
+
+        $check_stmt = db_query(
+            "SELECT * FROM prehospital_forms WHERE id = ?",
+            [$record_id]
+        );
+        $existing_record = $check_stmt ? $check_stmt->fetch() : false;
+        if (!$existing_record) {
+            throw new Exception('Record not found');
+        }
+        if ($existing_record['status'] !== 'draft') {
+            throw new Exception('Only draft records can be marked as completed.');
+        }
+
+        $completion_errors = get_record_completion_errors($existing_record);
+        if (!empty($completion_errors)) {
+            throw new Exception('Cannot mark as completed: ' . implode(' ', $completion_errors));
+        }
+
+        $updated = db_query(
+            "UPDATE prehospital_forms SET status = 'completed', updated_at = NOW() WHERE id = ? AND status = 'draft'",
+            [$record_id],
+            true
+        );
+        if (!$updated || $updated->rowCount() !== 1) {
+            throw new Exception('The draft could not be marked as completed.');
+        }
+
+        log_activity('form_completed', "Marked form as completed: {$existing_record['form_number']}");
+        json_response([
+            'success' => true,
+            'message' => 'Draft marked as completed successfully.'
+        ]);
+    }
+
     $record_id = isset($_POST['record_id']) ? (int)$_POST['record_id'] : 0;
     
     if ($record_id <= 0) {

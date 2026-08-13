@@ -134,7 +134,21 @@ The local ZAP review identified the following items. Do not treat the applicatio
 - **Third-party frontend assets:** Core Bootstrap, Bootstrap Icons, Notiflix, Chart.js, and font assets are self-hosted under `public/vendor/`. Keep the copies reviewed and version-pinned. Confirm that no new external script or stylesheet is introduced; if a future integration must remain on a CDN, add verified SRI `integrity` and `crossorigin` attributes and document the dependency.
 - **Content Security Policy:** The application has a CSP and nonce-protected scripts, but still permits `style-src 'unsafe-inline'` because of inline styles and attributes. Refactor inline CSS and handlers into local files or replace them with reviewed nonces/hashes before tightening the policy. Re-test the login, dashboard, and clinical form after every CSP change.
 - **HTTPS and HSTS:** Local XAMPP intentionally runs over HTTP. Production must use valid HTTPS, redirect HTTP to HTTPS, and return HSTS only after HTTPS is confirmed on every required hostname.
-- **Server fingerprinting:** Configure Apache with `ServerTokens Prod` and `ServerSignature Off`, restart Apache, and confirm that responses no longer disclose detailed Apache/PHP versions.
+- **Server fingerprinting:** Back up the Apache configuration, then configure `ServerTokens Prod` and `ServerSignature Off`, restart Apache, and confirm that responses no longer disclose detailed Apache/PHP versions.
+- **MIME sniffing protection:** Enable Apache `mod_headers` and return `X-Content-Type-Options: nosniff`. Confirm the header is present on HTML, JavaScript, CSS, and file-download responses.
+- **Cache control:** Confirm authenticated patient pages and private downloads are not stored in shared or browser caches. Re-test records, drafts, reports, and served attachments.
+- **Comments and timestamps:** Remove comments that reveal internal implementation details, credentials, paths, or operational information. Treat timestamp disclosure as a low-priority hardening item unless it exposes sensitive operational data.
 - **ZAP scope:** Separate local findings from browser telemetry and third-party hosts such as Google, Google Fonts, jsDelivr, and Chrome update services. The application report should use a context limited to `http(s)://localhost/prehospital/` and `http(s)://127.0.0.1/prehospital/`; review third-party CDN risks separately.
 
-After these items are addressed, repeat the authenticated ZAP review, confirm there are no High findings, and attach the final alert export to the deployment record.
+## 11. Final hardening and retest sequence
+
+Before production release:
+
+1. Create a database backup and commit checkpoint.
+2. Back up the production Apache configuration before changing headers.
+3. Apply Apache fingerprinting and `X-Content-Type-Options` hardening.
+4. Restart Apache and verify that XAMPP/localhost still works.
+5. Enable HTTPS and HSTS only on the production HTTPS virtual host. Never force HSTS for the HTTP localhost workflow.
+6. Run the authenticated ZAP scan using a context limited to the application's localhost/production hostnames.
+7. Confirm there are no High or Critical findings; resolve or formally risk-accept remaining Low/Informational findings.
+8. Export the final ZAP report and attach it to the deployment record.

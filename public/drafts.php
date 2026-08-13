@@ -708,7 +708,7 @@ $active_filters = (int)!empty($search);
                 }
                 Notiflix.Confirm.show(
                     'Mark as Completed',
-                    'Mark ' + selectedIds.length + ' draft' + (selectedIds.length > 1 ? 's' : '') + ' as completed?',
+                    'Only drafts with all required fields completed can be marked as completed.<br><br>Mark ' + selectedIds.length + ' draft' + (selectedIds.length > 1 ? 's' : '') + ' as completed?',
                     'Yes, Mark Completed',
                     'Cancel',
                     function() {
@@ -726,7 +726,10 @@ $active_filters = (int)!empty($search);
                             if (allSuccess) {
                                 Notiflix.Notify.success('Drafts marked as completed!', { timeout: 2000 });
                             } else {
-                                Notiflix.Notify.warning('Some drafts could not be updated.', { timeout: 3000 });
+                                var failedMessages = results
+                                    .filter(function(r) { return !r.success; })
+                                    .map(function(r) { return r.message || 'Some drafts could not be updated.'; });
+                                Notiflix.Notify.warning(failedMessages.join('<br>'), { timeout: 5000 });
                             }
                             setTimeout(function() { location.reload(); }, 800);
                         }).catch(function(err) {
@@ -803,7 +806,7 @@ $active_filters = (int)!empty($search);
                 var id = parseInt(completeBtn.getAttribute('data-mark-completed'));
                 Notiflix.Confirm.show(
                     'Mark as Completed',
-                    'Mark this draft as completed?',
+                    'Only drafts with all required fields completed can be marked as completed.<br><br>Mark this draft as completed?',
                     'Yes',
                     'Cancel',
                     function() {

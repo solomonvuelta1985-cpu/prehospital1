@@ -215,6 +215,124 @@ function validate_datetime($datetime) {
 }
 
 /**
+ * Return the fields that prevent a draft from being marked as completed.
+ *
+ * Drafts are intentionally allowed to be incomplete while they are being
+ * autosaved, but the status must not be changed to completed until the same
+ * required values enforced by the form are present. Keeping this check on the
+ * server also prevents callers from bypassing the browser validation.
+ */
+function get_record_completion_errors($record) {
+    $errors = [];
+
+    $has_value = static function ($value) {
+        if (is_array($value)) {
+            return count($value) > 0;
+        }
+        if ($value === null) {
+            return false;
+        }
+
+        $value = trim((string)$value);
+        return $value !== ''
+            && $value !== '0'
+            && $value !== '[]'
+            && $value !== '{}'
+            && $value !== '0000-00-00'
+            && $value !== '0000-00-00 00:00:00';
+    };
+
+    // Ignore generated metadata such as form number and form date when
+    // determining whether the user entered anything into the draft.
+    $input_fields = [
+        'departure_time', 'arrival_time', 'vehicle_used', 'vehicle_details',
+        'driver_name', 'arrival_scene_location', 'arrival_scene_time',
+        'departure_scene_location', 'departure_scene_time', 'arrival_hospital_name',
+        'arrival_hospital_time', 'departure_hospital_time', 'arrival_station_time',
+        'persons_present', 'patient_name', 'date_of_birth', 'age', 'gender',
+        'civil_status', 'address', 'zone', 'occupation', 'place_of_incident',
+        'zone_landmark', 'incident_time', 'informant_name', 'informant_address',
+        'arrival_type', 'call_arrival_time', 'contact_number', 'relationship_victim',
+        'personal_belongings', 'other_belongings', 'emergency_medical',
+        'emergency_medical_details', 'emergency_trauma', 'emergency_trauma_details',
+        'emergency_ob', 'emergency_ob_details', 'emergency_general',
+        'emergency_general_details', 'care_management', 'oxygen_lpm', 'other_care',
+        'initial_time', 'initial_bp', 'initial_temp', 'initial_pulse',
+        'initial_resp_rate', 'initial_pain_score', 'initial_spo2',
+        'initial_spinal_injury', 'initial_consciousness', 'initial_helmet',
+        'followup_time', 'followup_bp', 'followup_temp', 'followup_pulse',
+        'followup_resp_rate', 'followup_pain_score', 'followup_spo2',
+        'followup_spinal_injury', 'followup_consciousness', 'chief_complaints',
+        'other_complaints', 'fast_face_drooping', 'fast_arm_weakness',
+        'fast_speech_difficulty', 'fast_time_to_call', 'fast_sample_details',
+        'ob_baby_status', 'ob_delivery_time', 'ob_placenta', 'ob_lmp', 'ob_aog',
+        'ob_edc', 'team_leader_notes', 'team_leader', 'data_recorder', 'logistic',
+        'first_aider', 'second_aider', 'hospital_name', 'endorsement_datetime',
+        'narrative_report', 'waiver_required', 'waiver_attachment'
+    ];
+
+    $has_input = false;
+    foreach ($input_fields as $field) {
+        if ($has_value($record[$field] ?? null)) {
+            $has_input = true;
+            break;
+        }
+    }
+    if (!$has_input) {
+        $errors[] = 'No form entries were provided.';
+    }
+
+    $form_date = trim((string)($record['form_date'] ?? ''));
+    if (!$has_value($form_date)) {
+        $errors[] = 'Date is required.';
+    } elseif (!validate_date($form_date)) {
+        $errors[] = 'Date is invalid.';
+    } elseif ($form_date > date('Y-m-d')) {
+        $errors[] = 'Date cannot be in the future.';
+    }
+
+    if (!$has_value($record['patient_name'] ?? null)) {
+        $errors[] = 'Patient Name is required.';
+    }
+
+    if ((int)($record['age'] ?? 0) <= 0) {
+        $errors[] = 'Age is required and must be greater than 0.';
+    }
+
+    $gender = strtolower(trim((string)($record['gender'] ?? '')));
+    if ($gender === '') {
+        $errors[] = 'Gender is required.';
+    } elseif (!in_array($gender, ['male', 'female'], true)) {
+        $errors[] = 'Gender is invalid.';
+    }
+
+    $emergency_types = [
+        ['emergency_medical', 'emergency_medical_details', 'Medical'],
+        ['emergency_trauma', 'emergency_trauma_details', 'Trauma'],
+        ['emergency_ob', 'emergency_ob_details', 'OB'],
+        ['emergency_general', 'emergency_general_details', 'General'],
+    ];
+    $selected_emergency_count = 0;
+    foreach ($emergency_types as [$flag, $details, $label]) {
+        if (!empty($record[$flag])) {
+            $selected_emergency_count++;
+            if (!$has_value($record[$details] ?? null)) {
+                $errors[] = $label . ' emergency details are required.';
+            }
+        }
+    }
+    if ($selected_emergency_count === 0) {
+        $errors[] = 'Select at least one Type of Emergency Call.';
+    }
+
+    if (!empty($record['waiver_required']) && !$has_value($record['waiver_attachment'] ?? null)) {
+        $errors[] = 'A signed waiver document is required when the waiver is enabled.';
+    }
+
+    return $errors;
+}
+
+/**
  * Validate password strength
  * Requirements:
  * - Minimum 8 characters

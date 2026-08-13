@@ -866,6 +866,23 @@
     border-color: #eef2f7;
 }
 
+/* Keep the row action control from sitting flush against the table edge. */
+.content .drafts-page-shell .records-table th.col-actions,
+.content .drafts-page-shell .records-table td.col-actions {
+    min-width: 9rem;
+    padding-right: 1.5rem !important;
+}
+
+.content .drafts-page-shell .records-table td.col-actions .action-dropdown {
+    display: inline-block;
+    margin: 0 !important;
+}
+
+.content .drafts-page-shell .records-table th.col-actions,
+.content .drafts-page-shell .records-table td.col-actions {
+    text-align: center !important;
+}
+
 /* Allow the desktop action menu to overflow the horizontal scroll container
    instead of being clipped by its default overflow. On mobile the menu is
    pinned to fixed coordinates by JS, so scrolling stays enabled there. */
@@ -1337,11 +1354,12 @@
 
     .content .drafts-page-shell .records-table tbody tr.record-row td.col-actions {
         text-align: right;
+        padding-right: 1.5rem !important;
     }
 
     .content .drafts-page-shell .records-table tbody tr.record-row td.col-actions .action-dropdown {
         position: relative;
-        margin-left: auto;
+        margin: 0 !important;
     }
 
 }
