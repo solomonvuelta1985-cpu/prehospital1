@@ -197,7 +197,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Auto-save (new forms only) — from modules/auto-save.js if loaded
+    // Remove any legacy browser draft storage. Current autosave is server-side
+    // and authenticated in prehospital_form.php / api/autosave_draft.php.
     if (typeof initAutoSave === 'function') {
         initAutoSave();
     }
