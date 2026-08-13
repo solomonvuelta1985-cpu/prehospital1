@@ -922,14 +922,14 @@ $active_filters = (int)!empty($search);
                         modalContent.innerHTML = html;
                     } else {
                         if (modalContent) {
-                            modalContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><i class="bi bi-exclamation-circle"></i></div><div class="empty-state-title">Unable to load draft</div><div class="empty-state-description">' + (data.message || 'Record not found') + '</div></div>';
+                            modalContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><i class="bi bi-exclamation-circle"></i></div><div class="empty-state-title">Unable to load draft</div><div class="empty-state-description">' + escapeHtml(data.message || 'Record not found') + '</div></div>';
                         }
                     }
                 })
                 .catch(function(err) {
                     console.error('View record error:', err);
                     if (modalContent) {
-                        modalContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><i class="bi bi-exclamation-circle"></i></div><div class="empty-state-title">Error loading draft</div><div class="empty-state-description">' + err.message + '</div></div>';
+                        modalContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><i class="bi bi-exclamation-circle"></i></div><div class="empty-state-title">Error loading draft</div><div class="empty-state-description">' + escapeHtml(err.message) + '</div></div>';
                     }
                 });
             }

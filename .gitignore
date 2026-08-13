@@ -12,6 +12,10 @@ logs/
 # Dependencies
 node_modules/
 
+# Local package archives and deployment artifacts
+vendor.zip
+composer.phar
+
 # OS generated files
 .DS_Store
 .DS_Store?
@@ -27,7 +31,6 @@ Thumbs.db
 
 # PHP
 .phpunit.result.cache
-composer.lock
 
 # Database
 *.db

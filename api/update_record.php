@@ -4,9 +4,9 @@
  */
 
 define('APP_ACCESS', true);
-require_once '../includes/config.php';
-require_once '../includes/functions.php';
-require_once '../includes/auth.php';
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/auth.php';
 
 // Security headers
 header("X-Frame-Options: DENY");
@@ -273,7 +273,7 @@ try {
 
         // Create uploads directory structure with date-based organization
         $dateFolder = date('Y-m-d');
-        $uploadDir = dirname(__DIR__) . '/public/uploads/patient_docs/' . $dateFolder;
+        $uploadDir = rtrim(UPLOAD_DIR, '/\\') . '/patient_docs/' . $dateFolder;
         if (!is_dir($uploadDir)) {
             if (!mkdir($uploadDir, 0755, true)) {
                 throw new Exception('Failed to create patient documentation upload directory');
@@ -482,7 +482,7 @@ try {
 
         // Create uploads directory structure with date-based organization
         $dateFolder = date('Y-m-d');
-        $uploadDir = dirname(__DIR__) . '/public/uploads/endorsements/' . $dateFolder;
+        $uploadDir = rtrim(UPLOAD_DIR, '/\\') . '/endorsements/' . $dateFolder;
         if (!is_dir($uploadDir)) {
             if (!mkdir($uploadDir, 0755, true)) {
                 throw new Exception('Failed to create endorsement attachment upload directory');

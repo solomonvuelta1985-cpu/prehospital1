@@ -13,6 +13,10 @@ require_once '../../includes/auth.php';
 header('Content-Type: application/json');
 header('X-Content-Type-Options: nosniff');
 
+if (FLUTTER_APP_KEY === '') {
+    json_response(['success' => false, 'message' => 'Flutter authentication is not configured'], 503);
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     json_response(['success' => false, 'message' => 'Invalid request method'], 405);
 }
@@ -67,6 +71,16 @@ $tokenTime = time();
 $tokenData = $user['id'] . ':' . $tokenTime;
 $tokenSig  = hash_hmac('sha256', $tokenData, FLUTTER_APP_KEY);
 $token     = base64_encode($tokenData . ':' . $tokenSig);
+
+// Store only a digest so the short-lived bearer token is single-use without
+// retaining the credential itself in the database.
+$token_stmt = db_query(
+    "INSERT INTO flutter_auth_tokens (token_hash, user_id, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 SECOND))",
+    [hash('sha256', $token), $user['id']]
+);
+if (!$token_stmt) {
+    json_response(['success' => false, 'message' => 'Authentication service unavailable'], 503);
+}
 
 json_response([
     'success' => true,

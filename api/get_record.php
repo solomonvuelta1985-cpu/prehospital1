@@ -5,9 +5,9 @@
  */
 
 define('APP_ACCESS', true);
-require_once '../includes/config.php';
-require_once '../includes/functions.php';
-require_once '../includes/auth.php';
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/auth.php';
 
 // Require authentication
 require_login();
@@ -122,7 +122,7 @@ if ($records_view) {
             <div class="records-modal-patient-main">
                 <div class="records-modal-patient-meta">
                     <span class="records-modal-form-number">#<?php echo e($record['form_number']); ?></span>
-                    <span class="records-modal-status records-modal-status--<?php echo $status_class; ?>"><i class="bi <?php echo $status_icon; ?>"></i> <?php echo ucfirst($record['status']); ?></span>
+                    <span class="records-modal-status records-modal-status--<?php echo $status_class; ?>"><i class="bi <?php echo $status_icon; ?>"></i> <?php echo e(ucfirst((string)$record['status'])); ?></span>
                 </div>
                 <h2 class="records-modal-patient-name" id="recordsModalPatientName"><?php echo e($patient_name); ?></h2>
                 <div class="records-modal-patient-facts">
@@ -161,7 +161,7 @@ if ($records_view) {
                     <div class="records-modal-fields">
                         <?php echo $records_field('Full Name', $record['patient_name'] ? e($record['patient_name']) : $records_empty, true); ?>
                         <?php echo $records_field('Age', $record['age'] ? e($record['age']) . ' ' . (($record['age_unit'] ?? 'years') === 'months' ? 'months' : 'years') . ' old' : $records_empty); ?>
-                        <?php echo $records_field('Gender', $record['gender'] ? ucfirst((string)$record['gender']) : $records_empty); ?>
+                        <?php echo $records_field('Gender', $record['gender'] ? e(ucfirst((string)$record['gender'])) : $records_empty); ?>
                         <?php echo $records_field('Date of Birth', $records_value('date_of_birth', 'date')); ?>
                         <?php echo $records_field('Civil Status', $record['civil_status'] ? ucfirst(e($record['civil_status'])) : $records_empty); ?>
                         <?php echo $records_field('Occupation', $records_value('occupation')); ?>
@@ -270,7 +270,7 @@ ob_start();
                     <span class="modal-record-status <?php echo $status_class; ?>">
                         <?php if ($status_class === 'completed'): ?><i class="bi bi-check-circle-fill"></i><?php endif; ?>
                         <?php if ($status_class === 'draft'): ?><i class="bi bi-pencil-fill"></i><?php endif; ?>
-                        <?php echo ucfirst($record['status']); ?>
+                        <?php echo e(ucfirst((string)$record['status'])); ?>
                     </span>
                 </div>
                 <h2 class="mv-patient-name"><?php echo e($record['patient_name'] ?: 'Unknown Patient'); ?></h2>
@@ -317,7 +317,7 @@ ob_start();
                 <div class="mv-card-grid">
                     <div class="mv-field mv-field--full"><span class="mv-field-label">Full Name</span><span class="mv-field-value" style="font-weight:600;"><?php echo e($record['patient_name'] ?: '-'); ?></span></div>
                     <div class="mv-field"><span class="mv-field-label">Age</span><span class="mv-field-value"><?php echo e($record['age']); ?> <?php echo ($record['age_unit'] ?? 'years') === 'months' ? 'months' : 'years'; ?> old</span></div>
-                    <div class="mv-field"><span class="mv-field-label">Gender</span><span class="mv-field-value"><?php echo $record['gender'] ? ucfirst((string)$record['gender']) : '<span class="mv-empty">—</span>'; ?></span></div>
+                    <div class="mv-field"><span class="mv-field-label">Gender</span><span class="mv-field-value"><?php echo $record['gender'] ? e(ucfirst((string)$record['gender'])) : '<span class="mv-empty">—</span>'; ?></span></div>
                     <div class="mv-field"><span class="mv-field-label">Date of Birth</span><span class="mv-field-value"><?php echo $val('date_of_birth', 'date'); ?></span></div>
                     <div class="mv-field"><span class="mv-field-label">Civil Status</span><span class="mv-field-value"><?php echo $record['civil_status'] ? ucfirst(e($record['civil_status'])) : '<span class="mv-empty">—</span>'; ?></span></div>
                     <div class="mv-field"><span class="mv-field-label">Occupation</span><span class="mv-field-value"><?php echo $val('occupation'); ?></span></div>
@@ -380,7 +380,7 @@ ob_start();
                     <div class="mv-vital-item mv-vital-item--full">
                         <div class="mv-vital-icon mv-vital-icon--consciousness"><i class="bi bi-brain"></i></div>
                         <div class="mv-vital-info"><span class="mv-vital-label">Consciousness</span><span class="mv-vital-value"><?php
-                            if (!empty($record['initial_consciousness'])) { $c = json_decode($record['initial_consciousness'], true); echo is_array($c) ? implode(', ', array_map('ucfirst', $c)) : ucfirst((string)$record['initial_consciousness']); }
+                            if (!empty($record['initial_consciousness'])) { $c = json_decode($record['initial_consciousness'], true); echo is_array($c) ? e(implode(', ', array_map('ucfirst', $c))) : e(ucfirst((string)$record['initial_consciousness'])); }
                             else echo '<span class="mv-empty">—</span>';
                         ?></span></div>
                     </div>
@@ -408,7 +408,7 @@ ob_start();
                     <div class="mv-vital-item mv-vital-item--full">
                         <div class="mv-vital-icon mv-vital-icon--consciousness"><i class="bi bi-brain"></i></div>
                         <div class="mv-vital-info"><span class="mv-vital-label">Consciousness</span><span class="mv-vital-value"><?php
-                            if (!empty($record['followup_consciousness'])) { $c = json_decode($record['followup_consciousness'], true); echo is_array($c) ? implode(', ', array_map('ucfirst', $c)) : ucfirst((string)$record['followup_consciousness']); }
+                            if (!empty($record['followup_consciousness'])) { $c = json_decode($record['followup_consciousness'], true); echo is_array($c) ? e(implode(', ', array_map('ucfirst', $c))) : e(ucfirst((string)$record['followup_consciousness'])); }
                             else echo '<span class="mv-empty">—</span>';
                         ?></span></div>
                     </div>

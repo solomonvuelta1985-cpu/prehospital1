@@ -3,19 +3,21 @@
 # For local development with folder name "prehospital":
 php_flag display_errors Off
 php_flag log_errors On
+php_flag expose_php Off
 php_value error_log "C:/xampp/htdocs/prehospital/php_error.log"
 php_value error_reporting 32767
 
 # NOTE: When deploying to production, change the error_log path to:
 # php_value error_log "/home/rescue116link/public_html/php_error.log"
 
-# Enable rewrite engine
+# Enable rewrite engine.
+#
+# This application uses explicit PHP entry points under /public and /admin;
+# it does not have a front-controller index.php at the project root. Do not
+# rewrite unknown paths to a file that does not exist. In addition to causing
+# server errors, that behavior makes security scanners treat random probes as
+# application pages. Apache should return a normal 404 for unknown paths.
 RewriteEngine On
-
-# Redirect all requests to index.php if the requested file or directory does not exist
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . index.php [L]
 
 # Security headers
 # Note: X-Frame-Options is set conditionally in PHP (config.php) based on user agent:
@@ -23,6 +25,7 @@ RewriteRule . index.php [L]
 # - Mobile app webviews: Not set (allows embedding in mobile apps)
 # The .htaccess SAMEORIGIN below applies as fallback for static files
 <IfModule mod_headers.c>
+    Header always unset X-Powered-By
     Header always set X-Frame-Options SAMEORIGIN
     Header always set X-Content-Type-Options nosniff
     Header always set X-XSS-Protection "1; mode=block"
@@ -34,6 +37,22 @@ RewriteRule . index.php [L]
     Order allow,deny
     Deny from all
 </Files>
+
+# Never expose environment files, source-control metadata, database dumps,
+# archives, package managers, or internal documentation from the web root.
+<FilesMatch "^(\.env|\.git|.*\.(env|sql|sqlite|db|zip|tar|gz|phar|lock|bak|old))$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<FilesMatch "^(\.env(?:\..*)?|composer\.(json|lock)|composer\.phar)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteRule ^(?:\.git|\.github|\.claude|\.qodo|\.vscode|backups|database|database_migrations|database_updates|scripts|tests|vendor|xampp_config_backup)(?:/|$) - [F,L]
+</IfModule>
 
 <Files "*.log">
     Order allow,deny
@@ -117,7 +136,7 @@ Options -Indexes
     </FilesMatch>
 
     # PHP files - no cache
-    <FilesMatch "\.php$">
+<FilesMatch "\.php$">
         Header set Cache-Control "no-cache, no-store, must-revalidate"
         Header set Pragma "no-cache"
         Header set Expires "0"

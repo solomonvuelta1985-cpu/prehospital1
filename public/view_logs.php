@@ -8,8 +8,8 @@ require_once '../includes/config.php';
 require_once '../includes/functions.php';
 require_once '../includes/auth.php';
 
-// Require authentication
-require_login();
+// Logs contain credentials, patient identifiers, and stack traces. Admin only.
+require_admin();
 
 $log_file = dirname(__DIR__) . '/php_error.log';
 $log_exists = file_exists($log_file);
@@ -18,8 +18,9 @@ $log_size = $log_exists ? filesize($log_file) : 0;
 $log_lines = $log_exists ? count(file($log_file)) : 0;
 
 // Handle clear log action
-if (isset($_POST['clear_log'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['clear_log']) && verify_token($_POST['csrf_token'] ?? '')) {
     file_put_contents($log_file, "Log cleared at " . date('Y-m-d H:i:s') . "\n");
+    log_activity('error_log_cleared', 'PHP error log cleared');
     header('Location: view_logs.php');
     exit;
 }
@@ -162,6 +163,7 @@ if (isset($_POST['clear_log'])) {
                     <i class="bi bi-arrow-down-circle"></i> Auto-scroll: OFF
                 </button>
                 <form method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_token(), ENT_QUOTES, 'UTF-8'); ?>">
                     <button type="submit" name="clear_log" class="btn-custom btn-danger-custom" data-action="confirmClearLog">
                         <i class="bi bi-trash"></i> Clear Log
                     </button>

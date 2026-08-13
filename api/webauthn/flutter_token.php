@@ -10,6 +10,11 @@ require_once '../../includes/config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/auth.php';
 
+if (FLUTTER_APP_KEY === '') {
+    http_response_code(503);
+    exit('Flutter authentication is not configured');
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
     exit('Method not allowed');
@@ -54,6 +59,18 @@ if (time() - $tokenTime > 30) {
     exit('Token has expired. Please try again.');
 }
 
+// Consume the token atomically. A stolen token cannot be replayed after the
+// first successful redemption.
+$consume_stmt = db_query(
+    "UPDATE flutter_auth_tokens SET used_at = NOW()
+     WHERE token_hash = ? AND used_at IS NULL AND expires_at >= NOW()",
+    [hash('sha256', $token)]
+);
+if (!$consume_stmt || $consume_stmt->rowCount() !== 1) {
+    http_response_code(403);
+    exit('Invalid or already-used token');
+}
+
 // Verify user still exists and is active
 $stmt = db_query(
     "SELECT id, username, role, status, is_restricted FROM users WHERE id = ? LIMIT 1",
@@ -77,5 +94,5 @@ setup_user_session($user, 'user_login_flutter');
 log_activity('flutter_biometric_login', 'Flutter native biometric login: ' . $user['username']);
 
 // Redirect to dashboard
-header('Location: /prehospital/public/dashboard.php');
+header('Location: ' . rtrim(APP_URL, '/') . '/public/dashboard.php');
 exit;

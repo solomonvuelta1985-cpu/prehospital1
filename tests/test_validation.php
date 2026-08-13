@@ -39,7 +39,7 @@ test('validate_datetime accepts valid Y-m-dTH:i format', validate_datetime('2024
 test('validate_datetime rejects invalid format', !validate_datetime('2024-01-15 14:30'));
 
 // Test sanitize
-test('sanitize removes HTML tags', sanitize('<script>alert("xss")</script>') === htmlspecialchars(strip_tags('<script>alert("xss")</script>'), ENT_QUOTES, 'UTF-8'));
+test('sanitize removes HTML tags', sanitize('<script>alert("xss")</script>', false) === htmlspecialchars(strip_tags('<script>alert("xss")</script>'), ENT_QUOTES, 'UTF-8'));
 test('sanitize handles arrays', is_array(sanitize(['<b>test</b>', '<i>test2</i>'])));
 
 // Test check_rate_limit (simulate session)

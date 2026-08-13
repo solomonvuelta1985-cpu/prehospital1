@@ -54,11 +54,13 @@ try {
     // Update restriction status
     if ($is_restricted) {
         // Restricting user
-        $update_sql = "UPDATE users SET is_restricted = ? WHERE id = ?";
+        $session_version_update = session_version_available() ? ', session_version = session_version + 1' : '';
+        $update_sql = "UPDATE users SET is_restricted = ?{$session_version_update} WHERE id = ?";
         $update_stmt = db_query($update_sql, [$is_restricted, $user_id]);
     } else {
         // Unrestricting user - also reset failed attempts and unlock
-        $update_sql = "UPDATE users SET is_restricted = ?, failed_attempts = 0, locked_until = NULL WHERE id = ?";
+        $session_version_update = session_version_available() ? ', session_version = session_version + 1' : '';
+        $update_sql = "UPDATE users SET is_restricted = ?, failed_attempts = 0, locked_until = NULL{$session_version_update} WHERE id = ?";
         $update_stmt = db_query($update_sql, [$is_restricted, $user_id]);
     }
 

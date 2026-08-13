@@ -87,9 +87,10 @@ try {
     }
 
     // Update user
+    $session_version_update = session_version_available() ? ', session_version = session_version + 1' : '';
     $stmt = $pdo->prepare("
         UPDATE users
-        SET full_name = ?, username = ?, email = ?, role = ?, status = ?
+        SET full_name = ?, username = ?, email = ?, role = ?, status = ?{$session_version_update}
         WHERE id = ?
     ");
 

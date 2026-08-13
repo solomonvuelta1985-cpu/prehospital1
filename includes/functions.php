@@ -1184,24 +1184,33 @@ function can_access_record($record_id) {
 }
 
 /**
- * Encrypt a field value using AES-256-CBC
- * Returns base64-encoded string with IV prepended, or original value if encryption key not set
+ * Encrypt a field value using authenticated AES-256-GCM.
+ * Existing AES-256-CBC values remain readable through decrypt_field() for a
+ * safe rolling migration. Production refuses to silently store plaintext.
  */
 function encrypt_field($plaintext) {
-    if (empty($plaintext) || empty(APP_ENCRYPTION_KEY)) {
+    if (empty($plaintext)) {
+        return $plaintext;
+    }
+
+    if (empty(APP_ENCRYPTION_KEY)) {
+        if (defined('APP_ENV') && APP_ENV === 'production') {
+            throw new RuntimeException('APP_ENCRYPTION_KEY is required in production');
+        }
         return $plaintext;
     }
 
     $key = hash('sha256', APP_ENCRYPTION_KEY, true);
-    $iv = openssl_random_pseudo_bytes(16);
-    $encrypted = openssl_encrypt($plaintext, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
+    $iv = random_bytes(12);
+    $tag = '';
+    $encrypted = openssl_encrypt($plaintext, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag);
 
-    if ($encrypted === false) {
+    if ($encrypted === false || strlen($tag) !== 16) {
         error_log("Encryption failed for field");
-        return $plaintext;
+        throw new RuntimeException('Unable to encrypt sensitive field');
     }
 
-    return base64_encode($iv . $encrypted);
+    return 'v2:' . base64_encode($iv . $tag . $encrypted);
 }
 
 /**
@@ -1209,17 +1218,37 @@ function encrypt_field($plaintext) {
  * Returns plaintext, or original value if not encrypted or key not set
  */
 function decrypt_field($ciphertext) {
-    if (empty($ciphertext) || empty(APP_ENCRYPTION_KEY)) {
+    if (empty($ciphertext)) {
         return $ciphertext;
     }
 
-    // Check if value looks like base64 (encrypted data)
-    $decoded = base64_decode($ciphertext, true);
-    if ($decoded === false || strlen($decoded) < 17) {
-        return $ciphertext; // Not encrypted, return as-is
+    if (empty(APP_ENCRYPTION_KEY)) {
+        if (defined('APP_ENV') && APP_ENV === 'production') {
+            throw new RuntimeException('APP_ENCRYPTION_KEY is required to decrypt production data');
+        }
+        return $ciphertext;
     }
 
     $key = hash('sha256', APP_ENCRYPTION_KEY, true);
+
+    // Authenticated format introduced by this hardening pass.
+    if (strpos((string)$ciphertext, 'v2:') === 0) {
+        $decoded = base64_decode(substr($ciphertext, 3), true);
+        if ($decoded === false || strlen($decoded) < 29) {
+            return $ciphertext;
+        }
+        $iv = substr($decoded, 0, 12);
+        $tag = substr($decoded, 12, 16);
+        $encrypted = substr($decoded, 28);
+        $decrypted = openssl_decrypt($encrypted, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag);
+        return $decrypted === false ? $ciphertext : $decrypted;
+    }
+
+    // Legacy unauthenticated AES-256-CBC format for existing records.
+    $decoded = base64_decode($ciphertext, true);
+    if ($decoded === false || strlen($decoded) < 17) {
+        return $ciphertext;
+    }
     $iv = substr($decoded, 0, 16);
     $encrypted = substr($decoded, 16);
 
@@ -1328,4 +1357,18 @@ function json_response($data, $status_code = 200) {
     header('Content-Type: application/json');
     echo json_encode($data);
     exit();
+}
+
+/**
+ * Write a CSV row without allowing spreadsheet applications to interpret
+ * patient-controlled values as formulas when the export is opened.
+ */
+function secure_fputcsv($stream, array $fields) {
+    $safe_fields = array_map(function ($value) {
+        if (!is_string($value) || $value === '') {
+            return $value;
+        }
+        return preg_match('/^[=+\-@]/', $value) === 1 ? "'" . $value : $value;
+    }, $fields);
+    return fputcsv($stream, $safe_fields);
 }

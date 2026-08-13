@@ -93,13 +93,15 @@ try {
 
     // Update password and set force_password_change flag if temp password
     if ($generate_temp) {
-        $stmt = $pdo->prepare("UPDATE users SET password = ?, force_password_change = 1 WHERE id = ?");
+        $session_version_update = session_version_available() ? ', session_version = session_version + 1' : '';
+        $stmt = $pdo->prepare("UPDATE users SET password = ?, force_password_change = 1{$session_version_update} WHERE id = ?");
         $stmt->execute([$password_hash, $user_id]);
 
         log_activity('admin_temp_password', "Generated temporary password for user: {$user['username']}");
         set_flash("Temporary password for '{$user['username']}': <strong>{$new_password}</strong><br><small>The user will be required to change this on next login.</small>", 'success');
     } else {
-        $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+        $session_version_update = session_version_available() ? ', session_version = session_version + 1' : '';
+        $stmt = $pdo->prepare("UPDATE users SET password = ?{$session_version_update} WHERE id = ?");
         $stmt->execute([$password_hash, $user_id]);
 
         set_flash("Password for '{$user['username']}' updated successfully!", 'success');

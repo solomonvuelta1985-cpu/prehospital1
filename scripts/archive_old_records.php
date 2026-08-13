@@ -14,6 +14,11 @@ require_once __DIR__ . '/../includes/functions.php';
 
 $is_cli = (php_sapi_name() === 'cli');
 
+if (!$is_cli) {
+    http_response_code(403);
+    exit("This maintenance task is CLI-only.\n");
+}
+
 try {
     // Get retention setting
     $sql = "SELECT setting_value FROM app_settings WHERE setting_key = 'data_retention_months' LIMIT 1";

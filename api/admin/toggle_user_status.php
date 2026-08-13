@@ -67,7 +67,8 @@ if (!$user) {
 
 try {
     // Update status
-    $stmt = $pdo->prepare("UPDATE users SET status = ? WHERE id = ?");
+    $session_version_update = session_version_available() ? ', session_version = session_version + 1' : '';
+    $stmt = $pdo->prepare("UPDATE users SET status = ?{$session_version_update} WHERE id = ?");
     $stmt->execute([$status, $user_id]);
 
     $action = $status === 'active' ? 'activated' : 'deactivated';

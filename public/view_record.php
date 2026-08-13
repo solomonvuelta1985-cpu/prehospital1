@@ -573,7 +573,7 @@ $current_user = get_auth_user();
                             $status_icon = $record['status'] === 'completed' ? 'bi-check-circle-fill' : ($record['status'] === 'draft' ? 'bi-pencil-fill' : 'bi-archive-fill');
                             ?>
                             <i class="bi <?php echo $status_icon; ?>"></i>
-                            <?php echo ucfirst($record['status']); ?>
+                            <?php echo e(ucfirst((string)$record['status'])); ?>
                         </span>
                     </div>
                 </div>
@@ -678,11 +678,11 @@ $current_user = get_auth_user();
                             </div>
                             <div class="vr-item">
                                 <span class="vr-label">Gender</span>
-                                <span class="vr-value"><?php echo ucfirst($record['gender']); ?></span>
+                                <span class="vr-value"><?php echo e(ucfirst((string)$record['gender'])); ?></span>
                             </div>
                             <div class="vr-item">
                                 <span class="vr-label">Civil Status</span>
-                                <span class="vr-value<?php echo empty($record['civil_status']) ? ' vr-value--empty' : ''; ?>"><?php echo ucfirst($record['civil_status'] ?: 'Not specified'); ?></span>
+                                <span class="vr-value<?php echo empty($record['civil_status']) ? ' vr-value--empty' : ''; ?>"><?php echo e(ucfirst((string)($record['civil_status'] ?: 'Not specified'))); ?></span>
                             </div>
                             <div class="vr-item">
                                 <span class="vr-label">Occupation</span>
@@ -721,7 +721,7 @@ $current_user = get_auth_user();
                             </div>
                             <div class="vr-item">
                                 <span class="vr-label">Arrival Type</span>
-                                <span class="vr-value<?php echo empty($record['arrival_type']) ? ' vr-value--empty' : ''; ?>"><?php echo ucfirst($record['arrival_type'] ?: 'Not specified'); ?></span>
+                                <span class="vr-value<?php echo empty($record['arrival_type']) ? ' vr-value--empty' : ''; ?>"><?php echo e(ucfirst((string)($record['arrival_type'] ?: 'Not specified'))); ?></span>
                             </div>
                             <div class="vr-item">
                                 <span class="vr-label">Call Arrival Time</span>
@@ -868,15 +868,15 @@ $current_user = get_auth_user();
                                     </div>
                                     <div class="vr-vital-row">
                                         <span class="vr-vital-label">Temperature</span>
-                                        <span class="vr-vital-value<?php echo empty($record['initial_temp']) ? ' vr-vital-value--empty' : ''; ?>"><?php echo $record['initial_temp'] ? $record['initial_temp'] . '&deg;C' : 'Not recorded'; ?></span>
+                                        <span class="vr-vital-value<?php echo empty($record['initial_temp']) ? ' vr-vital-value--empty' : ''; ?>"><?php echo $record['initial_temp'] ? e($record['initial_temp']) . '&deg;C' : 'Not recorded'; ?></span>
                                     </div>
                                     <div class="vr-vital-row">
                                         <span class="vr-vital-label">Pulse Rate</span>
-                                        <span class="vr-vital-value<?php echo empty($record['initial_pulse']) ? ' vr-vital-value--empty' : ''; ?>"><?php echo $record['initial_pulse'] ? $record['initial_pulse'] . ' BPM' : 'Not recorded'; ?></span>
+                                        <span class="vr-vital-value<?php echo empty($record['initial_pulse']) ? ' vr-vital-value--empty' : ''; ?>"><?php echo $record['initial_pulse'] ? e($record['initial_pulse']) . ' BPM' : 'Not recorded'; ?></span>
                                     </div>
                                     <div class="vr-vital-row">
                                         <span class="vr-vital-label">SPO2</span>
-                                        <span class="vr-vital-value<?php echo empty($record['initial_spo2']) ? ' vr-vital-value--empty' : ''; ?>"><?php echo $record['initial_spo2'] ? $record['initial_spo2'] . '%' : 'Not recorded'; ?></span>
+                                        <span class="vr-vital-value<?php echo empty($record['initial_spo2']) ? ' vr-vital-value--empty' : ''; ?>"><?php echo $record['initial_spo2'] ? e($record['initial_spo2']) . '%' : 'Not recorded'; ?></span>
                                     </div>
                                     <div class="vr-vital-row">
                                         <span class="vr-vital-label">Consciousness</span>
@@ -887,11 +887,11 @@ $current_user = get_auth_user();
                                                 if (is_array($consciousness)) {
                                                     echo '<div class="vr-chips">';
                                                     foreach ($consciousness as $c) {
-                                                        echo '<span class="vr-chip vr-chip--care">' . ucfirst($c) . '</span>';
+                                                        echo '<span class="vr-chip vr-chip--care">' . e(ucfirst((string)$c)) . '</span>';
                                                     }
                                                     echo '</div>';
                                                 } else {
-                                                    echo ucfirst($record['initial_consciousness']);
+                                                    echo e(ucfirst((string)$record['initial_consciousness']));
                                                 }
                                             } else {
                                                 echo 'Not recorded';
@@ -914,15 +914,15 @@ $current_user = get_auth_user();
                                     </div>
                                     <div class="vr-vital-row">
                                         <span class="vr-vital-label">Temperature</span>
-                                        <span class="vr-vital-value<?php echo empty($record['followup_temp']) ? ' vr-vital-value--empty' : ''; ?>"><?php echo $record['followup_temp'] ? $record['followup_temp'] . '&deg;C' : 'Not recorded'; ?></span>
+                                        <span class="vr-vital-value<?php echo empty($record['followup_temp']) ? ' vr-vital-value--empty' : ''; ?>"><?php echo $record['followup_temp'] ? e($record['followup_temp']) . '&deg;C' : 'Not recorded'; ?></span>
                                     </div>
                                     <div class="vr-vital-row">
                                         <span class="vr-vital-label">Pulse Rate</span>
-                                        <span class="vr-vital-value<?php echo empty($record['followup_pulse']) ? ' vr-vital-value--empty' : ''; ?>"><?php echo $record['followup_pulse'] ? $record['followup_pulse'] . ' BPM' : 'Not recorded'; ?></span>
+                                        <span class="vr-vital-value<?php echo empty($record['followup_pulse']) ? ' vr-vital-value--empty' : ''; ?>"><?php echo $record['followup_pulse'] ? e($record['followup_pulse']) . ' BPM' : 'Not recorded'; ?></span>
                                     </div>
                                     <div class="vr-vital-row">
                                         <span class="vr-vital-label">SPO2</span>
-                                        <span class="vr-vital-value<?php echo empty($record['followup_spo2']) ? ' vr-vital-value--empty' : ''; ?>"><?php echo $record['followup_spo2'] ? $record['followup_spo2'] . '%' : 'Not recorded'; ?></span>
+                                        <span class="vr-vital-value<?php echo empty($record['followup_spo2']) ? ' vr-vital-value--empty' : ''; ?>"><?php echo $record['followup_spo2'] ? e($record['followup_spo2']) . '%' : 'Not recorded'; ?></span>
                                     </div>
                                     <div class="vr-vital-row">
                                         <span class="vr-vital-label">Consciousness</span>
@@ -933,11 +933,11 @@ $current_user = get_auth_user();
                                                 if (is_array($consciousness)) {
                                                     echo '<div class="vr-chips">';
                                                     foreach ($consciousness as $c) {
-                                                        echo '<span class="vr-chip vr-chip--care">' . ucfirst($c) . '</span>';
+                                                        echo '<span class="vr-chip vr-chip--care">' . e(ucfirst((string)$c)) . '</span>';
                                                     }
                                                     echo '</div>';
                                                 } else {
-                                                    echo ucfirst($record['followup_consciousness']);
+                                                    echo e(ucfirst((string)$record['followup_consciousness']));
                                                 }
                                             } else {
                                                 echo 'Not recorded';

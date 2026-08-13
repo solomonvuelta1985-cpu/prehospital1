@@ -1,0 +1,6 @@
+# Patient and endorsement uploads must be delivered through api/serve_file.php.
+# Keep only explicitly public static assets (for example logo.png) web-readable.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(?:patient_docs|endorsements|waivers)(?:/|$) - [F,L]
+</IfModule>

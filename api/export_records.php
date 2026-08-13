@@ -4,9 +4,9 @@
  */
 
 define('APP_ACCESS', true);
-require_once '../includes/config.php';
-require_once '../includes/functions.php';
-require_once '../includes/auth.php';
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/auth.php';
 
 // Require authentication
 require_login();
@@ -127,7 +127,7 @@ $output = fopen('php://output', 'w');
 fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
 
 // Add CSV headers
-fputcsv($output, [
+secure_fputcsv($output, [
     'Form Number',
     'Form Date',
     'Patient Name',
@@ -199,7 +199,7 @@ foreach ($records as $record) {
     // Build helmet string — decode_helmet() handles both JSON and legacy formats.
     $helmetStr = implode(', ', array_map('helmet_label', decode_helmet($record['initial_helmet'] ?? '')));
 
-    fputcsv($output, [
+    secure_fputcsv($output, [
         $record['form_number'],
         $record['form_date'],
         $record['patient_name'],

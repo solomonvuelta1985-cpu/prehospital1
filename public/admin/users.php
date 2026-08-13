@@ -796,6 +796,12 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             new bootstrap.Modal(document.getElementById('changePasswordModal')).show();
         }
 
+        function escapeHtml(value) {
+            const div = document.createElement('div');
+            div.textContent = value == null ? '' : String(value);
+            return div.innerHTML;
+        }
+
         // View user details
         function viewUser(userId) {
             fetch(`../../api/admin/get_user.php?id=${userId}`)
@@ -807,30 +813,30 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <div class="row">
                                 <div class="col-md-12 text-center mb-3">
                                     <div class="user-avatar mx-auto" style="width: 80px; height: 80px; font-size: 2rem;">
-                                        ${user.full_name.charAt(0).toUpperCase()}
+                                        ${escapeHtml((user.full_name || '?').charAt(0).toUpperCase())}
                                     </div>
                                 </div>
                             </div>
                             <table class="table table-borderless">
                                 <tr>
                                     <th width="40%">Full Name:</th>
-                                    <td>${user.full_name}</td>
+                                    <td>${escapeHtml(user.full_name)}</td>
                                 </tr>
                                 <tr>
                                     <th>Username:</th>
-                                    <td>${user.username}</td>
+                                    <td>${escapeHtml(user.username)}</td>
                                 </tr>
                                 <tr>
                                     <th>Email:</th>
-                                    <td>${user.email || 'N/A'}</td>
+                                    <td>${escapeHtml(user.email || 'N/A')}</td>
                                 </tr>
                                 <tr>
                                     <th>Role:</th>
-                                    <td><span class="role-badge ${user.role}">${user.role.toUpperCase()}</span></td>
+                                    <td><span class="role-badge ${escapeHtml(user.role)}">${escapeHtml((user.role || '').toUpperCase())}</span></td>
                                 </tr>
                                 <tr>
                                     <th>Status:</th>
-                                    <td><span class="status-badge ${user.status}">${user.status.toUpperCase()}</span></td>
+                                    <td><span class="status-badge ${escapeHtml(user.status)}">${escapeHtml((user.status || '').toUpperCase())}</span></td>
                                 </tr>
                                 <tr>
                                     <th>Created:</th>

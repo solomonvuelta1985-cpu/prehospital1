@@ -2246,6 +2246,7 @@ $__emergency_option_labels = [
 
             const form = document.getElementById('preHospitalForm');
             const data = {};
+            data.csrf_token = form?.querySelector('input[name="csrf_token"]')?.value || '';
 
             // Collect ALL inputs regardless of visibility (including hidden tabs)
             const inputs = form.querySelectorAll('input, select, textarea');
@@ -3210,7 +3211,10 @@ fetch(API_BASE + 'autosave_draft.php', {
 
             // Display narrative
             const narrativeContent = document.getElementById('narrativeContent');
-            narrativeContent.innerHTML = '<div class="narrative-text">' + narrative + '</div>';
+            const narrativeElement = document.createElement('div');
+            narrativeElement.className = 'narrative-text';
+            narrativeElement.textContent = narrative;
+            narrativeContent.replaceChildren(narrativeElement);
 
             console.log('Narrative generated successfully');
         }

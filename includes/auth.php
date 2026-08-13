@@ -15,6 +15,17 @@ function is_logged_in() {
     return isset($_SESSION['user_id']) && isset($_SESSION['user_role']);
 }
 
+/** Check whether the optional session revocation migration is installed. */
+function session_version_available() {
+    static $available = null;
+    if ($available !== null) {
+        return $available;
+    }
+    $stmt = db_query("SHOW COLUMNS FROM users LIKE 'session_version'");
+    $available = (bool)($stmt && $stmt->fetch());
+    return $available;
+}
+
 /**
  * Require login - redirect if not authenticated
  */
@@ -34,13 +45,40 @@ function require_login() {
     }
     $_SESSION['last_activity'] = time();
 
+    // Re-check account state on every request. This invalidates active sessions
+    // immediately when an administrator deactivates/restricts an account or
+    // changes its role.
+    $state_stmt = db_query(
+        "SELECT status, is_restricted, role, force_password_change FROM users WHERE id = ? LIMIT 1",
+        [$_SESSION['user_id']]
+    );
+    $state = $state_stmt ? $state_stmt->fetch() : null;
+    if (!$state || $state['status'] !== 'active' || (int)$state['is_restricted'] === 1 || $state['role'] !== $_SESSION['user_role']) {
+        logout_user();
+        session_start();
+        set_flash('Your account is no longer authorized. Please contact an administrator.', 'error');
+        redirect('../public/login.php');
+    }
+
+    // A session version lets administrators revoke all sessions for one user.
+    // The query is compatibility-safe until the accompanying migration is run.
+    $version_stmt = session_version_available()
+        ? db_query("SELECT session_version FROM users WHERE id = ? LIMIT 1", [$_SESSION['user_id']])
+        : false;
+    if ($version_stmt) {
+        $version_row = $version_stmt->fetch();
+        if ($version_row && isset($_SESSION['session_version']) && (int)$version_row['session_version'] !== (int)$_SESSION['session_version']) {
+            logout_user();
+            session_start();
+            set_flash('Your session was revoked. Please login again.', 'warning');
+            redirect('../public/login.php');
+        }
+    }
+
     // Force password change check (skip if already on change_password page)
     $current_script = basename($_SERVER['SCRIPT_NAME'] ?? '');
     if ($current_script !== 'change_password.php' && $current_script !== 'logout.php') {
-        $force_pw_sql = "SELECT force_password_change FROM users WHERE id = ? LIMIT 1";
-        $force_pw_stmt = db_query($force_pw_sql, [$_SESSION['user_id']]);
-        $force_pw_user = $force_pw_stmt ? $force_pw_stmt->fetch() : null;
-        if ($force_pw_user && $force_pw_user['force_password_change'] == 1) {
+        if ((int)$state['force_password_change'] === 1) {
             redirect('../public/change_password.php');
         }
     }
@@ -102,6 +140,16 @@ function setup_user_session($user, $loginMethod = 'user_login') {
     $_SESSION['username'] = $user['username'];
     $_SESSION['user_role'] = $user['role'];
     $_SESSION['login_time'] = time();
+
+    $version_stmt = session_version_available()
+        ? db_query("SELECT session_version FROM users WHERE id = ? LIMIT 1", [$user['id']])
+        : false;
+    if ($version_stmt) {
+        $version_row = $version_stmt->fetch();
+        if ($version_row && isset($version_row['session_version'])) {
+            $_SESSION['session_version'] = (int)$version_row['session_version'];
+        }
+    }
 
     // Update last login
     $update_sql = "UPDATE users SET last_login = NOW() WHERE id = ?";

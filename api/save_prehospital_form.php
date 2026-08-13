@@ -5,9 +5,9 @@
  */
 
 define('APP_ACCESS', true);
-require_once '../includes/config.php';
-require_once '../includes/functions.php';
-require_once '../includes/auth.php';
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/auth.php';
 
 // Security headers
 header("X-Frame-Options: DENY");
@@ -39,74 +39,12 @@ if (!verify_token($_POST['csrf_token'] ?? '')) {
 }
 
 
-// Handle file upload security - Patient Documentation
+// Handle patient documentation in the private uploads directory.
 $patient_documentation_path = null;
 try {
-if (isset($_FILES['patient_documentation']) && $_FILES['patient_documentation']['error'] !== UPLOAD_ERR_NO_FILE) {
-    $file = $_FILES['patient_documentation'];
-
-    // Security checks
-    if ($file['error'] !== UPLOAD_ERR_OK) {
-        throw new Exception('Patient documentation upload error: ' . $file['error']);
+    if (isset($_FILES['patient_documentation']) && $_FILES['patient_documentation']['error'] !== UPLOAD_ERR_NO_FILE) {
+        $patient_documentation_path = store_secure_image_upload($_FILES['patient_documentation'], 'patient_docs', 'patient');
     }
-
-    // Validate file size (20MB max)
-    $maxSize = MAX_FILE_SIZE;
-    if ($file['size'] > $maxSize) {
-        throw new Exception('Patient documentation file size exceeds 20MB limit');
-    }
-
-    // Validate MIME type
-    $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $mimeType = finfo_file($finfo, $file['tmp_name']);
-    finfo_close($finfo);
-
-    if (!in_array($mimeType, $allowedMimeTypes)) {
-        throw new Exception('Invalid patient documentation file type. Only images are allowed.');
-    }
-
-    // Validate file extension matches MIME type
-    $fileName = strtolower($file['name']);
-    $extension = pathinfo($fileName, PATHINFO_EXTENSION);
-    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-
-    if (!in_array($extension, $allowedExtensions)) {
-        throw new Exception('Patient documentation file extension not allowed');
-    }
-
-    // Additional security: Check for malicious content
-    if (function_exists('exif_imagetype')) {
-        $imageType = exif_imagetype($file['tmp_name']);
-        if (!$imageType || !in_array($imageType, [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP])) {
-            throw new Exception('Invalid patient documentation image file');
-        }
-    }
-
-    // Generate secure filename with date and unique ID
-    $uniqueId = bin2hex(random_bytes(16));
-    $dateFolder = date('Y-m-d'); // Organize by date: 2026-01-09
-    $safeFileName = 'patient_' . date('YmdHis') . '_' . $uniqueId . '.' . $extension;
-
-    // Create uploads directory with date subfolder for better organization
-    $uploadDir = '../public/uploads/patient_docs/' . $dateFolder . '/';
-    if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0750, true);
-    }
-
-    $targetPath = $uploadDir . $safeFileName;
-
-    // Move uploaded file
-    if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
-        throw new Exception('Failed to save patient documentation file');
-    }
-
-    // Store relative path for database (accessible via web)
-    $patient_documentation_path = 'uploads/patient_docs/' . $dateFolder . '/' . $safeFileName;
-
-    // Add metadata comment for tracking
-    // File saved with metadata: date, time, unique ID, original extension
-}
 } catch (Exception $e) {
     error_log("File Upload Error: " . $e->getMessage());
     set_flash('File upload error: ' . $e->getMessage(), 'error');
@@ -459,69 +397,10 @@ try {
 
     $endorsement_datetime = $endorsement_datetime_raw ? sanitize($endorsement_datetime_raw, false) : null; // Don't uppercase datetime
 
-    // Handle file upload security - Endorsement Attachment
+    // Handle endorsement attachment in the private uploads directory.
     $endorsement_attachment_path = null;
     if (isset($_FILES['endorsement_attachment']) && $_FILES['endorsement_attachment']['error'] !== UPLOAD_ERR_NO_FILE) {
-        $file = $_FILES['endorsement_attachment'];
-
-        // Security checks
-        if ($file['error'] !== UPLOAD_ERR_OK) {
-            throw new Exception('Endorsement attachment upload error: ' . $file['error']);
-        }
-
-        // Validate file size (20MB max)
-        $maxSize = MAX_FILE_SIZE;
-        if ($file['size'] > $maxSize) {
-            throw new Exception('Endorsement attachment file size exceeds 20MB limit');
-        }
-
-        // Validate MIME type
-        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_file($finfo, $file['tmp_name']);
-        finfo_close($finfo);
-
-        if (!in_array($mimeType, $allowedMimeTypes)) {
-            throw new Exception('Invalid endorsement attachment file type. Only images are allowed.');
-        }
-
-        // Validate file extension matches MIME type
-        $fileName = strtolower($file['name']);
-        $extension = pathinfo($fileName, PATHINFO_EXTENSION);
-        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-
-        if (!in_array($extension, $allowedExtensions)) {
-            throw new Exception('Endorsement attachment file extension not allowed');
-        }
-
-        // Additional security: Check for malicious content
-        if (function_exists('exif_imagetype')) {
-            $imageType = exif_imagetype($file['tmp_name']);
-            if (!$imageType || !in_array($imageType, [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP])) {
-                throw new Exception('Invalid endorsement attachment image file');
-            }
-        }
-
-        // Generate secure filename with date and unique ID
-        $uniqueId = bin2hex(random_bytes(16));
-        $dateFolder = date('Y-m-d'); // Organize by date: 2026-01-09
-        $safeFileName = 'endorsement_' . date('YmdHis') . '_' . $uniqueId . '.' . $extension;
-
-        // Create uploads directory with date subfolder for better organization
-        $uploadDir = '../public/uploads/endorsements/' . $dateFolder . '/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0750, true);
-        }
-
-        $targetPath = $uploadDir . $safeFileName;
-
-        // Move uploaded file
-        if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
-            throw new Exception('Failed to save endorsement attachment file');
-        }
-
-        // Store relative path for database (accessible via web)
-        $endorsement_attachment_path = 'uploads/endorsements/' . $dateFolder . '/' . $safeFileName;
+        $endorsement_attachment_path = store_secure_image_upload($_FILES['endorsement_attachment'], 'endorsements', 'endorsement');
     }
 
     // Get current user ID

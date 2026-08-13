@@ -45,7 +45,7 @@ if ($status_filter !== 'all') {
     $where[] = "pf.status = ?";
     $params[] = $status_filter;
 }
-if ($user_filter > 0) {
+if ($is_admin && $user_filter > 0) {
     $where[] = "pf.created_by = ?";
     $params[] = $user_filter;
 } elseif (!$is_admin) {
@@ -74,7 +74,7 @@ if ($compare_mode) {
         $prev_where[] = "pf.status = ?";
         $prev_params[] = $status_filter;
     }
-    if ($user_filter > 0) {
+    if ($is_admin && $user_filter > 0) {
         $prev_where[] = "pf.created_by = ?";
         $prev_params[] = $user_filter;
     } elseif (!$is_admin) {

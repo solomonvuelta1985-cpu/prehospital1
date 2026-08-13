@@ -5,9 +5,9 @@
  */
 
 define('APP_ACCESS', true);
-require_once '../includes/config.php';
-require_once '../includes/functions.php';
-require_once '../includes/auth.php';
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/auth.php';
 
 // Security headers
 header('Content-Type: application/json');
@@ -16,6 +16,10 @@ header("X-Content-Type-Options: nosniff");
 
 // Require authentication
 require_login();
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    json_response(['success' => false, 'message' => 'Invalid request method'], 405);
+}
 
 // Get current user
 $current_user = get_auth_user();
@@ -28,6 +32,10 @@ try {
 
     if (!$data) {
         throw new Exception('Invalid data format');
+    }
+
+    if (!verify_token($data['csrf_token'] ?? '')) {
+        json_response(['success' => false, 'message' => 'Invalid security token'], 403);
     }
 
     // Check if updating existing draft or creating new
